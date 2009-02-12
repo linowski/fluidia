@@ -1650,39 +1650,59 @@ var fWorkspace = {
 				// adjust properties
 				$("#" +instance).css({left: x, top: y, width: width, height: height});
 
-				//TODO fix this
-				// CONTAINS 
-				if (instRefState.hasOwnProperty("contains")) {
-					//load contents from instance 
-					var count = 0;
-					for (k in instRefState.contains) if (instRefState.contains.hasOwnProperty(k)) count++;
-					//if they have anything inside
-					if (count > 0) {
-						//add references to instances to the array if instances are found
-						lookInsideRefArray.push(instRefState.contains);
-						//and remember in the parent instances, in order to attach to later
-						attachWhereArray.push(instance);
-						//alert('instance: ' + instance + ' i ');
-					}
-					
-					//load contents from object
-					count = 0;
-					for (k in objRefState.contains) if (objRefState.contains.hasOwnProperty(k)) count++;
-					//if they have anything inside and inheritance is active 
-					if ((count > 0) && (instRefState.iContents == 1)) {
-						lookInsideRefArray.push(objRefState.contains);
-						//and remember in the parent instances, in order to attach to later
-						attachWhereArray.push(instance);
-						//alert('instance: ' + instance + ' o ');
-					}
-					
-					
-				}
 
-				
+				// CONTAINS 
+				// if editing as object just load master object's
+				if (fSession[instance].editAs == 0) {
+					if (objRefState.hasOwnProperty("contains")) {
+						//load contents from object
+						count = 0;
+						for (k in objRefState.contains) 
+							if (objRefState.contains.hasOwnProperty(k)) 
+								count++;
+						//if they have anything inside
+						if (count > 0) {
+							lookInsideRefArray.push(objRefState.contains);
+							//and remember in the parent instances, in order to attach to later
+							attachWhereArray.push(instance);
+							//alert('instance: ' + instance + ' o ');
+						}
+					}
+				}
+				// if editings as instance
+				else {
+					if (instRefState.hasOwnProperty("contains")) {
+						//load contents from instance 
+						var count = 0;
+						for (k in instRefState.contains) 
+							if (instRefState.contains.hasOwnProperty(k))
+								count++;
+						//if they have anything inside
+						if (count > 0) {
+							//add references to instances to the array if instances are found
+							lookInsideRefArray.push(instRefState.contains);
+							//and remember in the parent instances, in order to attach to later
+							attachWhereArray.push(instance);
+							//alert('instance: ' + instance + ' i ');
+						}
+					}
+						
+					if (objRefState.hasOwnProperty("contains")) {
+						//load contents from object
+						count = 0;
+						for (k in objRefState.contains) 
+							if (objRefState.contains.hasOwnProperty(k)) count++;
+							//if they have anything inside and inheritance is active 
+							if ((count > 0) && (instRefState.iContents == 1)) {
+							lookInsideRefArray.push(objRefState.contains);
+							//and remember in the parent instances, in order to attach to later
+							attachWhereArray.push(instance);
+						//alert('instance: ' + instance + ' o ');
+						}
+					}
+				}
 			}
 		}
-		
 		
 		if (options.type == 'page') {
 		//make draggable / resizable selected items
@@ -1928,8 +1948,8 @@ var fToggleEdit = {
 		$("#fSInherit").text('State\'s');
 		
 		//hide Checkboxes & kill pointer cursor
-		//$(".fSCheck").hide();
-		//$(".fSTitle").css("cursor","default");
+		$(".fSCheck").hide();
+		$(".fSTitle").css("cursor","default");
 		
 		this.redrawFooter();
 		
