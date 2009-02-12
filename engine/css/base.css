@@ -1,0 +1,608 @@
+html,body{margin:0;padding:0}
+body{font-family: arial, sans-serif; margin:0;}
+input { padding: 0; margin: 0px;}
+a { outline: none; }
+
+div#header{position:relative; background: #f3f3f3; margin-bottom: 2px;}
+div#header h1{height:40px;line-height:80px;margin:0; padding-left:10px; color: #79B30B}
+div#header a{position:absolute;right:0;top:23px}
+
+div#toolbox{background:#f3f3f3; float:left;width:36px;margin-left:-100%;}
+
+div#rightpanel{background:#f3f3f3; float:left;width:140px;margin-left: -140px; font-size: 9px; position: relative; }
+
+div#wrapper{float:left;width:100%; margin-bottom: 2px; }
+div#fWorkspace{margin: 0 102px 0 38px; position: absolute;}
+div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:100% -10; height: 52px;  font-size: 10px;}
+
+
+
+/* Text */
+.fT9 {
+	font: 9px verdana;
+	color: #CCCCCC;
+}
+.fT12 {
+	font: 12px verdana;
+	color: #ffffff;
+}
+
+.fT11 {
+	font: 11px verdana;
+	color: #cccccc;
+}
+
+.fTI {
+	font-style: italic;
+}
+
+.fTDim {
+	color: #999999;
+}
+
+.fTsmall {
+	font: bold 10px verdana;
+	color: #ffffff;
+}
+
+
+
+
+/* Panels */
+.panel {
+	width: 138px;
+	background-color: #ffffff;
+	border: 1px solid #666666;
+	margin-bottom: 3px;
+	position: absolute;
+	right: 0px;
+	height: 100%;
+}
+#fRightClickMenu {
+	width: 200px;
+	background-color: #ffffff;
+	border: 1px solid #666666;
+	margin-bottom: 3px;
+	position: absolute;
+	right: 0px;
+}
+
+#fRightClickMenu div a {
+	font-family: verdana;
+	font-size: 9px;
+	color: #616DB4;
+	text-decoration:none;
+}
+	
+
+
+.fPanelItemsList {
+	overflow:hidden;
+	clear:left;
+	position:relative;
+	cursor: auto;
+}
+
+.panelItemsListCollapse {
+	height: 108px;
+}
+
+.panelArrowUp {
+	display: none;
+	height: 6px;
+	background: #AAB0D7 url('../images/buttonArrowUp_off.gif') no-repeat top center;
+}
+.panelArrowUpHover {
+	background: #616DB4 url('../images/buttonArrowUp_over.gif') no-repeat top center;
+}
+
+.panelArrowDown {
+	display: none;
+	height: 6px;
+	background: #AAB0D7 url('../images/buttonArrowDown_off.gif') no-repeat top center;
+}
+.panelArrowDownHover {
+	background: #616DB4 url('../images/buttonArrowDown_over.gif') no-repeat top center;
+}
+
+
+.panelTitle {
+	padding:4px;
+	padding-left: 17px;
+	font-family: verdana;
+	font-size: 10px;
+	font-weight: bold;
+	color: #ffffff;
+	background-color: #888888;
+	margin-bottom: 1px;
+	background-image: url('../images/blank.gif');
+}
+
+
+.panelItem, #fRightClickMenu div {
+	padding: 1px;
+	padding-left:4px;
+	background-color: #F4F4F4;
+	font-family: verdana;
+	font-size: 9px;
+	color: #616DB4;
+	margin-bottom: 1px;
+}
+
+.panelItemSelected {
+	background-color: #616DB4 !important; 
+	color: #ffffff !important;
+}
+
+.fPanelItemsList div:hover, #fRightClickMenu div:hover{ 
+	background-color: #E5E5E5;
+}
+
+.panelIcons {
+	padding: 1px;
+	padding-left:4px;
+	background-color: #F4F4F4;
+	width: auto;
+	text-align: right;
+	bottom: 0px;
+}
+
+
+
+
+
+/* Workspace and items inside of it */
+
+.fWorkspace {
+	border: solid 1px #dFdFdF;
+	overflow: hidden;
+	position: absolute;
+}
+
+.fObject, .fWorkspace.selected * {
+	border: 1px solid #cfcfcf;
+	background-color: #ffffff;
+	position: absolute;
+}
+
+div.fObject:hover {
+	/*border: 1px solid #FF6600;
+	background-color: #f9f9f9;*/
+}
+
+.element {
+	border-style: dotted !important;
+}
+
+
+.hotspot {
+	opacity: 0.20 !important;
+	background-color: #ff0000 !important;
+}
+
+
+.parent {
+	background-image: url('../images/bg_parent.gif');
+	background-position: top right;
+	background-repeat: no-repeat;
+}
+
+.selected {
+	border-color: #353E6F;
+	background-image: url('../images/bg_selected.gif');
+	background-position: top right;
+	background-repeat: no-repeat;
+}
+.selectedInst {
+	border-color: #D95700;
+	background-image: url('../images/bg_selectedInst.gif');
+}
+
+
+.resizable {
+	border-style: dashed !important;
+}
+
+
+.selected div.fObject { 
+	border-color: #8C95C8;
+	background-image: url('../images/bg_child.gif');
+	background-position: top right;
+	background-repeat: no-repeat;
+	cursor: auto;
+}
+.selectedInst div.fObject {
+	border-color: #FF9E5E;
+	background-image: url('../images/bg_childInst.gif');
+}
+
+
+/*cursor handling*/
+.cursorMove {
+	cursor: move;	
+}
+
+div.resizable {
+	cursor: auto;	
+}
+
+
+
+.cursorCrosshair {
+	cursor: crosshair;
+}
+
+/*********/
+
+
+#fNoneSelectedHolder {
+	position: absolute;
+	bottom: 5px;
+	left: 5px;
+	height: 54px;
+	
+}
+
+#fObjInstHolder {
+	position: absolute;
+	bottom: 5px;
+	left: 5px;
+	height: 54px;
+	display: none;
+}
+
+#fObjLeft, #fInstLeft {
+	width: 3px;
+	height: 100%;
+	display: inline;
+	float: left;
+}
+
+#fObjCore, #fInstCore, #fStates {
+	height: 100%;
+	display: inline;
+	float: left;
+	padding: 0 3px 0 3px;
+}
+#fObjCore .fIcons, #fInstCore .fIcons, #fStates .fIcons {
+	padding: 4px 0px 0px 0px;
+}
+
+#fObjRight, #fInstRight {
+	width: 3px;
+	height: 100%;
+	display: inline;
+	float: left;
+}
+
+#fObjName, #fInstName, #fStateName {
+	display: inline-block;
+}
+
+.fEditingInst #fObjName { color: #8C95C8; text-decoration: none; }
+.fEditingInst #fObjCore div.fCenter { visibility: hidden;  }
+
+.fEditingObj #fObjLeft, .fObjOver #fObjLeft { background: url('../images/bg_fObjLeft.png') no-repeat top left; }
+.fEditingObj #fObjCore, .fObjOver #fObjCore { background: #616DB4; color: #ffffff; }
+.fEditingObj #fObjName, .fObjOver #fObjName { color: #FFFFFF; text-decoration: none; }
+.fEditingObj #fObjCore div.fCenter, .fObjOver #fObjCore div.fCenter { visibility: visible; color: #B1B8DA; }
+.fEditingObj #fObjRight, .fObjOver #fObjRight { background: url('../images/bg_fObjRight.png') no-repeat top right; }
+
+.fEditingObj #fInstName { color: #FF6600; text-decoration: none; }
+.fEditingObj #fInstCore div.fCenter { visibility: hidden; }
+
+.fEditingInst #fInstLeft, .fInstOver #fInstLeft  { background: url('../images/bg_fInstLeft.png') no-repeat top left; }
+.fEditingInst #fInstCore, .fInstOver #fInstCore  { background: #FF6600; color: #ffffff;  }
+.fEditingInst #fInstName, .fInstOver #fInstName  { color: #FFFFFF; text-decoration: none;  }
+.fEditingInst #fInstCore div.fCenter, .fInstOver #fInstCore div.fCenter { visibility: visible; color: #FFBF95;  }
+.fEditingInst #fInstRight, .fInstOver #fInstRight   { background: url('../images/bg_fInstRight.png') no-repeat top right; }
+
+
+#fStateName { color: #FFFFFF; text-decoration: none; padding-top: 16px;}
+
+.fWSTitle {
+	display: inline;
+	float: left;
+	padding-top: 16px;
+}
+
+#fStatesLeft {
+	display: inline;
+	float: left;
+	height: 100%;
+	background: url('../images/bg_fStateLeft.png') no-repeat top left;
+	width: 94px;
+}
+#fStatesCore {
+	display: inline;
+	float: left;
+	height: 100%;
+	background-color: #4c4c4c;
+	width: 520px;
+	padding-left: 3px;
+}
+
+#fWHXYHolder{
+	position: relative;
+	left: 200px;
+	top: -40px;
+}
+#fStatesRight {
+	display: inline;
+	float: left;
+	height: 100%;
+	background: url('../images/bg_fStateRight.png') no-repeat top left;
+	width: 4px;
+}
+
+.fStatesButtons {	padding: 0 0 0 10px; }
+.fStatesButtons a {	padding-bottom: 2px; }
+
+#fSInherit {
+	position: absolute; 
+	top: 0px;
+	left: -185px;
+	width: 180px;
+	text-align: right;
+}
+#fSSize,#fSPos,#fSContents,#fSEvents {
+	display: inline; float: left; padding-right: 20px;
+}
+.fSCheck {
+	display: inline; float: left; padding: 0 2px 0 0; margin: 2px 0 0 1px;
+	background: url('../images/checkbox_on.png') no-repeat top left;
+	width: 10px; 
+	height: 10px;
+	cursor: pointer;
+}
+.fSTitle {
+	display: inline; float: left;
+	padding: 0 0 2px 0;
+	color: #8C95C8;
+	cursor: pointer;
+}
+.fSInputLetter {
+	clear: left;
+	margin: 2px 0 2px -14px;
+	display: inline; float: left;
+}
+.fSInput {
+	display: inline; float: left;
+	margin-left: -1px;
+}
+.fSInput input {
+	font-size: 10px; height: 15px; background-color: #626FB5; font-family: arial; border: 1px solid #3F4985; color: #ffffff;  padding: 1px; margin-left: 2px;
+}
+
+/* off/unchecked state */
+.fSOff div input {
+	font-size: 10px; height: 15px; background-color: #FF6600; font-family: arial; border: 1px solid #CA5100; color: #ffffff;  padding: 1px; margin-left: 2px;
+}
+.fSOff .fSTitle {
+	color: #FF6600;
+}
+
+.fSOff .fSCheck {
+	background: url('../images/checkbox_off.png') no-repeat top left;
+}
+
+
+
+.fCB1 {
+	/*any way to make this smaller?*/
+}
+
+
+
+.fFooterLink {
+	color: #ffffff;
+}
+
+#fFooterTitle {
+	display: inline;
+	float: left;
+	padding: 18 5 0 0;
+}
+
+.fFooterDivider {
+	color: #ffffff;
+	font-family: verdana;
+	font-size: 12px;
+	
+	display: inline;
+	float: left;
+	padding: 16 5 0 5;
+}
+
+
+
+
+
+
+
+textarea {
+	font-family: verdana;
+	font-size: 11px;
+	padding: 3px;
+	background-color: transparent !important;
+}
+
+
+
+
+
+.fEditable {
+	display: block;
+	width: 100%;
+	height: 15px;
+	border-top: 1px solid #CFCFCF;
+	border-bottom: 1px solid #CFCFCF;
+	background-color: #ffffff;
+	padding-left: 4px;
+	padding-top: 0px;
+	
+	font-size: 9px;
+	font-family: verdana;
+}
+
+
+.fCenter {
+	text-align: center;
+	height: 14px;
+	padding-top: 2px;
+}
+
+#fEventManager {
+	width: 238px;
+	background-color: #ffffff;
+	border: 1px solid #666666;
+	margin-bottom: 3px;
+	float:right;
+	top: 100px;
+	left: 100px;
+	position: absolute;
+	
+	background: #333333; color: #dfdfdf; padding:5px;
+}
+
+
+/* State Manager Stuff */
+#fStateManager {
+	position: absolute;
+	height: 80px;
+	top: 100px;
+	left: 100px;
+	display: none;
+}
+
+#fSMLeft {
+	height: 80px;
+	width: 7px;
+	background: url('../images/bg_smLeft.png') no-repeat top right;
+	display: inline;
+	float: left;
+}
+
+#fSMCore {
+	height: 80px;
+	background: url('../images/bg_smCore.png') repeat-x top right;
+	float: left;
+	padding-right: 5px;
+	padding-top: 5px;
+	margin: 0px;
+	font-size: 1px;
+}
+
+#fSMRight {
+	height: 80px;
+	width: 7px;
+	background: url('../images/bg_smRight.png') no-repeat top right;
+	float: left;
+}
+
+.fSMTitle1 {
+	text-align: right;
+	vertical-align: bottom;
+	float: left;
+	margin: 2px 4px 0 0;
+	width: 95px;
+	height: 80px;
+	position: relative;
+}
+
+#fSMStateName {
+	white-space: nowrap;
+	vertical-align: top;
+	padding: 0px;
+	margin: 0px;
+}
+
+
+
+.fSMState {
+	float: left;
+	padding: 0 3px 0 0;
+	margin: 0px;
+	width: 36px;
+	text-align: center;
+	vertical-align: top;
+	position: relative;
+}
+.fSMState input {
+	position: absolute;
+	left: 11px;
+	bottom: -17px;
+	margin: 0px;
+	padding: 0px;
+	width: 14px;
+	height: 14px;
+}
+
+.fSMArrows {
+	padding: 3px 3px 0 3px;
+	width: 20px;
+}
+.fSMStarting {
+	display: block;
+	position: absolute;
+	bottom: 13px;
+	right: 0px;
+	color: #8C95C8;
+}
+
+
+
+
+
+
+#fCBManager {
+	position: absolute;
+	width: 270px;
+	top: 100px;
+	left: 100px;
+	display: none;	
+}
+#fCBTop {
+	background: url('../images/bg_cpTop.png') no-repeat;	
+	height: 7px;
+}
+#fCBCore {
+	background: url('../images/bg_cpCore.png');	
+	padding: 0px 10px 0 10px;
+}
+#fCBBottom {
+	background: url('../images/bg_cpBottom.png') no-repeat;	
+	height: 7px;
+}
+
+
+
+
+
+
+#fTempJData {
+	width: 650px;
+	height: 550px;
+	background-color: #ffffff;
+	border: 1px solid #666666;
+	margin-bottom: 3px;
+	float:right;
+	top: 20px;
+	left: 400px;
+	position: absolute;
+	color: #000000; padding:5px;
+}
+#fTempJData textarea {
+	width: 100%;
+	height: 100%;
+}
+
+
+
+#cbMini{
+	float: right;
+	position: relative;
+	width: 112px;
+	height: 51px;
+	background: url('../images/cbMini.png') no-repeat top right;
+}

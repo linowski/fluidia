@@ -1,0 +1,194 @@
+{
+//project data
+"project": [],
+
+//non instance elemenets
+"noninstances?" : { //hotspots, text, images, form elements?
+},
+
+// instances
+"instances" : {
+	"ins1" : {
+		"of" : "obj1",
+		"p" : "somewhereinst2", //parent
+		"type?" : "?", 
+		"states" : {
+			"s1" : {
+				"iPos" : 1,
+				"iSize" : 1,
+				"iContents" : 1,
+				"iEvents" : 0,
+				"x" : 20,
+				"y" : 40,
+				"className" : "",
+				"contains" : {
+					"ins2" : "",
+					"ins3" : ""
+				}
+			},
+			"s2" : {
+				"iPos" : 0,
+				"iSize" : 1,
+				"iContents" : 1,
+				"iEvents" : 0,
+				"x" : 20,
+				"y" : 40,
+				"className" : "",
+				"contains" : {
+				}
+			}
+		}
+	},
+	"ins2" : {
+		"of" : "obj2",
+		"states" : {
+			"s1" : {
+				"iPos" : 1,
+				"iSize" : 1,
+				"iContents" : 0,
+				"iEvents" : 0,
+				"x" : 20,
+				"y" : 50,
+				"contains" : {}
+			}
+		}
+	},
+	"ins3" : {
+		"of" : "obj2",
+		"states" : {
+			"s1" : {
+				"iPos" : 0,
+				"iSize" : 1,
+				"iContents" : 0,
+				"iEvents" : 0,
+				"x" : 180,
+				"y" : 50,
+				"contains" : {}
+			}
+		}
+	},
+	"ins4" : {
+		"of" : "obj3",
+		"states" : {
+			"s1" : {
+				"iPos" : 1,
+				"iSize" : 1,
+				"iContents" : 0,
+				"iEvents" : 0,
+				"x" : 70,
+				"y" : 50,
+				"w" : 250,
+				"h" : 250,
+				"contains" : {}
+			}
+		}
+	},
+	"ins5" : {
+		"of" : "obj2",
+		"states" : {
+			"s1" : {
+				"iPos" : 1,
+				"iSize" : 1,
+				"iContents" : 0,
+				"iEvents" : 0,
+				"contains" : {}
+			}
+		}
+	}
+},
+
+
+
+"pages": {
+	"page1" : { 
+		"pageName" : "Page One ",
+		"author" : "",
+		"contains" : { "ins1" : 1, "ins4" : 0 } //TODO 0 or 1s for display or not (content manager)
+	},
+	"page2" : {
+		"pageName" : "Page Two",
+		"contains" : { "ins5" : "" }
+	}
+},
+
+
+	
+"objects": {
+	"obj1" : {
+		"name" : "Header",
+		"allInstances" : { "ins1" : 1}, //maybe a list of all instances so that they can be easily scrolled through? alternative structure, all instances = flat + know who is their parent (could be problematic when trying to attach an instance to an instance which does not yet exist) //maybe references to them? // or just auto generate all the time when necessary?
+		"className" : "",
+		"defState" : "s1", 
+		"states" : {
+			"s1" : {
+				"sName" : "State Name",
+				"x" : 23,
+				"y" : 10,
+				"w" : 200,
+				"h" : 200,
+				"z-index" : 1,
+				"contains" : {}
+			},
+			"s2" : {
+				"sName" : "State Name 2",
+				"iPos" : 0,
+				"iSize" : 1,
+				"iContents" : 1,
+				"iEvents" : 0,
+				"x" : 23,
+				"y" : 10,
+				"w" : 200,
+				"h" : 200,
+				"className" : "",
+				"contains" : {
+				}
+			}
+		},
+		"events" : [
+				//array with events? attached to obj or states?
+		]
+	},
+	"obj2" : {
+		"name" : "Footer",
+		"allInstances" : { "ins2" : 1,"ins3" : 1,"ins5" : 1}, 
+		"defState" : "s1", 
+		"states" : {
+			"s1" : {
+				"sName" : "State Name",
+				"x" : 40,
+				"y" : 50,
+				"w" : 30,
+				"h" : 30,
+				"z-index" : 1,
+				"contains" : {}
+			}
+		},
+		"events" : [
+				//array with events? attached to obj or states?
+		]
+	},
+	"obj3" : {
+		"name" : "Footer33",
+		"allInstances" : { "ins4" : 1}, 
+		"defState" : "s1", 
+		"states" : {
+			"s1" : {
+				"x" : 63,
+				"y" : 190,
+				"w" : 200,
+				"h" : 100,
+				"z-index" : 1,
+				"contains" : {}
+			}
+		},
+		"events" : [
+				//array with events? attached to obj or states?
+		]
+	}
+},
+
+
+"altObject": { //or just put them inside objects and give them type=alt ?
+}
+}
+
