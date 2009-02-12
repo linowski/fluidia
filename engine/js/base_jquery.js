@@ -1964,6 +1964,10 @@ var fToggleEdit = {
 		
 		//change text
 		$("#fSInherit").text('State inherits');
+		
+		//show Checkboxes & allow for pointing cursor
+		$(".fSCheck").show();
+		$(".fSTitle").css("cursor","pointer");
 			
 		this.redrawFooter();	
 		
@@ -1974,9 +1978,7 @@ var fToggleEdit = {
 		//update statename
 		$("#fStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
 		
-		//show Checkboxes & allow for pointing cursor
-		$(".fSCheck").show();
-		$(".fSTitle").css("cursor","pointer");
+		
 		
 		//update inheritance properties
 		if(fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {	fStates.fSCheck('fSSize',false); }
