@@ -1627,6 +1627,8 @@ var fWorkspace = {
 				
 				//clear item's children 
 				$("#" + instance).children().remove();
+				//bug fix: removal of children disables resizability. turn resizability if it is supposed to be on
+				if(myresize == instance) {killResizable(); makeResizable(instance);}
 				
 				// grab properties from object
 				var x = objRefState.x;
