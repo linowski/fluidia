@@ -546,6 +546,9 @@ function toolSelectDo(event) {
 
 	//clear resizable?
 	killResizable();
+	
+	//if clicked on label, grab the parent element
+	if(element.attr("class") == "fLabel") {element = element.parent().parent();}
 
 	//make the new element draggable (if its not the workspace and it is not already selected (the same object))
 	if ((element.attr("id") != "fWorkspace") && (lastDraggable != element)) {
@@ -630,24 +633,29 @@ function resizeStop() {
 		var itemRef = "";
 		
 		//calculate necessary relative position change
-		//first find out the old position of selected object (either from jObj or jInst depending on inheritance)
-		if (fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
-			initx = fSel.jInst.states[fSession[fSel.nInst].state].x;
-			inity = fSel.jInst.states[fSession[fSel.nInst].state].y;
-		}
-		else {
+		//if editing as object master
+		
+		if (fSession[fSel.nInst].editAs == 0) {
 			initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
 			inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
 		}
-		//initx = $("#" +fSel.nInst).x;
-		//inity = $("#" +fSel.nInst).y;
-		// need precise x an y here 
-		// if editing as object grab objects ... if editing as instance grab instance?
-		
+		//else instance
+		else {
+			//if not inheriting from object
+			if(fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
+				initx = fSel.jInst.states[fSession[fSel.nInst].state].x;
+				inity = fSel.jInst.states[fSession[fSel.nInst].state].y;
+			}
+			//if inheriting from object
+			else {
+				initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
+				inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
+			}
+		}
+		//calculate difference in positional change
 		changeX = $("#" + fSel.sInstances[i]).position().left - initx;
 		changeY = $("#" + fSel.sInstances[i]).position().top - inity;
 		
-		alert(changeX + ":" + changeY)
 		//if 0 editing as Object
 		if(fSel.editAs == 0) { 
 			itemRef = fSel.jObj;
@@ -666,7 +674,7 @@ function resizeStop() {
     		}
 			
 			//also update the object of course
-			alert(changeX + ":" + changeY)
+			//alert(changeX + ":" + changeY)
 			jO.update(fSel.nInst,{type : "object",xs : changeX, ys: changeY, w : $("#" + fSel.sInstances[i]).width(), h : $("#" + fSel.sInstances[i]).height()});
 		}
 		//else editing as Instance
@@ -2072,8 +2080,6 @@ var fToggleEdit = {
 	redrawFooter : function () {
 		//update statename
 		$("#fStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
-		
-		
 		
 		//update inheritance properties
 		if(fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {	fStates.fSCheck('fSSize',false); }
