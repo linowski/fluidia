@@ -3,7 +3,14 @@
 "project": [],
 
 //non instance elemenets
-"noninstances?" : { //hotspots, text, images, form elements?
+"elements" : { //hotspots, text, images, form elements?
+	"t1" : {
+		"x" : 10,
+		"y" : 10,
+		"w" : 100,
+		"h" : 20,
+		"txt" : "Text Text!"
+	}
 },
 
 // instances
@@ -22,8 +29,6 @@
 				"y" : 40,
 				"className" : "",
 				"contains" : {
-					"ins2" : "",
-					"ins3" : ""
 				}
 			},
 			"s2" : {
@@ -127,7 +132,11 @@
 				"w" : 200,
 				"h" : 200,
 				"z-index" : 1,
-				"contains" : {}
+				"contains" : {
+					"ins2" : "",
+					"ins3" : "",
+					"t1" : ""
+				}
 			},
 			"s2" : {
 				"sName" : "State Name 2",
@@ -135,7 +144,7 @@
 				"iSize" : 1,
 				"iContents" : 1,
 				"iEvents" : 0,
-				"x" : 23,
+				"x" : 20,
 				"y" : 10,
 				"w" : 200,
 				"h" : 200,
@@ -149,7 +158,7 @@
 		]
 	},
 	"obj2" : {
-		"name" : "Footer",
+		"name" : "Box",
 		"allInstances" : { "ins2" : 1,"ins3" : 1,"ins5" : 1}, 
 		"defState" : "s1", 
 		"states" : {
@@ -157,7 +166,7 @@
 				"sName" : "State Name",
 				"x" : 40,
 				"y" : 50,
-				"w" : 30,
+				"w" : 80,
 				"h" : 30,
 				"z-index" : 1,
 				"contains" : {}
@@ -168,14 +177,14 @@
 		]
 	},
 	"obj3" : {
-		"name" : "Footer33",
+		"name" : "Footer",
 		"allInstances" : { "ins4" : 1}, 
 		"defState" : "s1", 
 		"states" : {
 			"s1" : {
-				"x" : 63,
-				"y" : 190,
-				"w" : 200,
+				"x" : 20,
+				"y" : 390,
+				"w" : 600,
 				"h" : 100,
 				"z-index" : 1,
 				"contains" : {}

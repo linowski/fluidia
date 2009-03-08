@@ -84,7 +84,8 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 }
 
 .panelItemsListCollapse {
-	height: 108px;
+	position: relative;
+	height: -40px;
 }
 
 .panelArrowUp {
@@ -100,6 +101,8 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	display: none;
 	height: 6px;
 	background: #AAB0D7 url('../images/buttonArrowDown_off.gif') no-repeat top center;
+	position: relative;
+	bottom: 0px;
 }
 .panelArrowDownHover {
 	background: #616DB4 url('../images/buttonArrowDown_over.gif') no-repeat top center;
@@ -139,12 +142,12 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 }
 
 .panelIcons {
-	padding: 1px;
-	padding-left:4px;
 	background-color: #F4F4F4;
-	width: auto;
+	width: 100%;
 	text-align: right;
 	bottom: 0px;
+	right: 0px;
+	position: absolute;
 }
 
 
@@ -159,27 +162,47 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	position: absolute;
 }
 
-.fObject, .fWorkspace.selected * {
+.fObject, .fWorkspace.selected div.fObject {
 	border: 1px solid #cfcfcf;
 	background-color: #ffffff;
 	position: absolute;
+	text-align:center;
+}
+.fText {
+	border: 1px solid #ffffff;
+	background-color: #ffffff;
+	background: url('../images/bg_txt01.png') repeat-y;
+	position: absolute;
+	font-size: 12px;
+}
+.fTextHasTxt {
+	border: 1px solid transparent;
+	background: url('');
+}
+.fLabelHolder {
+	width: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	position: absolute;
+	display: table-cell; vertical-align: middle;
+	font-size: 12px;
+	color: #6f6f6f;
+	top:50%;
+}
+.fLabel {
+	position: relative;
+	top:-5px;
+}
+.fLBracket{
+	
 }
 
-div.fObject:hover {
-	/*border: 1px solid #FF6600;
-	background-color: #f9f9f9;*/
+div.fText:hover,div.fTextHasTxt:hover,div.fObject:hover{
+	border: 1px solid #333333;
 }
-
-.element {
-	border-style: dotted !important;
+div.fLabel:hover {
+	color: #333333;
 }
-
-
-.hotspot {
-	opacity: 0.20 !important;
-	background-color: #ff0000 !important;
-}
-
 
 .parent {
 	background-image: url('../images/bg_parent.gif');
