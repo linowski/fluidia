@@ -44,6 +44,8 @@ $(document).ready(function(){
 
 	//first tool
 	toolSelect();
+	
+	$("div.fObject").live("dblclick", makeResizable); //unique
 });
 
 
@@ -173,7 +175,33 @@ function keypressed(event) {
 	
 	// c key
 	if (whichkey == "67") { cPressed = true; fCBManager.displayManager(); }
+	
+	// 1 key
+	if (whichkey == "49") { setPriority(1); }
+	
+	// 2 key
+	if (whichkey == "50") { setPriority(2); }
+	
+	// 3 key
+	if (whichkey == "51") { setPriority(3); }
+	
+	// 4 key
+	if (whichkey == "52") { setPriority(4); }
+	
+	// 5 key
+	if (whichkey == "53") { setPriority(5); }
+}
 
+
+
+function setPriority(what){
+	if (fSel.nInst != "") {
+		//remove all classes
+		$("#" + fSel.nInst).removeClass("p1 p2 p3 p4 p5");
+		
+		//add
+		$("#" + fSel.nInst).addClass("p" + what);
+	}
 }
 
 
@@ -358,6 +386,10 @@ function makeResizable(event){
 	//can take an event or an instance name
 	if(typeof event == "object") {
 		var element=$(event.target).attr("id");
+		event.stopPropagation();
+		
+		//only resize fObject (as a result of nested events, items within fObject also call the resize function)
+		if($(event.target).hasClass("fObject") == false) {return false;}
 	}
 	else {
 		var element=event;
@@ -371,7 +403,7 @@ function makeResizable(event){
 
 	//make resizable
 	myresize = element;
-	$("#"+myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
+	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
 }
 
 
@@ -396,13 +428,6 @@ function Draw(event){
 
 
 	this.onmousedown=function(){
-		//disable select
-		Unselectable.enable;
-		
-		// not on the clicked element, but on the selected
-		offsetx = drawWhere.offset().left;
-		offsety = drawWhere.offset().top;
-
 		// do not allow to draw by default
 		allowDraw = false;
 
@@ -421,9 +446,21 @@ function Draw(event){
 				}
 			}
 		}
+		
+		//do not allow to draw if drawing tools are not chosen
+		if ((selectedTool != "toolObject") && (selectedTool != "toolText")) {
+			allowDraw = false;
+		}
 
 		// draw rectangle
 		if (allowDraw == true) {
+			//disable select
+			Unselectable.enable;
+			
+			// not on the clicked element, but on the selected
+			offsetx = drawWhere.offset().left;
+			offsety = drawWhere.offset().top;
+			
 			// - parent's position?
 			initx=posx - offsetx;
 			inity=posy - offsety;
@@ -468,7 +505,7 @@ function Draw(event){
 			Unselectable.disable;
 			
 			// listen for double click to resize it
-			$(d).bind("dblclick",makeResizable);
+			//$(d).bind("dblclick",makeResizable);
 			
 			//create the object in JSON
 			//INSTANCE
@@ -519,6 +556,10 @@ function Draw(event){
 			//update Workspace
 			fWorkspace.redraw({type: 'object',item : fSel.jInst.of}); 
 			
+			//edit Label Mode
+			$(d).fEditableLabel();
+			
+			
 			
 		}
 	}
@@ -555,7 +596,10 @@ function toolSelectDo(event) {
 
 		//only continue if not a right click (which is reserved for a different handler)
 		if(event.button != 2) {
-			fSel.selectObject(element); //change its class and update selectedObject
+			//only allow to select fObjects or fText
+			if((element.attr("class").match("fObject")) || (element.attr("class").match("fText"))) {
+				fSel.selectObject(element); //change its class and update selectedObject
+			}
 		};
 	}
 	if (element.attr("id") == "fWorkspace") {
@@ -760,9 +804,42 @@ function closeEditing(){ // if I have "blur change" together AIR crashes
 	clickedElement.show();
 	hotkeysEnable();
 	inputElement.remove();
+	
+	$(window).unbind("click",closeEditing);
 }
 
+$.fn.fEditableLabel = function() {
+	fWorkspace.allowSaveLabel = true; //a safety fix to stop from saveLavel running twice from multiple event triggers
+	
+	clickedElement = this;
+	//sometimes an fLabel element is passed, and sometimes the fObject or instance element is passed
+	//if it's an fLabel, go up two levels 
+	if($(clickedElement).attr("id") == "") {
+		clickedElement = $(clickedElement).parent().parent();
+	}
 
+	objref = jO.jData.objects[jO.jData.instances[$(clickedElement).attr("id")].of];
+	clickedElement = $("#" + clickedElement.attr("id"));
+	
+	//save clickedElement for future reference
+	fWorkspace.editingLabelInstance = clickedElement.attr("id");
+	
+	//overlay an input box on top of the double clicked div
+	if ((objref.name == "") || (objref.name == "New Object")) {
+		clickedElement.find(".fLabel").html('<span class="fLBracket">[</span> <input class="fEditable fEditableLabel" id="fEditing" type="box" value=""></input>  <span class="fLBracket">]</span>');
+	}
+	else {
+		clickedElement.find(".fLabel").html('<span class="fLBracket">[</span> <input class="fEditable fEditableLabel" id="fEditing" type="box" value="' + objref.name + '"></input>  <span class="fLBracket">]</span>');
+	}
+
+	//focus the newly created editable input box
+	clickedElement.find(".fEditableLabel").focus();
+	hotkeysDisable(); //because people will be typing
+
+	//attach on change
+	clickedElement.find(".fEditableLabel").bind("change blur",fWorkspace.saveLabel);
+	$(window).bind("click",fWorkspace.saveLabel);
+}
 
 
 
@@ -1596,6 +1673,8 @@ var fEventManager = {
 
 // -------- fWorkspace Object -----
 var fWorkspace = {
+	allowSaveLabel : false,
+	editingLabelInstance : null,
 	clear : function() {
 		//alert('clear');
 		$("#fWorkspace").children().remove();
@@ -1670,10 +1749,10 @@ var fWorkspace = {
 					//clear item's children 
 					$("#" + item).children().remove();
 					//bug fix: removal of children disables resizability. turn resizability if it is supposed to be on
-					if (myresize == item) {
-						killResizable();
-						makeResizable(item);
-					}
+					//if (myresize == item) {
+					//	killResizable();
+					//	makeResizable(item);
+					//}
 					
 					// grab properties from object
 					var x = objRefState.x;
@@ -1697,7 +1776,7 @@ var fWorkspace = {
 					// create the instance & bind events if creating for the first time (ex: PAGE CHANGES)
 					if ($("#" + item).length == 0) {
 						$("#" + attachWhereArray[i]).append("<div id=\"" + item + "\" class=\"fObject\"></div>"); //unique
-						$("#" + item).bind("dblclick", makeResizable); //unique
+						//$("div.fObject").bind("dblclick", makeResizable); //unique
 					}
 					
 					// adjust properties
@@ -1769,6 +1848,10 @@ var fWorkspace = {
 					// if instance does not contain anything, display a label
 					if(contains == false) {
 						$("#" + item).append('<div class="fLabelHolder"><div class="fLabel"><span class="fLBracket">[</span> ' + objRef.name + ' <span class="fLBracket">]</span></div></div>');
+						//attach a rename to it on double click
+						//$("#" + item).find(".fLabel").bind("dblclick",fWorkspace.editLabel);
+						//alert("attaching" + $("#" + item).attr("id"))
+						$("#" + item).find(".fLabel").bind("dblclick",function() {$(this).fEditableLabel();});
 					}
 					
 				}
@@ -1786,7 +1869,7 @@ var fWorkspace = {
 					// create the instance & bind events if creating for the first time (ex: PAGE CHANGES)
 					if ($("#" + item).length == 0) {
 						$("#" + attachWhereArray[i]).append("<div id=\"" + item + "\" class=\"fText\">" + txt + "</div>"); //unique
-						$("#" + item).bind("dblclick", makeResizable); //unique
+						//$("div.fObject").bind("dblclick", makeResizable); //unique
 					}
 					//if has real txt add a different class
 					if(txt != "") {
@@ -1811,11 +1894,11 @@ var fWorkspace = {
 		//make draggable / resizable selected items
 		//reselect first selected object
 		if((fSel.sInstances[0] != "fWorkspace") && $("#" + fSel.sInstances[0]).length) {
-			if (myresize) {
-				var backup = myresize;
-				killResizable();
-				makeResizable(backup);
-			}
+			//if (myresize) {
+			//	var backup = myresize;
+			//	killResizable();
+			//	makeResizable(backup);
+			//}
 			fSel.makeDraggable(fSel.sInstances[0]);
 		}
 		}
@@ -1839,6 +1922,36 @@ var fWorkspace = {
 			//style the parent
 			$("#" + fSel.sInstances[0]).parent().addClass("parent");
 		}
+	},
+	saveLabel : function() {
+		if (fWorkspace.allowSaveLabel == true) {
+			//stop saveLabel from tunning twice
+			fWorkspace.allowSaveLabel = false;
+			
+			//update jData
+			//alert(fWorkspace.editingLabelInstance);
+			saveAs = $("#" + fWorkspace.editingLabelInstance).find("input").attr("value");
+			if(saveAs == "") { saveAs = "New Object";}
+			jO.jData.objects[jO.jData.instances[fWorkspace.editingLabelInstance].of].name = saveAs;
+			
+			hotkeysEnable();
+			
+			$("#" + fWorkspace.editingLabelInstance).unbind("change blur", fWorkspace.saveLabel);
+			$(window).unbind("click", fWorkspace.saveLabel);
+			
+			//redraw
+			fWorkspace.redraw({
+				type: 'object',
+				item: jO.jData.instances[fWorkspace.editingLabelInstance].of
+			});
+			
+			//update footer
+			fToggleEdit.redrawFooter();
+			
+			
+			
+		}
+			
 	}
 }
 
@@ -2078,6 +2191,10 @@ var fToggleEdit = {
 		$("#" + fSel.sInstances[0]).addClass("selectedInst");
 	},
 	redrawFooter : function () {
+		//update object name
+		//alert(fSel.jObj.name);
+		$("#fObjName").html(fSel.jObj.name);
+		
 		//update statename
 		$("#fStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
 		
