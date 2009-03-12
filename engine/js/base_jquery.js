@@ -519,19 +519,23 @@ function Draw(event){
 				//instatiate it
 				if (fSel.sInstances[0] != "fWorkspace") {
 					newInstanceName = jO.instantiateObj(objId, fSel.sInstances[0], fSession[fSel.nInst].state);
+					
+					//force inheritance
+					//if 0 editing as Object
+					if (fSel.editAs == 0) {
+						jO.update(fSel.nInst, {
+							type: "instance",
+							iContents: 1
+						});
+					}
 				}
 				else {
 					newInstanceName = jO.instantiateObj(objId, "fWorkspace");
+					
 				}
 				
-				//force inheritance
-				//if 0 editing as Object
-				if (fSel.editAs == 0) {
-					jO.update(fSel.nInst, {
-						type: "instance",
-						iContents: 1
-					});
-				}
+				
+				
 			}
 			//TXT
 			if ($(d).attr("id").match("t") != null) {
@@ -550,11 +554,21 @@ function Draw(event){
 				}
 			}
 			
+			
 			//update footer
 			fToggleEdit.redrawFooter();
 			
-			//update Workspace
-			fWorkspace.redraw({type: 'object',item : fSel.jInst.of}); 
+			//update 
+			if (fSel.sInstances[0] != "fWorkspace") {
+				//update Workspace
+				//alert(fSel.jInst.of);
+				fWorkspace.redraw({type: 'object',item: fSel.jInst.of});
+			}
+			else {
+				//update Workspace
+				//alert($(d).attr("id"));
+				fWorkspace.redraw({type: 'instance',item: $(d).attr("id")});
+			}
 			
 			//edit Label Mode
 			$(d).fEditableLabel();
@@ -2191,26 +2205,28 @@ var fToggleEdit = {
 		$("#" + fSel.sInstances[0]).addClass("selectedInst");
 	},
 	redrawFooter : function () {
-		//update object name
-		//alert(fSel.jObj.name);
-		$("#fObjName").html(fSel.jObj.name);
-		
-		//update statename
-		$("#fStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
-		
-		//update inheritance properties
-		if(fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {	fStates.fSCheck('fSSize',false); }
-		else { fStates.fSCheck('fSSize',true); }
-		if(fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {	fStates.fSCheck('fSPos',false); }
-		else { fStates.fSCheck('fSPos',true); }
-		if(fSel.jInst.states[fSession[fSel.nInst].state].iContents == 0) {	fStates.fSCheck('fSContents',false); }
-		else { fStates.fSCheck('fSContents',true); }
-		if(fSel.jInst.states[fSession[fSel.nInst].state].iEvents == 0) {	fStates.fSCheck('fSEvents',false); }
-		else { fStates.fSCheck('fSEvents',true); }
+		if (fSel.sInstances[0] != "fWorkspace") {
+			//update object name
+			//alert(fSel.jObj.name);
+			$("#fObjName").html(fSel.jObj.name);
 			
-		//update setwidth & setheight boxes
-		updateInfoWH();
-		updateInfoXYPos();	
+			//update statename
+			$("#fStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
+			
+			//update inheritance properties
+			if(fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {	fStates.fSCheck('fSSize',false); }
+			else { fStates.fSCheck('fSSize',true); }
+			if(fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {	fStates.fSCheck('fSPos',false); }
+			else { fStates.fSCheck('fSPos',true); }
+			if(fSel.jInst.states[fSession[fSel.nInst].state].iContents == 0) {	fStates.fSCheck('fSContents',false); }
+			else { fStates.fSCheck('fSContents',true); }
+			if(fSel.jInst.states[fSession[fSel.nInst].state].iEvents == 0) {	fStates.fSCheck('fSEvents',false); }
+			else { fStates.fSCheck('fSEvents',true); }
+				
+			//update setwidth & setheight boxes
+			updateInfoWH();
+			updateInfoXYPos();	
+		}
 	},
 	editOneState : function() {
 		//clear AllStates
