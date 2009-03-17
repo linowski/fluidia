@@ -188,14 +188,21 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 .fText {
 	border: 1px solid #ffffff;
 	background-color: #ffffff;
-	background: url('../images/bg_txt01.png') repeat-y;
+	background: url('../images/bg_txt01.png') 0px 1px repeat-y ;
 	position: absolute;
 	font-size: 12px;
+	text-align: left;
+	wrap-option: softwrap;
+	white-space: pre-wrap !important;
 }
 .fTextHasTxt {
 	border: 1px solid transparent;
 	background: url('');
 }
+.fText textarea {
+
+}
+
 .fLabelHolder {
 	top: 50%;
 	display: inline;
@@ -212,9 +219,9 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	color: #6f6f6f;
 }
 
-div.fText:hover,div.fTextHasTxt:hover,div.fObject:hover{
+/*div.fText:hover,div.fTextHasTxt:hover,div.fObject:hover{
 	border: 1px solid #333333;
-}
+*/}
 div.fLabel:hover {
 	color: #333333;
 }
@@ -235,7 +242,16 @@ div.fLabel:hover {
 	border-color: #D95700;
 	background-image: url('../images/bg_selectedInst.gif');
 }
-
+.selectedTxt {
+	border-color: #353E6F;
+	background-image: url('../images/bg_txt01.png'),url('../images/bg_selected.gif');
+	background-position: top left,top right;
+	background-repeat: repeat-y,no-repeat;
+	
+	position: absolute;
+	font-size: 12px;
+}
+	
 
 .resizable {
 	border-style: dashed !important;
@@ -270,6 +286,18 @@ div.resizable {
 	cursor: crosshair;
 }
 
+
+.pasteFillInst {
+	background-color: #D95700;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	float: left;
+	opacity: 1;
+	z-index: 1000000;
+}
+
+
 /*********/
 
 
@@ -281,7 +309,7 @@ div.resizable {
 	
 }
 
-#fObjInstHolder {
+#fObjInstHolder, #fFooterText {
 	position: absolute;
 	bottom: 5px;
 	left: 5px;
@@ -457,18 +485,6 @@ div.resizable {
 
 
 
-
-textarea {
-	font-family: verdana;
-	font-size: 11px;
-	padding: 3px;
-	background-color: transparent !important;
-}
-
-
-
-
-
 .fEditable {
 	display: block;
 	width: 100%;
@@ -488,6 +504,19 @@ textarea {
 	border: 1px solid #CFCFCF;
 	display: inline;
 }
+.fEditableText{
+	width: 100%;
+	height: 100%;
+	border: 0px;
+	margin: 0px;
+	background-color: #ffffff;
+
+	position: absolute;
+	font-family: verdana;
+	font-size: 11px;
+}
+
+
 
 
 .fCenter {

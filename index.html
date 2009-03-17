@@ -46,7 +46,7 @@
 			<div id="fFooterTitle" class="fTsmall">Editing:</div>
 
 			<div id="fObjLeft"></div>
-			<div id="fObjCore" onmouseover="$('#fObjInstHolder').addClass('fObjOver');" onmouseout="$('#fObjInstHolder').removeClass('fObjOver');" onclick="fToggleEdit.editObject();	fWorkspace.redraw({type : 'instance', item: fSel.nInst});"> 
+			<div id="fObjCore" onmouseover="$('#fObjInstHolder').addClass('fObjOver');" onmouseout="$('#fObjInstHolder').removeClass('fObjOver');" onclick="fFooter.editObject();	fWorkspace.redraw({type : 'instance', item: fSel.nInst});"> 
 				<div class="fCenter">as master</div>
 				<div><a href="#" id="fObjName" class="fT12">Object name</a></div>
 				<div class="fIcons"><a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconFav_off.png" border="0" id="buttonIconFav" title="Fav"></a><a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconRemove_off.png" border="0" id="buttonIconRemove" title="Remove"></a><a href="#" onclick="toolPanelPagesDuplicate();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconDuplicate_off.png" border="0" id="buttonIconDuplicate" title="Duplicate"></a></div>
@@ -55,8 +55,8 @@
 
 			<div class="fFooterDivider">::</div>
 
-			<div id="fInstLeft""></div>
-			<div id="fInstCore" onmouseover="$('#fObjInstHolder').addClass('fInstOver');" onmouseout="$('#fObjInstHolder').removeClass('fInstOver');" onclick="fToggleEdit.editInstance(); fWorkspace.redraw({type : 'instance', item: fSel.nInst});">
+			<div id="fInstLeft"></div>
+			<div id="fInstCore" onmouseover="$('#fObjInstHolder').addClass('fInstOver');" onmouseout="$('#fObjInstHolder').removeClass('fInstOver');" onclick="fFooter.editInstance(); fWorkspace.redraw({type : 'instance', item: fSel.nInst});">
 				<div class="fCenter">as instance</div>
 				<div><a href="#" id="fInstName" class="fT12 fTI">Instance name</a></div>
 				<div class="fIcons"><a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconArrowLeft_off.png" border="0" id="buttonIconArrowLeft" title="Arrow Left"></a><a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconArrowRight_off.png" border="0" id="buttonIconArrowRight" title="Arrow Right"></a><a href="#" onclick="toolPanelPagesDuplicate();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconDuplicate_off.png" border="0" id="buttonIconDuplicate" title="Duplicate"></a><a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconRemove_off.png" border="0" id="buttonIconRemove" title="Remove"></a><a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconAdd_off.png" border="0" id="buttonIconAdd" title="Add"></a></div>
@@ -68,8 +68,8 @@
 			<div id="fStatesLeft">
 				<div class="fCenter fTDim">states</div>
 				<div class="fStatesButtons">
-					<a href="#" onclick="fToggleEdit.editOneState();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_os_off.png" border="0" id="buttonOneState" title="One State"></a><br>
-					<a href="#" onclick="fToggleEdit.editAllStates();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_as_off.png" border="0" id="buttonAllStates" title="All States"></a>
+					<a href="#" onclick="fFooter.editOneState();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_os_off.png" border="0" id="buttonOneState" title="One State"></a><br>
+					<a href="#" onclick="fFooter.editAllStates();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_as_off.png" border="0" id="buttonAllStates" title="All States"></a>
 				</div>
 			</div>
 			<div id="fStatesCore">
@@ -121,6 +121,11 @@
 		<div id="fNoneSelectedHolder">
 			<div id="fFooterTitle" class="fTsmall">Editing:</div>
 			<div class="fWSTitle fT12">Workspace</div>
+		</div>
+		
+		<div id="fFooterText">
+			<div id="fFooterTitle" class="fTsmall">Editing:</div>
+			<div class="fWSTitle fT12">Text</div>
 		</div>
 		
 

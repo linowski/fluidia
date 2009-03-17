@@ -21,7 +21,7 @@ $(document).ready(function(){
 
 	// init functions
 	setWorkspaceDimensions(); // set window dimensions the first time
-	jO.load('projects/project01.json','','fSel.selectObject($("fWorkspace"))'); //load JSON data + select workspace
+	jO.load('projects/project01.json','','fSel.selectObject($("#fWorkspace"))'); //load JSON data + select workspace
 	
 	$("#fWorkspace").showMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {alert('tf');});
 
@@ -46,6 +46,10 @@ $(document).ready(function(){
 	toolSelect();
 	
 	$("div.fObject").live("dblclick", makeResizable); //unique
+	$("div.fText").live("dblclick", makeResizable); //unique
+	
+	$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
+	$(window).focus();
 });
 
 
@@ -389,7 +393,7 @@ function makeResizable(event){
 		event.stopPropagation();
 		
 		//only resize fObject (as a result of nested events, items within fObject also call the resize function)
-		if($(event.target).hasClass("fObject") == false) {return false;}
+		if(($(event.target).hasClass("fObject") == false) && ($(event.target).hasClass("fText") == false)) {return false;}
 	}
 	else {
 		var element=event;
@@ -498,65 +502,54 @@ function Draw(event){
 			//disable the other defined mousedown function
 			this.onmousedown = null;
 			this.onmouseup = null;
-			//enable cursor select tool
-			toolSelect();
-			
-			//enable select
-			Unselectable.disable;
 			
 			// listen for double click to resize it
 			//$(d).bind("dblclick",makeResizable);
 			
 			//create the object in JSON
 			//INSTANCE
-			if ($(d).attr("id").match("ins") != null) {
+			if (selectedTool == "toolObject") {
 				name = "New Object";
-				position = $(d).position();
-				width = $(d).width();
-				height = $(d).height();
-				objId = jO.createObj(name, position.left, position.top, width, height);
-				
-				//instatiate it
-				if (fSel.sInstances[0] != "fWorkspace") {
-					newInstanceName = jO.instantiateObj(objId, fSel.sInstances[0], fSession[fSel.nInst].state);
-					
-					//force inheritance
-					//if 0 editing as Object
-					if (fSel.editAs == 0) {
-						jO.update(fSel.nInst, {
-							type: "instance",
-							iContents: 1
-						});
-					}
-				}
-				else {
-					newInstanceName = jO.instantiateObj(objId, "fWorkspace");
-					
-				}
-				
-				
-				
 			}
 			//TXT
-			if ($(d).attr("id").match("t") != null) {
-				name = "New Text";
-				position = $(d).position();
-				width = $(d).width();
-				height = $(d).height();
-				objId = jO.createTxt(name, position.left, position.top, width, height);
+			if (selectedTool == "toolText") {
+				txt = "";
+			}
+			position = $(d).position();
+			width = $(d).width();
+			height = $(d).height();
+
+			//INSTANCE
+			if (selectedTool == "toolObject") {
+				ID = jO.createObj(name, position.left, position.top, width, height);
+			}
+			//TXT
+			if (selectedTool == "toolText") {
+				ID = jO.createTxt(txt, position.left, position.top, width, height);
+			}	
 				
-				//instatiate it
-				if (fSel.sInstances[0] != "fWorkspace") {
-					newInstanceName = jO.instantiateObj(objId, fSel.sInstances[0], fSession[fSel.nInst].state);
-				}
-				else {
-					newInstanceName = jO.instantiateObj(objId, "fWorkspace");
+			
+				
+			//instatiate it
+			if (fSel.sInstances[0] != "fWorkspace") {
+				newInstanceName = jO.instantiate(ID, fSel.sInstances[0], fSession[fSel.nInst].state);
+				
+				//force inheritance
+				//if 0 editing as Object
+				if (fSel.editAs == 0) {
+					jO.update(fSel.nInst, {
+						type: "instance",
+						iContents: 1
+					});
 				}
 			}
-			
-			
+			else {
+				newInstanceName = jO.instantiate(ID, "fWorkspace");
+			}
+		
+		
 			//update footer
-			fToggleEdit.redrawFooter();
+			fFooter.redrawFooter();
 			
 			//update 
 			if (fSel.sInstances[0] != "fWorkspace") {
@@ -570,10 +563,20 @@ function Draw(event){
 				fWorkspace.redraw({type: 'instance',item: $(d).attr("id")});
 			}
 			
-			//edit Label Mode
-			$(d).fEditableLabel();
+			
+			//INSTANCE
+			if (selectedTool == "toolObject") {
+				//edit Label Mode
+				//$(d).fEditableLabel();
+			}
 			
 			
+			//enable cursor select tool
+			toolSelect();
+			
+			//enable select
+			Unselectable.disable;
+	
 			
 		}
 	}
@@ -664,22 +667,44 @@ function dragStop() {
 	//update JSON position of items
 	for (var i = 0; i < fSel.sInstances.length; i++) {
 		var itemRef = "";
-		if(fSel.editAs == 0) { //if 0 editing as Object
-			//update JSON + Force inheritance of iPos = 1
-			jO.update(fSel.sInstances[i],{type : "object",x : $("#" + fSel.sInstances[i]).position().left, y:$("#" + fSel.sInstances[i]).position().top,iPos : 1});
+		// OBJECTS / INSTANCES
+		if (fSel.sInstances[i].match("ins") != null) {
+			if (fSel.editAs == 0) { //if 0 editing as Object
+				//update JSON + Force inheritance of iPos = 1
+				jO.update(fSel.sInstances[i], {
+					type: "object",
+					x: $("#" + fSel.sInstances[i]).position().left,
+					y: $("#" + fSel.sInstances[i]).position().top,
+					iPos: 1
+				});
+			}
+			else { //else editing as Instance
+				//update JSON + Force inheritance of iPos = 0
+				jO.update(fSel.sInstances[i], {
+					type: "instance",
+					x: $("#" + fSel.sInstances[i]).position().left,
+					y: $("#" + fSel.sInstances[i]).position().top,
+					iPos: 0
+				});
+			}
+			
+			//update Workspace
+			if(fSel.editAs ==0)  {
+				//update all instances with which use this object, by passing object name (extracted from instance/of)
+				fWorkspace.redraw({type: 'object',item : fSel.jInst.of}); 
+			}
 		}
-		else { //else editing as Instance
-			//update JSON + Force inheritance of iPos = 0
-			jO.update(fSel.sInstances[i],{type : "instance",x : $("#" + fSel.sInstances[i]).position().left, y:$("#" + fSel.sInstances[i]).position().top, iPos : 0});
+		// Text
+		if (fSel.sInstances[i].match("t") != null) {
+			jO.updateElements(fSel.sInstances[i], {
+				x: $("#" + fSel.sInstances[i]).position().left,
+				y: $("#" + fSel.sInstances[i]).position().top,
+			});
 		}
 
-		fToggleEdit.redrawFooter();
+		fFooter.redrawFooter();
 				
-		//update Workspace
-		if(fSel.editAs ==0)  {
-			//update all instances with which use this object, by passing object name (extracted from instance/of)
-			fWorkspace.redraw({type: 'object',item : fSel.jInst.of}); 
-		}
+		
 	}
 }
 
@@ -687,68 +712,113 @@ function resizeStop() {
 	updateInfoWH();
 	
 	//update JSON position of items
+	
 	for (var i = 0; i < fSel.sInstances.length; i++) {
 		var itemRef = "";
 		
-		//calculate necessary relative position change
-		//if editing as object master
 		
-		if (fSession[fSel.nInst].editAs == 0) {
-			initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
-			inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
-		}
-		//else instance
-		else {
-			//if not inheriting from object
-			if(fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
-				initx = fSel.jInst.states[fSession[fSel.nInst].state].x;
-				inity = fSel.jInst.states[fSession[fSel.nInst].state].y;
-			}
-			//if inheriting from object
-			else {
+		// OBJECTS / INSTANCES
+		if (fSel.sInstances[i].match("ins") != null) {
+			//calculate necessary relative position change
+			//if editing as object master
+			
+			if (fSession[fSel.nInst].editAs == 0) {
 				initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
 				inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
 			}
-		}
-		//calculate difference in positional change
-		changeX = $("#" + fSel.sInstances[i]).position().left - initx;
-		changeY = $("#" + fSel.sInstances[i]).position().top - inity;
-		
-		//if 0 editing as Object
-		if(fSel.editAs == 0) { 
-			itemRef = fSel.jObj;
+			//else instance
+			else {
+				//if not inheriting from object
+				if (fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
+					initx = fSel.jInst.states[fSession[fSel.nInst].state].x;
+					inity = fSel.jInst.states[fSession[fSel.nInst].state].y;
+				}
+				//if inheriting from object
+				else {
+					initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
+					inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
+				}
+			}
+			//calculate difference in positional change
+			changeX = $("#" + fSel.sInstances[i]).position().left - initx;
+			changeY = $("#" + fSel.sInstances[i]).position().top - inity;
 			
-			//update all instances' position if they are inheriting size to compensate for top, left position changes during resize	
-			var Instances = jO.getInstancesOfObj(fSel.jInst.of,{type : "workspace"});
-			for (var j=0; Instances.length > j; j++) {
-				instRef = jO.jData.instances[Instances[j]];
+			//if 0 editing as Object
+			if (fSel.editAs == 0) {
+				itemRef = fSel.jObj;
 				
-		      	//if they inherit size but not position
-		      	if ((instRef.states[fSession[fSel.nInst].state].iSize == 1) && (instRef.states[fSession[fSel.nInst].state].iPos == 0) && (Instances[j] != fSel.sInstances[i])) { 
-					//alert(Instances[j] + ":"+ fSel.sInstances[i]);
-		      		//update the instance's position relatively + force inheritance of size
-		      		jO.update(Instances[j],{type : "instance",xs : changeX, ys: changeY, w : $("#" + fSel.sInstances[i]).width(), h : $("#" + fSel.sInstances[i]).height(), iSize : 1});
-		    	}
-    		}
+				//update all instances' position if they are inheriting size to compensate for top, left position changes during resize	
+				var Instances = jO.getInstancesOfObj(fSel.jInst.of, {
+					type: "workspace"
+				});
+				for (var j = 0; Instances.length > j; j++) {
+					instRef = jO.jData.instances[Instances[j]];
+					
+					//if they inherit size but not position
+					if ((instRef.states[fSession[fSel.nInst].state].iSize == 1) && (instRef.states[fSession[fSel.nInst].state].iPos == 0) && (Instances[j] != fSel.sInstances[i])) {
+						//alert(Instances[j] + ":"+ fSel.sInstances[i]);
+						//update the instance's position relatively + force inheritance of size
+						jO.update(Instances[j], {
+							type: "instance",
+							xs: changeX,
+							ys: changeY,
+							w: $("#" + fSel.sInstances[i]).width(),
+							h: $("#" + fSel.sInstances[i]).height(),
+							iSize: 1
+						});
+					}
+				}
+				
+				//also update the object of course
+				//alert(changeX + ":" + changeY)
+				jO.update(fSel.nInst, {
+					type: "object",
+					xs: changeX,
+					ys: changeY,
+					w: $("#" + fSel.sInstances[i]).width(),
+					h: $("#" + fSel.sInstances[i]).height()
+				});
+			}
+			//else editing as Instance
+			else {
+				itemRef = fSel.jInst;
+				//update the instance's position relatively + force inheritance of size
+				jO.update(fSel.nInst, {
+					type: "instance",
+					xs: changeX,
+					ys: changeY,
+					w: $("#" + fSel.sInstances[i]).width(),
+					h: $("#" + fSel.sInstances[i]).height(),
+					iSize: 0
+				});
+			}
+		}	
+		// TEXT
+		if (fSel.sInstances[i].match("t") != null) {
+			//calculate difference in positional change
+			changeX = $("#" + fSel.sInstances[i]).position().left - jO.jData.elements[fSel.sInstances[i]].x;
+			changeY = $("#" + fSel.sInstances[i]).position().top - jO.jData.elements[fSel.sInstances[i]].y;
 			
-			//also update the object of course
-			//alert(changeX + ":" + changeY)
-			jO.update(fSel.nInst,{type : "object",xs : changeX, ys: changeY, w : $("#" + fSel.sInstances[i]).width(), h : $("#" + fSel.sInstances[i]).height()});
-		}
-		//else editing as Instance
-		else { 
-			itemRef = fSel.jInst; 
-			//update the instance's position relatively + force inheritance of size
-			jO.update(fSel.nInst,{type : "instance",xs : changeX, ys: changeY, w : $("#" + fSel.sInstances[i]).width(), h : $("#" + fSel.sInstances[i]).height(), iSize : 0});
+			jO.updateElements(fSel.sInstances[i], {
+				xs: changeX,
+				ys: changeY,
+				w: $("#" + fSel.sInstances[i]).width(),
+				h: $("#" + fSel.sInstances[i]).height(),
+			});
 		}
 		
-		//update footer
-		fToggleEdit.redrawFooter();
-		
-		//update Workspace
-		if(fSel.editAs == 0)  {
-			//update all instances with which use this object, by passing object name (extracted from instance/of)
-			fWorkspace.redraw({type: 'object',item : fSel.jInst.of}); 
+		//update footer (if not editing Text)
+		if (fWorkspace.editingText == false) {
+			fFooter.redrawFooter();
+			
+			//update Workspace
+			if (fSel.editAs == 0) {
+				//update all instances with which use this object, by passing object name (extracted from instance/of)
+				fWorkspace.redraw({
+					type: 'object',
+					item: fSel.jInst.of
+				});
+			}
 		}
 	}
 }
@@ -853,6 +923,36 @@ $.fn.fEditableLabel = function() {
 	//attach on change
 	clickedElement.find(".fEditableLabel").bind("change blur",fWorkspace.saveLabel);
 	$(window).bind("click",fWorkspace.saveLabel);
+}
+
+
+$.fn.fEditableText = function() {
+	fWorkspace.editingText = true;
+	clickedElement = this;
+	
+	txtref = jO.jData.elements[$(clickedElement).attr("id")];
+	//objref = jO.jData.objects[jO.jData.instances[$(clickedElement).attr("id")].of];
+	clickedElement = $("#" + clickedElement.attr("id"));
+	
+	//save clickedElement for future reference
+	fWorkspace.editingTextInstance = clickedElement.attr("id");
+	
+	//overlay an input box on top of the double clicked div
+	if ((txtref.txt == "") || (txtref.txt == "New Text")) {
+		clickedElement.html('<textarea class="fEditableText" id="fEditing" name="a"></textarea>');
+	}
+	else {
+		clickedElement.html('<textarea class="fEditableText" id="fEditing" name="a">' + txtref.txt + '</textarea>');
+	}
+
+	
+	hotkeysDisable(); //because people will be typing
+
+	//attach on change
+	$(window).bind("click",fWorkspace.saveText);
+	
+	//focus the newly created editable input box
+	$("#fEditing").focus();
 }
 
 
@@ -1095,7 +1195,7 @@ var Unselectable = {
 // -------- Session Object -----
 var fSession = {
 	//contains instance names which contain 
-	// .editAs - whether the instance is being editted as Obj 0 or Inst 1 // this is populate with fToggleEdit
+	// .editAs - whether the instance is being editted as Obj 0 or Inst 1 // this is populate with fFooter
 	// .state - the remembered state of the instace //this is first prepopulated with jO.load 
 	// .editStatesAs - 0 is one, 1 is all // this is first prepopulated with jO.load 
 }
@@ -1292,6 +1392,33 @@ var jO = {
 			}
 		}
 	},
+	updateElements : function(element, options) {
+		//updates either object or instance
+		// instance is a string name of an instance to be updated
+		// options is an object whose properties can be
+		// options.type "instance", "object" or undefined (to use the fSession editAs property)
+		// options.x,y,w,h and whose values are numbers 
+		// options.xs, .ys are x,y coordinates but are summed to existing values
+		// options can also be contents or events TODO
+		var elementRef = jO.jData.elements[element];
+		var insName = $("#"+element).parent().attr("id");
+		var insRef = jO.jData.instances[insName];
+
+		//alert("x:" + options.x + " y:" + options.x + " h:" +options.h + " w:" + options.w)
+		if (options.x != undefined) { elementRef.x = options.x }
+		if (options.y != undefined) { elementRef.y = options.y }
+		if (options.xs != undefined) { elementRef.x += options.xs }				
+		if (options.ys != undefined) { elementRef.y += options.ys }				
+		if (options.w != undefined) {
+			elementRef.w = options.w;
+		}
+		if (options.h != undefined) {
+			elementRef.h = options.h;
+		}
+		if (options.txt != undefined) {
+			elementRef.txt = options.txt;
+		}
+	},
 	createObj : function(name,x,y,width,height) {
 		//alert('name:' + name + ', x:' + x + ', y:' + y + ', width:' + width + ', height:' + height);
 		//determine which Id to give the object
@@ -1315,63 +1442,85 @@ var jO = {
 		
 		return (newObjId);
 	},
-	instantiateObj : function (objId,instanceId,state) {
+	createTxt : function(txt,x,y,width,height) {
+		newTxtId = jO.getAvailableTxtId();
+		
+		//create it
+		jO.jData.elements[newTxtId] = new Object();
+		jO.jData.elements[newTxtId].txt = txt;
+		jO.jData.elements[newTxtId].x = x;
+		jO.jData.elements[newTxtId].y = y;
+		jO.jData.elements[newTxtId].w = width;
+		jO.jData.elements[newTxtId].h = height;
+		
+		return (newTxtId);
+	},
+	instantiate : function (ID,instanceId,state) {
 		//what object, instatiate in which instances, and in what state 
 		
-		//grab available ID
-		newInstId = jO.getAvailableInstId();
+		// FOR INSTANCES
+		if (ID.match("obj") != null) {
 		
-		//create instance
-		var addWhereRef = jO.jData.instances;
-		addWhereRef[newInstId] = new Object;
-		addWhereRef[newInstId].of = objId;
-		addWhereRef[newInstId].states = new Object;
-		
-		//create states as they are in the object
-		//this.createState(newInstId);
-		
-		for (states in jO.jData.objects[objId].states) {
-			//copy properites of instances 
-			jO.jData.instances[newInstId].states[states] = new Object;
-			if(jO.jData.instances[instanceId] != undefined) { 
-				iPos = jO.jData.instances[instanceId].states.iPos;
-				iSize = jO.jData.instances[instanceId].states.iSize;
-				iContents = jO.jData.instances[instanceId].states.iContents;
-				iEvents = jO.jData.instances[instanceId].states.iEvents;
-				x = jO.jData.instances[instanceId].states.x;
-				y = jO.jData.instances[instanceId].states.y;
-				w = jO.jData.instances[instanceId].states.w;
-				h = jO.jData.instances[instanceId].states.h;
+			//grab available ID
+			newInstId = jO.getAvailableInstId();
+			
+			//create instance
+			var addWhereRef = jO.jData.instances;
+			addWhereRef[newInstId] = new Object;
+			addWhereRef[newInstId].of = ID;
+			addWhereRef[newInstId].states = new Object;
+			
+			//create states as they are in the object
+			//this.createState(newInstId);
+			
+			for (states in jO.jData.objects[ID].states) {
+				//copy properites of instances 
+				jO.jData.instances[newInstId].states[states] = new Object;
+				if (jO.jData.instances[instanceId] != undefined) {
+					iPos = jO.jData.instances[instanceId].states.iPos;
+					iSize = jO.jData.instances[instanceId].states.iSize;
+					iContents = jO.jData.instances[instanceId].states.iContents;
+					iEvents = jO.jData.instances[instanceId].states.iEvents;
+					x = jO.jData.instances[instanceId].states.x;
+					y = jO.jData.instances[instanceId].states.y;
+					w = jO.jData.instances[instanceId].states.w;
+					h = jO.jData.instances[instanceId].states.h;
+				}
+				else {
+					iPos = 1
+					iSize = 1;
+					iContents = 1;
+					iEvents = 1;
+					x = null;
+					y = null;
+					w = null;
+					h = null;
+				};
+				jO.jData.instances[newInstId].states[states].iPos = iPos;
+				jO.jData.instances[newInstId].states[states].iSize = iSize;
+				jO.jData.instances[newInstId].states[states].iContents = iContents;
+				jO.jData.instances[newInstId].states[states].iEvents = iEvents;
+				jO.jData.instances[newInstId].states[states].contains = new Object;
+				jO.jData.instances[newInstId].states[states].x = x;
+				jO.jData.instances[newInstId].states[states].y = y;
+				jO.jData.instances[newInstId].states[states].w = w;
+				jO.jData.instances[newInstId].states[states].h = h;
 			}
-			else { 
-				iPos = 1
-				iSize = 1;
-				iContents = 1;
-				iEvents = 1;
-				x = null; 
-				y = null;
-				w = null;
-				h = null;
-			};
-			jO.jData.instances[newInstId].states[states].iPos = iPos;
-			jO.jData.instances[newInstId].states[states].iSize = iSize;
-			jO.jData.instances[newInstId].states[states].iContents = iContents;
-			jO.jData.instances[newInstId].states[states].iEvents = iEvents;
-			jO.jData.instances[newInstId].states[states].contains = new Object;
-			jO.jData.instances[newInstId].states[states].x = x;
-			jO.jData.instances[newInstId].states[states].y = y;
-			jO.jData.instances[newInstId].states[states].w = w;
-			jO.jData.instances[newInstId].states[states].h = h;
+			
+			
+			//create fSession instance state
+			fSession[newInstId] = new Object;
+			fSession[newInstId].state = "s1";
+			fSession[newInstId].editStatesAs = 0; //default edit OneState
+			//update allInstances reference inside Object
+			jO.jData.objects[ID].allInstances[newInstId] = 1;
 		}
 		
+		// FOR TXT
+		if (ID.match("t") != null) {
+			newInstId = ID;
+		}
 		
-		//create fSession instance state
-		fSession[newInstId] = new Object;
-		fSession[newInstId].state = "s1";
-		fSession[newInstId].editStatesAs = 0; //default edit OneState
-		
-		//update allInstances reference inside Object
-		jO.jData.objects[objId].allInstances[newInstId] = 1;
 		
 		//if fWorkspace update pages
 		if (instanceId == "fWorkspace") {
@@ -1384,7 +1533,6 @@ var jO = {
 			}
 			else {
 				jO.jData.instances[instanceId].states[state].contains[newInstId] = "";
-				
 			}
 		}
 		
@@ -1421,7 +1569,7 @@ var jO = {
 					//determine if the contents or events should be assignmed to the instance (or unassignmed and inherited from the object)
 					
 					//objId = jO.jData.instances[items].of;
-					//this.instantiateObj(objId,instanceId,state) {
+					//this.instantiate(objId,instanceId,state) {
 					//what object, instatiate in which instances, and in what state 
 					objRef.states[newState].contains[items] = fSel.jObj.states[fSession[fSel.nInst].state].contains.items;
 				}
@@ -1530,10 +1678,32 @@ var fCBManager = {
 	paste : function() {
 		//instantiate
 		//alert(this.instances[0] + ":" + jO.jData.instances[this.instances[0]].of +  ":" + fSel.sInstances[0] + ":" + fSession[fSel.nInst].state);
-		jO.instantiateObj(jO.jData.instances[this.instances[0]].of,fSel.sInstances[0],fSession[fSel.nInst].state);
 		
-		//redraw Objects
-		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		//check if the selected item is on the selected page
+		if(!jO.jData.pages[panelPages.rememberPageSelectedId].contains.hasOwnProperty(fSel.sInstances[0])) {
+			//if not, then select the workspace :)
+			fSel.selectObject($("#fWorkspace"));
+		}
+		
+		if (fSel.sInstances[0].match("ins")) {
+			ID = jO.instantiate(jO.jData.instances[this.instances[0]].of, fSel.sInstances[0], fSession[fSel.nInst].state);
+			//redraw Objects
+			fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		}
+		else if (fSel.sInstances[0].match("fWorkspace")) {
+			ID = jO.instantiate(jO.jData.instances[this.instances[0]].of, "fWorkspace");
+			//redraw Page
+			fWorkspace.redraw({type: 'page'});
+		}
+		
+		//give visual feedback that paste has occured
+		$("#"+ID).prepend('<div class="pasteFillInst" id="pasteFill"></div>');
+		$("#pasteFill").animate({"opacity": "0"}, { duration: "fast", complete: function(){
+			$("#pasteFill").remove();
+		}});
+
+
+		
 	},
 	hideManager : function() {
 		if (this.opened == true) {
@@ -1637,7 +1807,7 @@ var fStateManager = {
 		this.redraw();
 		
 		//update footer
-		fToggleEdit.redrawFooter();
+		fFooter.redrawFooter();
 		
 	},
 	chooseDefaultState : function(whichState) {
@@ -1687,6 +1857,7 @@ var fEventManager = {
 
 // -------- fWorkspace Object -----
 var fWorkspace = {
+	editingText : false, //if set to true, a resize does not cause a redraw
 	allowSaveLabel : false,
 	editingLabelInstance : null,
 	clear : function() {
@@ -1701,6 +1872,7 @@ var fWorkspace = {
 			$("#" + fSel.sInstances[i]).parent().removeClass("parent");
 			$("#" + fSel.sInstances[i]).removeClass("cursorMove");
 			$("#" + fSel.sInstances[i]).removeClass("selectedInst");
+			$("#" + fSel.sInstances[i]).removeClass("selectedTxt");
 		}
 	},
 	redraw : function(options){
@@ -1763,10 +1935,10 @@ var fWorkspace = {
 					//clear item's children 
 					$("#" + item).children().remove();
 					//bug fix: removal of children disables resizability. turn resizability if it is supposed to be on
-					//if (myresize == item) {
-					//	killResizable();
-					//	makeResizable(item);
-					//}
+					if (myresize == item) {
+						killResizable();
+						makeResizable(item);
+					}
 					
 					// grab properties from object
 					var x = objRefState.x;
@@ -1889,6 +2061,10 @@ var fWorkspace = {
 					if(txt != "") {
 						$("#" + item).addClass("fTextHasTxt");
 					}
+					
+					//make it editable
+					$("#" + item).bind("dblclick",function() {$(this).fEditableText();});
+					
 
 					
 					// adjust properties
@@ -1930,8 +2106,15 @@ var fWorkspace = {
 			//style the new selection ones
 			//alert('restyling' + fSel.sInstances.length);
 			for (var i = 0; i < fSel.sInstances.length; i++) {
-				$("#" + fSel.sInstances[i]).addClass("selected");
-				$("#" + fSel.sInstances[i]).addClass("cursorMove");
+				//instances
+				if (fSel.sInstances[i].match("ins")) {
+					$("#" + fSel.sInstances[i]).addClass("selected");
+					$("#" + fSel.sInstances[i]).addClass("cursorMove");
+				}
+				else if (fSel.sInstances[i].match("t")) {
+					$("#" + fSel.sInstances[i]).addClass("selectedTxt");
+					$("#" + fSel.sInstances[i]).addClass("cursorMove");
+				}
 			}
 			//style the parent
 			$("#" + fSel.sInstances[0]).parent().addClass("parent");
@@ -1960,12 +2143,39 @@ var fWorkspace = {
 			});
 			
 			//update footer
-			fToggleEdit.redrawFooter();
-			
-			
-			
+			fFooter.redrawFooter();
 		}
-			
+	},
+	saveText : function() {
+		//update jData
+
+		saveAs = $("#fEditing").val();
+		jO.jData.elements[fWorkspace.editingTextInstance].txt = saveAs;
+
+		hotkeysEnable();
+		
+		$(window).unbind("click", fWorkspace.saveText);
+		
+		parentInstance = $("#"+fWorkspace.editingTextInstance).parent().attr("id");
+
+		//alert(fWorkspace.editingTextInstance + ":" + saveAs + ":" + parentInstance);
+		//redraw
+		if (parentInstance == "fWorkspace") {
+			fWorkspace.redraw({
+				type: 'page'
+			});
+		}
+		else {
+			fWorkspace.redraw({
+				type: 'object',
+				item: jO.jData.instances[parentInstance].of
+			});
+		}
+		
+		fWorkspace.editingText = false;
+		
+		//update footer
+		fFooter.redrawFooter();
 	}
 }
 
@@ -2072,53 +2282,67 @@ var fSel = {
 			//enable Footer
 			$("#fObjInstHolder").hide();
 			$("#fNoneSelectedHolder").show();
+			$("#fFooterText").hide();
 		}
-		
-		//REAL OBJECTS selected
-		else {
-			//update selected variables used by other functions
-			fSel.jObj = jO.jData.objects[jO.jData.instances[fSel.sInstances[0]].of];
-			fSel.jInst = jO.jData.instances[fSel.sInstances[0]];
-			fSel.nObj = jO.jData.instances[fSel.sInstances[0]].of
-			fSel.nInst = fSel.sInstances[0];
-			
-			//enable footer
+		//TEXT elements
+		else if (fSel.sInstances[0].match("t")) {
+			//enable Footer
+			$("#fObjInstHolder").hide();
 			$("#fNoneSelectedHolder").hide();
-			$("#fObjInstHolder").show();
-			
-			//update instance
-			$("#fInstName").html("Instance 1 of 2"); //todo make this display "Instance 1 of 8".
-			//update object
-			$("#fObjName").html(fSel.jObj.name);
-			
-			//set editAs MODE
-			//if instance  already has editAs chosen, do not change the mode, so that a double click is possible
-			if (fSession[fSel.nInst].editAs != null) { 
-				if(fSession[fSel.nInst].editAs == 0) {	fToggleEdit.editObject();	}
-				else { fToggleEdit.editInstance(); 	}
-			}
-			// if instance is not inheriting any of the pos / size properties, edit as instance
-			else if ((fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) || (fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0)) {
-				//update fSession
-				fSession[fSel.nInst].editAs = 1;
-				//set toggle
-				fToggleEdit.editInstance();
-			}
-			else {
-				//update fSession
-				fSession[fSel.nInst].editAs = 0;
-				//set toggle
-				fToggleEdit.editObject();				
-			}
-			
-			//set editStatesAs MODE
-			if (fSession[fSel.nInst].editStatesAs == 0) { 
-				fToggleEdit.editOneState();
-			}
-			else {
-				fToggleEdit.editAllStates();
-			}
+			$("#fFooterText").show();
 		}
+		//REAL OBJECTS / INSTANCES selected
+		else 
+			if (fSel.sInstances[0].match("ins")) {
+				//update selected variables used by other functions
+				fSel.jObj = jO.jData.objects[jO.jData.instances[fSel.sInstances[0]].of];
+				fSel.jInst = jO.jData.instances[fSel.sInstances[0]];
+				fSel.nObj = jO.jData.instances[fSel.sInstances[0]].of
+				fSel.nInst = fSel.sInstances[0];
+				
+				//enable footer
+				$("#fNoneSelectedHolder").hide();
+				$("#fObjInstHolder").show();
+				$("#fFooterText").hide();
+				
+				//update instance
+				$("#fInstName").html("Instance 1 of 2"); //todo make this display "Instance 1 of 8".
+				//update object
+				$("#fObjName").html(fSel.jObj.name);
+				
+				//set editAs MODE
+				//if instance  already has editAs chosen, do not change the mode, so that a double click is possible
+				if (fSession[fSel.nInst].editAs != null) {
+					if (fSession[fSel.nInst].editAs == 0) {
+						fFooter.editObject();
+					}
+					else {
+						fFooter.editInstance();
+					}
+				}
+				// if instance is not inheriting any of the pos / size properties, edit as instance
+				else 
+					if ((fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) || (fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0)) {
+						//update fSession
+						fSession[fSel.nInst].editAs = 1;
+						//set toggle
+						fFooter.editInstance();
+					}
+					else {
+						//update fSession
+						fSession[fSel.nInst].editAs = 0;
+						//set toggle
+						fFooter.editObject();
+					}
+				
+				//set editStatesAs MODE
+				if (fSession[fSel.nInst].editStatesAs == 0) {
+					fFooter.editOneState();
+				}
+				else {
+					fFooter.editAllStates();
+				}
+			}
 		
 		//restyle workspace items
 		fWorkspace.restyle();
@@ -2167,7 +2391,7 @@ var fStates = {
 
 // -------- ToggleEdit Object -----
 // this object controls how an instance is being edited
-var fToggleEdit = {
+var fFooter = {
 	editObject : function () {
 		$("#fObjInstHolder").removeClass("fEditingInst");
 		$("#fObjInstHolder").addClass("fEditingObj");
@@ -2205,7 +2429,7 @@ var fToggleEdit = {
 		$("#" + fSel.sInstances[0]).addClass("selectedInst");
 	},
 	redrawFooter : function () {
-		if (fSel.sInstances[0] != "fWorkspace") {
+		if (fSel.sInstances[0].match("ins")) {
 			//update object name
 			//alert(fSel.jObj.name);
 			$("#fObjName").html(fSel.jObj.name);
@@ -2214,18 +2438,36 @@ var fToggleEdit = {
 			$("#fStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
 			
 			//update inheritance properties
-			if(fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {	fStates.fSCheck('fSSize',false); }
-			else { fStates.fSCheck('fSSize',true); }
-			if(fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {	fStates.fSCheck('fSPos',false); }
-			else { fStates.fSCheck('fSPos',true); }
-			if(fSel.jInst.states[fSession[fSel.nInst].state].iContents == 0) {	fStates.fSCheck('fSContents',false); }
-			else { fStates.fSCheck('fSContents',true); }
-			if(fSel.jInst.states[fSession[fSel.nInst].state].iEvents == 0) {	fStates.fSCheck('fSEvents',false); }
-			else { fStates.fSCheck('fSEvents',true); }
-				
+			if (fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {
+				fStates.fSCheck('fSSize', false);
+			}
+			else {
+				fStates.fSCheck('fSSize', true);
+			}
+			if (fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
+				fStates.fSCheck('fSPos', false);
+			}
+			else {
+				fStates.fSCheck('fSPos', true);
+			}
+			if (fSel.jInst.states[fSession[fSel.nInst].state].iContents == 0) {
+				fStates.fSCheck('fSContents', false);
+			}
+			else {
+				fStates.fSCheck('fSContents', true);
+			}
+			if (fSel.jInst.states[fSession[fSel.nInst].state].iEvents == 0) {
+				fStates.fSCheck('fSEvents', false);
+			}
+			else {
+				fStates.fSCheck('fSEvents', true);
+			}
+			
 			//update setwidth & setheight boxes
 			updateInfoWH();
-			updateInfoXYPos();	
+			updateInfoXYPos();
+		}
+		else if (fSel.sInstances[0].match("t")) {
 		}
 	},
 	editOneState : function() {
@@ -2399,3 +2641,4 @@ var panelPages = {
 		fWorkspace.restyle();
 	}
 };
+
