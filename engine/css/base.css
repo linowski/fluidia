@@ -13,7 +13,7 @@ div#rightpanel{background:#f3f3f3; float:left;width:140px;margin-left: -140px; f
 
 div#wrapper{float:left;width:100%; margin-bottom: 2px; }
 div#fWorkspace{margin: 0 102px 0 38px; position: absolute;}
-div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:100% -10; height: 52px;  font-size: 10px;}
+div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:100%; height: 52px;  font-size: 10px;}
 
 
 
@@ -84,7 +84,8 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 }
 
 .panelItemsListCollapse {
-	height: 108px;
+	position: relative;
+	height: -40px;
 }
 
 .panelArrowUp {
@@ -100,6 +101,8 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	display: none;
 	height: 6px;
 	background: #AAB0D7 url('../images/buttonArrowDown_off.gif') no-repeat top center;
+	position: relative;
+	bottom: 0px;
 }
 .panelArrowDownHover {
 	background: #616DB4 url('../images/buttonArrowDown_over.gif') no-repeat top center;
@@ -139,12 +142,12 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 }
 
 .panelIcons {
-	padding: 1px;
-	padding-left:4px;
 	background-color: #F4F4F4;
-	width: auto;
+	width: 100%;
 	text-align: right;
 	bottom: 0px;
+	right: 0px;
+	position: absolute;
 }
 
 
@@ -159,27 +162,69 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	position: absolute;
 }
 
-.fObject, .fWorkspace.selected * {
+.fObject {
 	border: 1px solid #cfcfcf;
 	background-color: #ffffff;
 	position: absolute;
+	text-align:center;
+}
+.p1 {
+
+}
+.p2 {
+	background-color: #dfdfdf;
+}
+.p3 {
+	background-color: #bfbfbf;
+}
+.p4 {
+	background-color: #9f9f9f;
+}
+.p5 {
+	background-color: #7f7f7f;
 }
 
-div.fObject:hover {
-	/*border: 1px solid #FF6600;
-	background-color: #f9f9f9;*/
+
+.fText {
+	border: 1px solid #ffffff;
+	background-color: #ffffff;
+	background: url('../images/bg_txt01.png') 0px 1px repeat-y ;
+	position: absolute;
+	font-size: 12px;
+	text-align: left;
+	wrap-option: softwrap;
+	white-space: pre-wrap !important;
+}
+.fTextHasTxt {
+	border: 1px solid transparent;
+	background: url('');
+}
+.fText textarea {
+
 }
 
-.element {
-	border-style: dotted !important;
+.fLabelHolder {
+	top: 50%;
+	display: inline;
+	position: relative;
+}
+.fLabel  {
+	top: -6px;
+	display: inline;
+	font-size: 10px;
+	color: #9f9f9f;
+	position: relative;
+}
+.fLBracket{
+	color: #6f6f6f;
 }
 
-
-.hotspot {
-	opacity: 0.20 !important;
-	background-color: #ff0000 !important;
+/*div.fText:hover,div.fTextHasTxt:hover,div.fObject:hover{
+	border: 1px solid #333333;
+*/}
+div.fLabel:hover {
+	color: #333333;
 }
-
 
 .parent {
 	background-image: url('../images/bg_parent.gif');
@@ -197,7 +242,16 @@ div.fObject:hover {
 	border-color: #D95700;
 	background-image: url('../images/bg_selectedInst.gif');
 }
-
+.selectedTxt {
+	border-color: #353E6F;
+	background-image: url('../images/bg_txt01.png'),url('../images/bg_selected.gif');
+	background-position: top left,top right;
+	background-repeat: repeat-y,no-repeat;
+	
+	position: absolute;
+	font-size: 12px;
+}
+	
 
 .resizable {
 	border-style: dashed !important;
@@ -232,6 +286,18 @@ div.resizable {
 	cursor: crosshair;
 }
 
+
+.pasteFillInst {
+	background-color: #D95700;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	float: left;
+	opacity: 1;
+	z-index: 1000000;
+}
+
+
 /*********/
 
 
@@ -243,7 +309,7 @@ div.resizable {
 	
 }
 
-#fObjInstHolder {
+#fObjInstHolder, #fFooterText {
 	position: absolute;
 	bottom: 5px;
 	left: 5px;
@@ -401,7 +467,7 @@ div.resizable {
 #fFooterTitle {
 	display: inline;
 	float: left;
-	padding: 18 5 0 0;
+	padding: 18px 5px 0 0;
 }
 
 .fFooterDivider {
@@ -411,21 +477,9 @@ div.resizable {
 	
 	display: inline;
 	float: left;
-	padding: 16 5 0 5;
+	padding: 16px 5px 0 5px;
 }
 
-
-
-
-
-
-
-textarea {
-	font-family: verdana;
-	font-size: 11px;
-	padding: 3px;
-	background-color: transparent !important;
-}
 
 
 
@@ -444,6 +498,25 @@ textarea {
 	font-size: 9px;
 	font-family: verdana;
 }
+
+.fEditableLabel {
+	width: 65%;
+	border: 1px solid #CFCFCF;
+	display: inline;
+}
+.fEditableText{
+	width: 100%;
+	height: 100%;
+	border: 0px;
+	margin: 0px;
+	background-color: #ffffff;
+
+	position: absolute;
+	font-family: verdana;
+	font-size: 11px;
+}
+
+
 
 
 .fCenter {
