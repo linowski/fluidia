@@ -128,6 +128,9 @@ function keyreleased(event) {
 	//z released
 	if (whichkey == "90") { fStateManager.hideManager(); }
 	
+	//x released
+	if (whichkey == "88") { fAltManager.hideManager(); }
+	
 	// c key
 	if (whichkey == "67") { cPressed = false; if(fCBManager.mouseover == false) {fCBManager.hideManager();} }
 }
@@ -142,13 +145,29 @@ function keypressed(event) {
 	if (whichkey == "46") {
 		if (fSel.sInstances.length > 0) {
 			for (var i = 0; i < fSel.sInstances.length; i++) {
+				//remove from "contains" of parent instance in jData
+				parentInsName = $("#" + fSel.sInstances[i]).parent().attr("id");
+				parentObjName = jO.jData.instances[parentInsName].of;
+				if (parentInsName == "fWorkspace") {
+					delete jO.jData.pages[panelPages.selectedPageId].contains[fSel.sInstances[i]];
+				}
+				else if (parentInsName.match("ins")) {
+					//alert(parentInsName + ":" + fSession[parentInsName].state);
+					delete jO.jData.instances[parentInsName].states[fSession[parentInsName].state].contains[fSel.sInstances[i]];
+					delete jO.jData.objects[parentObjName].states[fSession[parentInsName].state].contains[fSel.sInstances[i]];
+				}
+				
+				//todo clear not just contains but also actual elements
+				
+				//remove DOM objects from the workspace
 				if(fSel.sInstances[i] != "fWorkspace") {
 					$("#" + fSel.sInstances[i]).remove();
 				}
+				
 			}
 			//empty the whole array
 			fSel.sInstances.splice(0);
-			fSel.selectObject($("fWorkspace"));
+			fSel.selectObject($("#fWorkspace"));
 		}
 	}
 
@@ -176,6 +195,9 @@ function keypressed(event) {
 	
 	// z key
 	if (whichkey == "90") { fStateManager.displayManager(); }
+	
+	// x key
+	if (whichkey == "88") { fAltManager.displayManager(); }
 	
 	// c key
 	if (whichkey == "67") { cPressed = true; fCBManager.displayManager(); }
@@ -422,16 +444,25 @@ function Draw(event){
 	posx = event.pageX;
 	posy = event.pageY;
 
-	// set drawWhere
-	if (fSel.sInstances[0] != null) {
-		drawWhere = $("#" + fSel.sInstances[0]);
-	}
-	else {
-		drawWhere = $("#fWorkspace");
-	}
+	
 
 
 	this.onmousedown=function(){
+		// set drawWhere
+		//alert(fSel.sInstances[0]);
+		
+		if (fSel.sInstances[0] != null) {
+			drawWhere = $("#" + fSel.sInstances[0]);
+			
+		}
+		
+		//check if the selected item is on the selected page
+		if(!$("#" + fSel.sInstances[0]).length > 0) {
+			//if not, then select the workspace :)
+			fSel.selectObject($("#fWorkspace"));
+			drawWhere = $("#fWorkspace");
+		}
+		
 		// do not allow to draw by default
 		allowDraw = false;
 
@@ -567,7 +598,7 @@ function Draw(event){
 			//INSTANCE
 			if (selectedTool == "toolObject") {
 				//edit Label Mode
-				//$(d).fEditableLabel();
+				$(d).fEditableLabel();
 			}
 			
 			
@@ -1562,7 +1593,7 @@ var jO = {
 				objRef.states[newState].w = fSel.jObj.states[fSession[fSel.nInst].state].w;
 				objRef.states[newState].h = fSel.jObj.states[fSession[fSel.nInst].state].h;
 				objRef.states[newState]['z-index'] = fSel.jObj.states[fSession[fSel.nInst].state]['z-index'];
-				//populate contents as well
+				//populate contents as well from objects only
 				for (items in fSel.jObj.states[fSession[fSel.nInst].state].contains) {
 					//create new instances and their children
 					
@@ -1571,7 +1602,29 @@ var jO = {
 					//objId = jO.jData.instances[items].of;
 					//this.instantiate(objId,instanceId,state) {
 					//what object, instatiate in which instances, and in what state 
-					objRef.states[newState].contains[items] = fSel.jObj.states[fSession[fSel.nInst].state].contains.items;
+					//objRef.states[newState].contains[items] = fSel.jObj.states[fSession[fSel.nInst].state].contains.items;
+					
+					//objects
+					if(items.match("ins")) {
+						newInstanceName = jO.instantiate(jO.jData.instances[items].of, fSel.nInst, newState);
+						//todo this has to happen recursively
+					}
+					//txt
+					else if (items.match("t")) {
+						tref = jO.jData.elements[items];
+						newTxtId = jO.createTxt(tref.txt,tref.x,tref.y,tref.w,tref.h);
+						//update state contains
+						objRef.states[newState].contains[newTxtId] = "";
+					
+					}
+					
+					//objRef.states[newState].contains[newInstanceName] = "";
+					
+					//todo update allinstances TODO
+					//instatiate it
+					
+					
+					
 				}
 				//TODO populate events
 			}
@@ -1680,7 +1733,7 @@ var fCBManager = {
 		//alert(this.instances[0] + ":" + jO.jData.instances[this.instances[0]].of +  ":" + fSel.sInstances[0] + ":" + fSession[fSel.nInst].state);
 		
 		//check if the selected item is on the selected page
-		if(!jO.jData.pages[panelPages.rememberPageSelectedId].contains.hasOwnProperty(fSel.sInstances[0])) {
+		if(!$("#" + fSel.sInstances[0]).length > 0) {
 			//if not, then select the workspace :)
 			fSel.selectObject($("#fWorkspace"));
 		}
@@ -1713,6 +1766,50 @@ var fCBManager = {
 	},
 	redraw : function() {
 
+	}
+}
+
+
+
+// -------- AltManager Popup Object -----
+// this section contains the state manager
+var fAltManager = {
+	opened : false,
+	displayManager : function() {
+		if ((this.opened == false) && (fSel.sInstances[0] != "fWorkspace")) {
+			var setx = 0;
+			var sety = 0;
+			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
+			$('#fAltManager').fadeIn(100);
+			//check if x is not exceeding maximum x allowed
+			if(fGM.x + $("#fAltManager").width() > $().width() - 40) {	setx = $().width() - 40 - $("#fAltManager").width();	}
+			else { setx = fGM.x; }
+			//check if y is not exceeding maximum y allowed
+			if(fGM.y + $("#fAltManager").height() > $().height() - 30) {	sety = $().height() - 30 - $("#fAltManager").height();	}
+			else { sety = fGM.y; }
+			//check if x is not exceeding minimum x allowed
+			if (fGM.x < 180) { setx = 180; }
+			//check if y is not exceeding minimum y allowed
+			if (fGM.y < 90) { sety = 90; }
+			
+				
+			//reposition so that cursor is closer to the state selection area
+			setx -= 130;
+			sety -= 40;
+			
+			$("#fAltManager").css({left: setx});
+			$("#fAltManager").css({top: sety});
+			
+		
+			//update opened state
+			this.opened = true;
+		}
+	},
+	hideManager : function() {
+		if (this.opened == true) {
+			$("#fAltManager").fadeOut(100);
+			this.opened = false;
+		}
 	}
 }
 
@@ -2031,8 +2128,8 @@ var fWorkspace = {
 					}
 					
 					// SHOW LABEL
-					// if instance does not contain anything, display a label
-					if(contains == false) {
+					// if instance does not contain anything (and is wider than 60 pixels), display a label
+					if((contains == false) && (width > 60)) {
 						$("#" + item).append('<div class="fLabelHolder"><div class="fLabel"><span class="fLBracket">[</span> ' + objRef.name + ' <span class="fLBracket">]</span></div></div>');
 						//attach a rename to it on double click
 						//$("#" + item).find(".fLabel").bind("dblclick",fWorkspace.editLabel);

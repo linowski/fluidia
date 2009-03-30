@@ -107,13 +107,19 @@
 						<div class="fSTitle fT11"  onclick="fStates.fSCheck('fSEvents')">Events</div>
 					</div>
 					
-					<div id="fSPos" class="" onclick="">
+					<div id="fSPriority">
+						<div class="fSCheck" onclick="fStates.fSCheck('fSPriority')"></div>
+						<div class="fSTitle fT11"  onclick="fStates.fSCheck('fSPriority')">Priority</div>
+						<div class="fTDim" align="left">PRESS 1-5</div>
 					</div>
+					
+
 				</div>
+				
 			</div>
 			<div id="fStatesRight">
 			</div>
-			
+			<div style="position: fixed; right: 120px; bottom: 28px;"><span class="fTDim">HOLD Z for alternatives</span></div>
 			
 		</div> 
 		
@@ -170,6 +176,16 @@
 	<div id="fSMRight"></div>
 </div>
 
+
+
+<div id="fAltManager">
+	<div id="fSMLeft"></div>
+	<div id="fSMCore">
+		<div class="fT12 fTI" id="fCBTitle">ADD ALTERNATIVE + + +</div><br>
+		<a href="#" style="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconAdd_off.png" border="0" title="Add"></a><br>
+	</div>
+	<div id="fSMRight"></div>
+</div>
 
 
 

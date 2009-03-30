@@ -384,7 +384,7 @@ div.resizable {
 	float: left;
 	height: 100%;
 	background-color: #4c4c4c;
-	width: 520px;
+	width: 560px;
 	padding-left: 3px;
 }
 
@@ -411,7 +411,7 @@ div.resizable {
 	width: 180px;
 	text-align: right;
 }
-#fSSize,#fSPos,#fSContents,#fSEvents {
+#fSSize,#fSPos,#fSContents,#fSEvents,#fSPriority {
 	display: inline; float: left; padding-right: 20px;
 }
 .fSCheck {
@@ -536,6 +536,15 @@ div.resizable {
 	position: absolute;
 	
 	background: #333333; color: #dfdfdf; padding:5px;
+}
+
+/* Alt Manager Stuff */
+#fAltManager {
+	position: absolute;
+	height: 80px;
+	top: 100px;
+	left: 100px;
+	display: none;
 }
 
 
