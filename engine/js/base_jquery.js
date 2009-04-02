@@ -8,7 +8,6 @@ $(document).ready(function(){
 	startdragy = 0;
 	startdragObjects = {}; // initial positions of all select objects; used to add delta x,y values to during drag
 
-	// TODO: some elements will contain the objects, and some DOM elements... need to make a distinction
 	selectedTool = null;
 
 	disableKeyListeners = false; //global variable which affects hot key listening
@@ -45,11 +44,26 @@ $(document).ready(function(){
 	//first tool
 	toolSelect();
 	
-	$("div.fObject").live("dblclick", makeResizable); //unique
-	$("div.fText").live("dblclick", makeResizable); //unique
+	$("div.fObject").live("click", makeResizable); //unique
+	$("div.fText").live("click", makeResizable); //unique
 	
 	$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
 	$(window).focus();
+	
+	//bind window focus event to resize
+	$(window).bind("focus",setWorkspaceDimensions);
+	
+	//hovers for fS footer states controler
+	$(".fSCheck,.fSTitle").hover(
+      function () {
+        $(this).parent().addClass('fSOver');
+      }, 
+      function () {
+        $(this).parent().removeClass('fSOver');
+      }
+    );
+
+
 });
 
 
@@ -63,7 +77,7 @@ function setWorkspaceDimensions() {
 	windowwidth = $(window).width();
 
 	// adjust for toolbars
-	windowheight = windowheight - 94;
+	windowheight = windowheight - 79;
 	windowwidth = windowwidth - 182;
 
 	document.getElementById("fWorkspace").style.height = windowheight;
@@ -147,17 +161,31 @@ function keypressed(event) {
 			for (var i = 0; i < fSel.sInstances.length; i++) {
 				//remove from "contains" of parent instance in jData
 				parentInsName = $("#" + fSel.sInstances[i]).parent().attr("id");
-				parentObjName = jO.jData.instances[parentInsName].of;
 				if (parentInsName == "fWorkspace") {
 					delete jO.jData.pages[panelPages.selectedPageId].contains[fSel.sInstances[i]];
 				}
 				else if (parentInsName.match("ins")) {
-					//alert(parentInsName + ":" + fSession[parentInsName].state);
+					parentObjName = jO.jData.instances[parentInsName].of;
+					//remove contains in parent and object
 					delete jO.jData.instances[parentInsName].states[fSession[parentInsName].state].contains[fSel.sInstances[i]];
 					delete jO.jData.objects[parentObjName].states[fSession[parentInsName].state].contains[fSel.sInstances[i]];
 				}
+
+				if (fSel.sInstances[i].match("ins")) {
+					//remove instance
+					delete jO.jData.instances[fSel.sInstances[i]];
+					
+					//todo clear actual objects in jO if (last instance cleared)
+				}
+				else if (fSel.sInstances[i].match("t")) {
+					//remove real text element
+					delete jO.jData.elements[fSel.sInstances[i]];
+				}
+					
 				
-				//todo clear not just contains but also actual elements
+				
+				
+				
 				
 				//remove DOM objects from the workspace
 				if(fSel.sInstances[i] != "fWorkspace") {
@@ -421,12 +449,6 @@ function makeResizable(event){
 		var element=event;
 	}
 
-	// add new style
-	$("#"+element).addClass("resizable");
-
-	//disable dragging if enabled
-	killDrag();
-
 	//make resizable
 	myresize = element;
 	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
@@ -443,10 +465,7 @@ function Draw(event){
 
 	posx = event.pageX;
 	posy = event.pageY;
-
 	
-
-
 	this.onmousedown=function(){
 		// set drawWhere
 		//alert(fSel.sInstances[0]);
@@ -463,20 +482,22 @@ function Draw(event){
 			drawWhere = $("#fWorkspace");
 		}
 		
+		
 		// do not allow to draw by default
-		allowDraw = false;
+		fWorkspace.allowDraw = false;
+		
 
 		// only draw if the clicked div is the workspace div
 		if (element.attr("id") == "fWorkspace") {
-			allowDraw = true;
+			fWorkspace.allowDraw = true;
 		}
 
 		// or if the ancestors contain the workspace div, however check only if the allowDraw has not been enabled already, to conserve cpu
-		if (allowDraw == false) {
+		if (fWorkspace.allowDraw == false) {
 			ancestorarray = element.parents();
 			for ( var i=0, len=ancestorarray.length; i<len; ++i ){
 				if ($(ancestorarray[i]).attr("id") == "fWorkspace") {
-					allowDraw = true;
+					fWorkspace.allowDraw = true;
 					break;
 				}
 			}
@@ -484,11 +505,11 @@ function Draw(event){
 		
 		//do not allow to draw if drawing tools are not chosen
 		if ((selectedTool != "toolObject") && (selectedTool != "toolText")) {
-			allowDraw = false;
+			fWorkspace.allowDraw = false;
 		}
 
 		// draw rectangle
-		if (allowDraw == true) {
+		if (fWorkspace.allowDraw == true) {
 			//disable select
 			Unselectable.enable;
 			
@@ -528,8 +549,10 @@ function Draw(event){
 	}
 	
 
-	this.onmouseup=function(){initx=false;inity=false;
-		if (allowDraw == true) {
+	this.onmouseup=function(){
+		initx=false;
+		inity=false;
+		if (fWorkspace.allowDraw == true) {
 			//disable the other defined mousedown function
 			this.onmousedown = null;
 			this.onmouseup = null;
@@ -546,9 +569,15 @@ function Draw(event){
 			if (selectedTool == "toolText") {
 				txt = "";
 			}
+
 			position = $(d).position();
 			width = $(d).width();
 			height = $(d).height();
+			
+			//correct width and height for click erros
+			if (width < 10) { width = 20};
+			if (height < 10) { height = 20};
+			
 
 			//INSTANCE
 			if (selectedTool == "toolObject") {
@@ -609,22 +638,26 @@ function Draw(event){
 			Unselectable.disable;
 	
 			
+			// do not allow to draw - finished drawing
+			fWorkspace.allowDraw = false;
 		}
 	}
 
 	// redraw properties during onmousedown & drag
 	if(initx){
-		var setwidth = Math.abs(posx-initx-offsetx);
-		var setheight = Math.abs(posy-inity-offsety);
-	
-		d.style.width=setwidth+'px';
-		d.style.height=setheight+'px';
-		d.style.left=posx-initx-offsetx<0?posx-offsetx+'px':initx+'px';
-		d.style.top=posy-inity-offsety<0?posy-offsety+'px':inity+'px';
-
-		//update setwidth & setheight boxes
-		document.getElementById("setwidth").value = setwidth;
-		document.getElementById("setheight").value = setheight;
+		if (fWorkspace.allowDraw == true) {
+			var setwidth = Math.abs(posx - initx - offsetx);
+			var setheight = Math.abs(posy - inity - offsety);
+			
+			d.style.width = setwidth + 'px';
+			d.style.height = setheight + 'px';
+			d.style.left = posx - initx - offsetx < 0 ? posx - offsetx + 'px' : initx + 'px';
+			d.style.top = posy - inity - offsety < 0 ? posy - offsety + 'px' : inity + 'px';
+			
+			//update setwidth & setheight boxes
+			document.getElementById("setwidth").value = setwidth;
+			document.getElementById("setheight").value = setheight;
+		}
 	}
 }
 
@@ -823,6 +856,21 @@ function resizeStop() {
 					iSize: 0
 				});
 			}
+			
+			//update footer (if not editing Text)
+			if (fWorkspace.editingText == false) {
+				fFooter.redrawFooter();
+				
+				//update Workspace
+				if (fSel.editAs == 0) {
+					//update all instances with which use this object, by passing object name (extracted from instance/of)
+					fWorkspace.redraw({
+						type: 'object',
+						item: fSel.jInst.of
+					});
+				}
+			}
+			
 		}	
 		// TEXT
 		if (fSel.sInstances[i].match("t") != null) {
@@ -838,19 +886,7 @@ function resizeStop() {
 			});
 		}
 		
-		//update footer (if not editing Text)
-		if (fWorkspace.editingText == false) {
-			fFooter.redrawFooter();
-			
-			//update Workspace
-			if (fSel.editAs == 0) {
-				//update all instances with which use this object, by passing object name (extracted from instance/of)
-				fWorkspace.redraw({
-					type: 'object',
-					item: fSel.jInst.of
-				});
-			}
-		}
+		
 	}
 }
 
@@ -866,7 +902,6 @@ function killDrag(event) {
 
 function killResizable(event) {
 	if(myresize) {
-		$("#"+myresize).removeClass("resizable");
 		$("#"+myresize).resizable("destroy"); myresize = null;
 	}
 }
@@ -874,7 +909,6 @@ function killResizable(event) {
 
 
 // -------- Object Functions ----
-
 function objectSortUp() {
 	//increase zindex of first selected item // todo multiple item?
 	alert($("#" + fSel.sInstances[0]).css("z-index"));
@@ -950,10 +984,11 @@ $.fn.fEditableLabel = function() {
 	//focus the newly created editable input box
 	clickedElement.find(".fEditableLabel").focus();
 	hotkeysDisable(); //because people will be typing
+	killDrag(); //because people might want to highlight text
 
 	//attach on change
 	clickedElement.find(".fEditableLabel").bind("change blur",fWorkspace.saveLabel);
-	$(window).bind("click",fWorkspace.saveLabel);
+	$("#container").bind("click",fWorkspace.saveLabel);
 }
 
 
@@ -978,9 +1013,10 @@ $.fn.fEditableText = function() {
 
 	
 	hotkeysDisable(); //because people will be typing
+	killDrag(); //because people might want to highlight text
 
 	//attach on change
-	$(window).bind("click",fWorkspace.saveText);
+	$("#container").bind("click",fWorkspace.saveText);
 	
 	//focus the newly created editable input box
 	$("#fEditing").focus();
@@ -1035,6 +1071,8 @@ function toolObject() {
 	document.getElementById("iconObject").src = "engine/images/button_object_on.gif";
 
 	$("#fWorkspace").bind("mousemove",Draw);
+	
+	fSel.highlight();
 }
 
 
@@ -1051,6 +1089,8 @@ function toolText() {
 	document.getElementById("iconText").src = "engine/images/button_text_on.gif";
 
 	$("#fWorkspace").bind("mousemove",Draw);
+	
+	fSel.highlight();
 }
 
 
@@ -1065,6 +1105,11 @@ function toolSelect() {
 	document.getElementById("iconSelect").src = "engine/images/button_arrow_on.gif";
 
 	$("#fWorkspace").bind("click",toolSelectDo);
+	
+	//enable last drag
+	if (fSel.sInstances[0] != null) {
+		fSel.makeDraggable(fSel.sInstances[0]);
+	}
 }
 
 
@@ -1421,6 +1466,9 @@ var jO = {
 			if (options.iEvents != undefined) {
 				statesToEdit[i].iEvents = options.iEvents;
 			}
+			if (options.iPriority != undefined) {
+				statesToEdit[i].iPriority = options.iPriority;
+			}
 		}
 	},
 	updateElements : function(element, options) {
@@ -1505,32 +1553,36 @@ var jO = {
 			//this.createState(newInstId);
 			
 			for (states in jO.jData.objects[ID].states) {
-				//copy properites of instances 
+				//copy properites of instances from instance if 
 				jO.jData.instances[newInstId].states[states] = new Object;
 				if (jO.jData.instances[instanceId] != undefined) {
 					iPos = jO.jData.instances[instanceId].states.iPos;
 					iSize = jO.jData.instances[instanceId].states.iSize;
 					iContents = jO.jData.instances[instanceId].states.iContents;
 					iEvents = jO.jData.instances[instanceId].states.iEvents;
-					x = jO.jData.instances[instanceId].states.x;
-					y = jO.jData.instances[instanceId].states.y;
-					w = jO.jData.instances[instanceId].states.w;
-					h = jO.jData.instances[instanceId].states.h;
+					iPriority = jO.jData.instances[instanceId].states.iPriority;
+					x = jO.jData.instances[instanceId].states[states].x;
+					y = jO.jData.instances[instanceId].states[states].y;
+					w = jO.jData.instances[instanceId].states[states].w;
+					h = jO.jData.instances[instanceId].states[states].h;
 				}
+				//creating for first time (grab x,y,w,h from object)
 				else {
 					iPos = 1
 					iSize = 1;
 					iContents = 1;
 					iEvents = 1;
-					x = null;
-					y = null;
-					w = null;
-					h = null;
+					iPriority = 1;
+					x = jO.jData.objects[ID].states[states].x;
+					y = jO.jData.objects[ID].states[states].y;
+					w = jO.jData.objects[ID].states[states].w;
+					h = jO.jData.objects[ID].states[states].h;
 				};
 				jO.jData.instances[newInstId].states[states].iPos = iPos;
 				jO.jData.instances[newInstId].states[states].iSize = iSize;
 				jO.jData.instances[newInstId].states[states].iContents = iContents;
 				jO.jData.instances[newInstId].states[states].iEvents = iEvents;
+				jO.jData.instances[newInstId].states[states].iPriority = iPriority;
 				jO.jData.instances[newInstId].states[states].contains = new Object;
 				jO.jData.instances[newInstId].states[states].x = x;
 				jO.jData.instances[newInstId].states[states].y = y;
@@ -1647,6 +1699,7 @@ var jO = {
 			jO.jData.instances[instancesToUpdate[i]].states[newState].iSize = 1;
 			jO.jData.instances[instancesToUpdate[i]].states[newState].iContents = 1;
 			jO.jData.instances[instancesToUpdate[i]].states[newState].iEvents = 1;
+			jO.jData.instances[instancesToUpdate[i]].states[newState].iPriority = 1;
 			jO.jData.instances[instancesToUpdate[i]].states[newState].contains = new Object;
 		}
 		
@@ -1785,7 +1838,7 @@ var fAltManager = {
 			if(fGM.x + $("#fAltManager").width() > $().width() - 40) {	setx = $().width() - 40 - $("#fAltManager").width();	}
 			else { setx = fGM.x; }
 			//check if y is not exceeding maximum y allowed
-			if(fGM.y + $("#fAltManager").height() > $().height() - 30) {	sety = $().height() - 30 - $("#fAltManager").height();	}
+			if(fGM.y + $("#fAltManager").height() > $().height() - 60) {	sety = $().height() - 60 - $("#fAltManager").height();	}
 			else { sety = fGM.y; }
 			//check if x is not exceeding minimum x allowed
 			if (fGM.x < 180) { setx = 180; }
@@ -1829,7 +1882,7 @@ var fStateManager = {
 			if(fGM.x + $("#fStateManager").width() > $().width() - 40) {	setx = $().width() - 40 - $("#fStateManager").width();	}
 			else { setx = fGM.x; }
 			//check if y is not exceeding maximum y allowed
-			if(fGM.y + $("#fStateManager").height() > $().height() - 30) {	sety = $().height() - 30 - $("#fStateManager").height();	}
+			if(fGM.y + $("#fStateManager").height() > $().height() - 60) {	sety = $().height() - 60 - $("#fStateManager").height();	}
 			else { sety = fGM.y; }
 			//check if x is not exceeding minimum x allowed
 			if (fGM.x < 180) { setx = 180; }
@@ -1957,6 +2010,7 @@ var fWorkspace = {
 	editingText : false, //if set to true, a resize does not cause a redraw
 	allowSaveLabel : false,
 	editingLabelInstance : null,
+	allowDraw : false, //used by Draw function
 	clear : function() {
 		//alert('clear');
 		$("#fWorkspace").children().remove();
@@ -2217,62 +2271,83 @@ var fWorkspace = {
 			$("#" + fSel.sInstances[0]).parent().addClass("parent");
 		}
 	},
-	saveLabel : function() {
+	saveLabel : function(event) {
 		if (fWorkspace.allowSaveLabel == true) {
-			//stop saveLabel from tunning twice
-			fWorkspace.allowSaveLabel = false;
-			
+			//if the user clicks on the input box, do not run the rest of the code (to allow clicking on the input box / selecting text)
+			if (!((event.type == "click") && ($(event.target).attr("id") == "fEditing"))) {
+				//alert($(event.target).attr("id") + event.type);
+				
+				//stop saveLabel from tunning twice (since multiple events are bound which call this function)
+				fWorkspace.allowSaveLabel = false;
+				
+				//update jData
+				//alert(fWorkspace.editingLabelInstance);
+				saveAs = $("#" + fWorkspace.editingLabelInstance).find("input").attr("value");
+				if (saveAs == "") {
+					saveAs = "New Object";
+				}
+				jO.jData.objects[jO.jData.instances[fWorkspace.editingLabelInstance].of].name = saveAs;
+				
+				hotkeysEnable();
+				
+				$("#" + fWorkspace.editingLabelInstance).unbind("change blur", fWorkspace.saveLabel);
+				//$(window).unbind("click", fWorkspace.saveLabel);
+				$("#container").unbind("click", fWorkspace.saveLabel);
+				
+				//redraw
+				fWorkspace.redraw({
+					type: 'object',
+					item: jO.jData.instances[fWorkspace.editingLabelInstance].of
+				});
+				
+				//enable last drag
+				fSel.makeDraggable(lastDraggable);
+				
+				//update footer
+				fFooter.redrawFooter();
+			}
+		}
+	},
+	saveText : function(event) {
+		//if the user clicks on the text box, do not run the rest of the code (to allow clicking on the input box / selecting text)
+		if (!((event.type == "click") && ($(event.target).attr("id") == "fEditing"))) {
+		
 			//update jData
-			//alert(fWorkspace.editingLabelInstance);
-			saveAs = $("#" + fWorkspace.editingLabelInstance).find("input").attr("value");
-			if(saveAs == "") { saveAs = "New Object";}
-			jO.jData.objects[jO.jData.instances[fWorkspace.editingLabelInstance].of].name = saveAs;
+			saveAs = $("#fEditing").val();
+			jO.jData.elements[fWorkspace.editingTextInstance].txt = saveAs;
 			
 			hotkeysEnable();
 			
-			$("#" + fWorkspace.editingLabelInstance).unbind("change blur", fWorkspace.saveLabel);
-			$(window).unbind("click", fWorkspace.saveLabel);
+			$("#container").unbind("click", fWorkspace.saveText);
 			
+			parentInstance = $("#" + fWorkspace.editingTextInstance).parent().attr("id");
+			
+			//alert(fWorkspace.editingTextInstance + ":" + saveAs + ":" + parentInstance);
 			//redraw
-			fWorkspace.redraw({
-				type: 'object',
-				item: jO.jData.instances[fWorkspace.editingLabelInstance].of
-			});
+			if (parentInstance == "fWorkspace") {
+				fWorkspace.redraw({
+					type: 'page'
+				});
+			}
+			else {
+			
+				fWorkspace.redraw({
+					type: 'object',
+					item: jO.jData.instances[parentInstance].of
+				});
+			}
+			
+			fWorkspace.editingText = false;
+			
+			//enable last drag
+			fSel.makeDraggable(lastDraggable);
 			
 			//update footer
 			fFooter.redrawFooter();
+			
+			//bring back focus to window
+			$(window).focus();
 		}
-	},
-	saveText : function() {
-		//update jData
-
-		saveAs = $("#fEditing").val();
-		jO.jData.elements[fWorkspace.editingTextInstance].txt = saveAs;
-
-		hotkeysEnable();
-		
-		$(window).unbind("click", fWorkspace.saveText);
-		
-		parentInstance = $("#"+fWorkspace.editingTextInstance).parent().attr("id");
-
-		//alert(fWorkspace.editingTextInstance + ":" + saveAs + ":" + parentInstance);
-		//redraw
-		if (parentInstance == "fWorkspace") {
-			fWorkspace.redraw({
-				type: 'page'
-			});
-		}
-		else {
-			fWorkspace.redraw({
-				type: 'object',
-				item: jO.jData.instances[parentInstance].of
-			});
-		}
-		
-		fWorkspace.editingText = false;
-		
-		//update footer
-		fFooter.redrawFooter();
 	}
 }
 
@@ -2305,10 +2380,8 @@ var fSel = {
 			}
 		}
 		
-		
 		//destroy last draggable
 		killDrag();
-
 		this.makeDraggable($(what).attr("id"));
 	
 		//clear styles
@@ -2439,17 +2512,46 @@ var fSel = {
 				else {
 					fFooter.editAllStates();
 				}
-			}
-		
+		}
 		//restyle workspace items
 		fWorkspace.restyle();
+		
+		
+		
 	},
 	makeDraggable : function(what) {
 		// create new draggable & store it
 		lastDraggable = what; //remember the new draggable object
 		mydrag = what;
 		//feedbackWrite(mydrag);
-		$("#"+mydrag).draggable({cancel: [''], containment: "#fWorkspace", handle: what, start: dragRegister, drag: dragItems, stop: dragStop});
+		$("#"+mydrag).draggable({cancel: [''], distance: 5, containment: "#fWorkspace", handle: what, start: dragRegister, drag: dragItems, stop: dragStop});
+	},
+	highlight : function() {
+		if (fSel.sInstances[0] != null) {
+			
+			
+			if ((fSel.sInstances[0].match("ins")) || (fSel.sInstances[0].match("fWorkspace"))) {
+				highLightWhat = fSel.sInstances[0];
+			}
+			else {
+				//grab parent
+				highLightWhat = $("#" + fSel.sInstances[0]).parent().attr("id");
+			}
+			//animate border to indicate where you are drawing (for instances)
+			$("#" + highLightWhat).prepend('<div class="fHighlight"></div>');
+			//determine if to put the arrow on the left or on the right of the selected box
+			//alert($("#" + fSel.sInstances[0]).offset().left);
+			if($("#" + highLightWhat).offset().left < 175) {
+				$("#" + highLightWhat).prepend('<div class="fHighlightArrow fHARight"><img src="engine/images/drawingInsideRight.png"></div>');					
+			}
+			else {
+				$("#" + highLightWhat).prepend('<div class="fHighlightArrow"><img src="engine/images/drawingInsideLeft.png"></div>');	
+			}
+			$("#" + highLightWhat + " .fHighlight").width($("#" + highLightWhat).width() - 12);
+			$("#" + highLightWhat + " .fHighlight").height($("#" + highLightWhat).height() - 12);
+			$("#" + highLightWhat + " .fHighlight").animate({opacity: "1"}, 500).animate({opacity: "0"}, 1500, function(){$(this).remove();});
+			$("#" + highLightWhat + " .fHighlightArrow").animate({opacity: "1"}, 500).animate({opacity: "0"}, 3000, function(){$(this).remove();});
+		}
 	}
 }
 
@@ -2460,26 +2562,39 @@ var fStates = {
 	loadFooterStates : function() {
 		//load states for first selectedObject
 	},
-	fSCheck : function(what,checkedState) {
+	fSCheckToggle : function(what) {
+		//change look
+		$("#"+what).toggleClass("fSOff");
+		
+		var state = fSel.jInst.states[fSession[fSel.nInst].state];	
+		//update jO's instance properties by toggling them
+		if(what == "fSPos") { state.iPos ^= 1 }
+		if(what == "fSSize") { state.iSize ^= 1 }
+		if(what == "fSContents") { state.iContents ^= 1 }
+		if(what == "fSEvents") { state.iEvents ^= 1 }
+		if(what == "fSPriority") { state.iPriority ^= 1 }
+			
+		
+	
+		//force toggle
+		//if all inheritance is inheriting from object = edit as object
+		if((state.iPos&&state.iSize&&state.iContents&&state.iEvents&&state.iPriority == 1)) {
+			fFooter.editObject();
+		}
+		//otherwise = edit as instance
+		else {
+			fFooter.editInstance();
+		}
+		
+		fWorkspace.redraw({type : 'instance', item : fSel.nInst});
+	},
+	fSCheckSetDisplay: function(what, checkedState){
 		//check if a checkedState direction is being sent
 		if(checkedState == 1) {
 			$("#"+what).removeClass("fSOff");
 		}
 		else if(checkedState == 0) {
 			$("#"+what).addClass("fSOff");
-		}
-		//else, just toggle the checkbox 
-		else {
-			//change look
-			$("#"+what).toggleClass("fSOff");
-			
-			//update jO's instance properties by toggling them
-			if(what == "fSPos") { fSel.jInst.states[fSession[fSel.nInst].state].iPos ^= 1 }
-			if(what == "fSSize") { fSel.jInst.states[fSession[fSel.nInst].state].iSize ^= 1 }
-			if(what == "fSContents") { fSel.jInst.states[fSession[fSel.nInst].state].iContents ^= 1 }
-			if(what == "fSEvents") { fSel.jInst.states[fSession[fSel.nInst].state].iEvents ^= 1 }
-			
-			fWorkspace.redraw({type : 'instance', item : fSel.nInst});
 		}
 	}
 }
@@ -2490,31 +2605,31 @@ var fStates = {
 // this object controls how an instance is being edited
 var fFooter = {
 	editObject : function () {
-		$("#fObjInstHolder").removeClass("fEditingInst");
-		$("#fObjInstHolder").addClass("fEditingObj");
 		fSel.editAs = 0;
 		fSession[fSel.nInst].editAs = 0;
 		
-		//change text
-		$("#fSInherit").text('State\'s');
-		
-		//hide Checkboxes & kill pointer cursor
-		$(".fSCheck").hide();
-		$(".fSTitle").css("cursor","default");
-		
 		this.redrawFooter();
+		
+		//update "as" field
+		$("#fEditMode").html("master");
 		
 		//change look of selected class
 		$("#" + fSel.sInstances[0]).removeClass("selectedInst");
+		
+		//clear button Instance
+		var imgsrc = $("#buttonInstance").attr("src");
+		imgsrc = imgsrc.replace("_on","_off");
+		$("#buttonInstance").attr("src",imgsrc);
+		
+		//set OneState
+		imgsrc = $("#buttonMaster").attr("src");
+		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
+		$("#buttonMaster").attr("src",imgsrc);
+		
 	},	
 	editInstance : function () {
-		$("#fObjInstHolder").removeClass("fEditingObj");
-		$("#fObjInstHolder").addClass("fEditingInst");
 		fSel.editAs = 1;
 		fSession[fSel.nInst].editAs = 1;
-		
-		//change text
-		$("#fSInherit").text('State inherits');
 		
 		//show Checkboxes & allow for pointing cursor
 		$(".fSCheck").show();
@@ -2522,13 +2637,25 @@ var fFooter = {
 			
 		this.redrawFooter();	
 		
+		//update "as" field
+		$("#fEditMode").html("instance");
+		
 		//change look of selected class
 		$("#" + fSel.sInstances[0]).addClass("selectedInst");
+		
+		//clear button Instance
+		var imgsrc = $("#buttonMaster").attr("src");
+		imgsrc = imgsrc.replace("_on","_off");
+		$("#buttonMaster").attr("src",imgsrc);
+		
+		//set OneState
+		imgsrc = $("#buttonInstance").attr("src");
+		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
+		$("#buttonInstance").attr("src",imgsrc);
 	},
 	redrawFooter : function () {
 		if (fSel.sInstances[0].match("ins")) {
 			//update object name
-			//alert(fSel.jObj.name);
 			$("#fObjName").html(fSel.jObj.name);
 			
 			//update statename
@@ -2536,28 +2663,34 @@ var fFooter = {
 			
 			//update inheritance properties
 			if (fSel.jInst.states[fSession[fSel.nInst].state].iSize == 0) {
-				fStates.fSCheck('fSSize', false);
+				fStates.fSCheckSetDisplay('fSSize', false);
 			}
 			else {
-				fStates.fSCheck('fSSize', true);
+				fStates.fSCheckSetDisplay('fSSize', true);
 			}
 			if (fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
-				fStates.fSCheck('fSPos', false);
+				fStates.fSCheckSetDisplay('fSPos', false);
 			}
 			else {
-				fStates.fSCheck('fSPos', true);
+				fStates.fSCheckSetDisplay('fSPos', true);
 			}
 			if (fSel.jInst.states[fSession[fSel.nInst].state].iContents == 0) {
-				fStates.fSCheck('fSContents', false);
+				fStates.fSCheckSetDisplay('fSContents', false);
 			}
 			else {
-				fStates.fSCheck('fSContents', true);
+				fStates.fSCheckSetDisplay('fSContents', true);
 			}
 			if (fSel.jInst.states[fSession[fSel.nInst].state].iEvents == 0) {
-				fStates.fSCheck('fSEvents', false);
+				fStates.fSCheckSetDisplay('fSEvents', false);
 			}
 			else {
-				fStates.fSCheck('fSEvents', true);
+				fStates.fSCheckSetDisplay('fSEvents', true);
+			}
+			if (fSel.jInst.states[fSession[fSel.nInst].state].iPriority == 0) {
+				fStates.fSCheckSetDisplay('fSPriority', false);
+			}
+			else {
+				fStates.fSCheckSetDisplay('fSPriority', true);
 			}
 			
 			//update setwidth & setheight boxes
@@ -2569,14 +2702,14 @@ var fFooter = {
 	},
 	editOneState : function() {
 		//clear AllStates
-		var imgsrc = $("#buttonAllStates").attr("src");
-		imgsrc = imgsrc.replace("_on","_off");
-		$("#buttonAllStates").attr("src",imgsrc);
+		//var imgsrc = $("#buttonAllStates").attr("src");
+		//imgsrc = imgsrc.replace("_on","_off");
+		//$("#buttonAllStates").attr("src",imgsrc);
 		
 		//set OneState
-		imgsrc = $("#buttonOneState").attr("src");
-		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
-		$("#buttonOneState").attr("src",imgsrc);
+		//imgsrc = $("#buttonOneState").attr("src");
+		//imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
+		//$("#buttonOneState").attr("src",imgsrc);
 		
 		//update fSession
 		fSession[fSel.nInst].editStatesAs = 0;

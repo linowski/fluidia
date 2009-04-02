@@ -13,7 +13,7 @@ div#rightpanel{background:#f3f3f3; float:left;width:140px;margin-left: -140px; f
 
 div#wrapper{float:left;width:100%; margin-bottom: 2px; }
 div#fWorkspace{margin: 0 102px 0 38px; position: absolute;}
-div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:100%; height: 52px;  font-size: 10px;}
+div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:100%; height: 37px;  font-size: 10px;}
 
 
 
@@ -45,14 +45,22 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	color: #ffffff;
 }
 
-
+.fTThick {
+	font-size: 32px;
+	color: #4C4C4C;
+	font-family: verdana;
+	font-weight: bold;
+}
+.fTBlue {
+	color: #8C92C5;
+}
 
 
 /* Panels */
 .panel {
 	width: 138px;
-	background-color: #ffffff;
-	border: 1px solid #666666;
+	background-color: #f3f3f3;
+	border: 1px solid #DFDFDF;
 	margin-bottom: 3px;
 	position: absolute;
 	right: 0px;
@@ -156,6 +164,8 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 
 /* Workspace and items inside of it */
 
+
+
 .fWorkspace {
 	border: solid 1px #dFdFdF;
 	overflow: hidden;
@@ -167,6 +177,11 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	background-color: #ffffff;
 	position: absolute;
 	text-align:center;
+
+	/*
+	-moz-box-sizing: border-box;
+	box-sizing: border-box !important;
+	*/
 }
 .p1 {
 
@@ -186,21 +201,23 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 
 
 .fText {
-	border: 1px solid #ffffff;
 	background-color: #ffffff;
-	background: url('../images/bg_txt01.png') 0px 1px repeat-y ;
+	background: url('../images/bg_txt01.png') 0px 1px repeat;
 	position: absolute;
 	font-size: 12px;
 	text-align: left;
 	wrap-option: softwrap;
 	white-space: pre-wrap !important;
+	/*outline: 5px solid #ffffff;
+	outline-offset: -5px;*/
+	/*
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;*/
 }
 .fTextHasTxt {
+	outline: 0px solid #ffffff;
 	border: 1px solid transparent;
 	background: url('');
-}
-.fText textarea {
-
 }
 
 .fLabelHolder {
@@ -219,11 +236,29 @@ div#footer{background: #333333; color: #dfdfdf; padding:0px; clear:left; width:1
 	color: #6f6f6f;
 }
 
-/*div.fText:hover,div.fTextHasTxt:hover,div.fObject:hover{
-	border: 1px solid #333333;
-*/}
 div.fLabel:hover {
 	color: #333333;
+}
+
+
+.fHighlight {
+	position:absolute;
+	top: 0px;
+	left: 0px;
+	border: 6px solid #cfcfcf;
+	text-align: left;
+}
+.fHighlightArrow {
+	position:absolute;
+	top: 0px;
+	left: 0px;
+	margin-left: -130px;
+	margin-top: 10px;
+	text-align: left;
+	z-index: 100000;
+}
+.fHARight {
+   margin-left: 10px;
 }
 
 .parent {
@@ -238,35 +273,29 @@ div.fLabel:hover {
 	background-position: top right;
 	background-repeat: no-repeat;
 }
+
 .selectedInst {
 	border-color: #D95700;
 	background-image: url('../images/bg_selectedInst.gif');
 }
 .selectedTxt {
+	border: 1px solid #cfcfcf;
 	border-color: #353E6F;
-	background-image: url('../images/bg_txt01.png'),url('../images/bg_selected.gif');
-	background-position: top left,top right;
+	background-image: url('../images/bg_txt01.png'), url('../images/bg_selected.gif');
+	background-position: top left, top right;
 	background-repeat: repeat-y,no-repeat;
-	
 	position: absolute;
 	font-size: 12px;
 }
 	
-
-.resizable {
-	border-style: dashed !important;
-}
-
-
 .selected div.fObject { 
-	border-color: #8C95C8;
+	/*border-color: #8C95C8;*/
 	background-image: url('../images/bg_child.gif');
 	background-position: top right;
 	background-repeat: no-repeat;
-	cursor: auto;
 }
 .selectedInst div.fObject {
-	border-color: #FF9E5E;
+	/*border-color: #FF9E5E;*/
 	background-image: url('../images/bg_childInst.gif');
 }
 
@@ -298,24 +327,91 @@ div.resizable {
 }
 
 
-/*********/
 
 
-#fNoneSelectedHolder {
+
+/**** Footer Items - separate states *****/
+#fObjInstHolder, #fFooterText, #fNoneSelectedHolder {
+	padding-left: 100px;
 	position: absolute;
-	bottom: 5px;
-	left: 5px;
-	height: 54px;
-	
-}
-
-#fObjInstHolder, #fFooterText {
-	position: absolute;
-	bottom: 5px;
-	left: 5px;
-	height: 54px;
+	bottom: 0px;
 	display: none;
 }
+#fNoneSelectedHolder, #fFooterText {
+	padding-bottom: 45px;
+}
+#fNoneSelectedHolder {
+	display: block;
+}
+
+
+
+/**** Footer Items - generic classes *****/
+.fFItem {
+	float: left;
+	bottom: 0px;
+	height: 95px;
+	padding-left: 10px;
+}
+.fFRight{
+	width: 5px;
+	height: 60px;
+	float: left;
+	background: #4c4c4c;
+	background: url('../images/bg_fRight.png') no-repeat top left;
+}
+.fFLeft{
+	width: 5px;
+	height: 60px;
+	float: left;
+	background: #4c4c4c;
+	background: url('../images/bg_fLeft.png') no-repeat top left;
+}
+.fFCore {
+	background: #4c4c4c;
+	height: 60px;
+	display: inline;
+	float: left;
+}
+.fFTop {
+	height: 35px;
+	vertical-align: bottom;
+	position: relative;
+}
+
+
+
+.fFTop * {
+	font-size: 18px;
+	color: #999999;
+	font-family: verdana;
+	font-weight: bold;
+}
+
+
+/**** Footer Items - particulars *****/
+
+#fFId {
+	width: 100px;
+}
+#fFStates {
+	width: 490px;
+}
+#fFAs {
+	width: 150px;
+	text-align: center;
+}
+
+#fFAs * {
+	padding: 18px 1px 0 1px;
+}
+
+
+
+#fWHXYHolder {
+	padding: 5px 0 0 5px;
+}
+
 
 #fObjLeft, #fInstLeft {
 	width: 3px;
@@ -341,30 +437,7 @@ div.resizable {
 	float: left;
 }
 
-#fObjName, #fInstName, #fStateName {
-	display: inline-block;
-}
-
-.fEditingInst #fObjName { color: #8C95C8; text-decoration: none; }
-.fEditingInst #fObjCore div.fCenter { visibility: hidden;  }
-
-.fEditingObj #fObjLeft, .fObjOver #fObjLeft { background: url('../images/bg_fObjLeft.png') no-repeat top left; }
-.fEditingObj #fObjCore, .fObjOver #fObjCore { background: #616DB4; color: #ffffff; }
-.fEditingObj #fObjName, .fObjOver #fObjName { color: #FFFFFF; text-decoration: none; }
-.fEditingObj #fObjCore div.fCenter, .fObjOver #fObjCore div.fCenter { visibility: visible; color: #B1B8DA; }
-.fEditingObj #fObjRight, .fObjOver #fObjRight { background: url('../images/bg_fObjRight.png') no-repeat top right; }
-
-.fEditingObj #fInstName { color: #FF6600; text-decoration: none; }
-.fEditingObj #fInstCore div.fCenter { visibility: hidden; }
-
-.fEditingInst #fInstLeft, .fInstOver #fInstLeft  { background: url('../images/bg_fInstLeft.png') no-repeat top left; }
-.fEditingInst #fInstCore, .fInstOver #fInstCore  { background: #FF6600; color: #ffffff;  }
-.fEditingInst #fInstName, .fInstOver #fInstName  { color: #FFFFFF; text-decoration: none;  }
-.fEditingInst #fInstCore div.fCenter, .fInstOver #fInstCore div.fCenter { visibility: visible; color: #FFBF95;  }
-.fEditingInst #fInstRight, .fInstOver #fInstRight   { background: url('../images/bg_fInstRight.png') no-repeat top right; }
-
-
-#fStateName { color: #FFFFFF; text-decoration: none; padding-top: 16px;}
+#fObjName, #fStateName { text-decoration: none; }
 
 .fWSTitle {
 	display: inline;
@@ -372,77 +445,56 @@ div.resizable {
 	padding-top: 16px;
 }
 
-#fStatesLeft {
-	display: inline;
-	float: left;
-	height: 100%;
-	background: url('../images/bg_fStateLeft.png') no-repeat top left;
-	width: 94px;
-}
-#fStatesCore {
-	display: inline;
-	float: left;
-	height: 100%;
-	background-color: #4c4c4c;
-	width: 560px;
-	padding-left: 3px;
-}
 
-#fWHXYHolder{
-	position: relative;
-	left: 200px;
-	top: -40px;
+#fSInherit,#fSSize,#fSPos,#fSContents,#fSEvents,#fSPriority {
+	display: inline; float: left; padding-right: 15px;
 }
-#fStatesRight {
-	display: inline;
-	float: left;
-	height: 100%;
-	background: url('../images/bg_fStateRight.png') no-repeat top left;
-	width: 4px;
+#fSPriority {
+	padding-right: 0px;
 }
-
-.fStatesButtons {	padding: 0 0 0 10px; }
-.fStatesButtons a {	padding-bottom: 2px; }
-
 #fSInherit {
-	position: absolute; 
-	top: 0px;
-	left: -185px;
-	width: 180px;
-	text-align: right;
+	padding-top: 4px;
+	padding-right: 26px;
 }
-#fSSize,#fSPos,#fSContents,#fSEvents,#fSPriority {
-	display: inline; float: left; padding-right: 20px;
+#fSSize {
+	padding-right: 20px;
 }
 .fSCheck {
-	display: inline; float: left; padding: 0 2px 0 0; margin: 2px 0 0 1px;
+	display: inline; float: left; padding: 0 0 0 0; margin: 4px 0 0 4px;
 	background: url('../images/checkbox_on.png') no-repeat top left;
-	width: 10px; 
-	height: 10px;
+	width: 18px; 
+	height: 16px;
 	cursor: pointer;
 }
 .fSTitle {
 	display: inline; float: left;
-	padding: 0 0 2px 0;
+	padding: 3px 0 0 0;
 	color: #8C95C8;
 	cursor: pointer;
 }
 .fSInputLetter {
 	clear: left;
-	margin: 2px 0 2px -14px;
+	margin: 2px 0 2px -13px;
 	display: inline; float: left;
 }
 .fSInput {
 	display: inline; float: left;
 	margin-left: -1px;
 }
+.fSText {
+	clear: left;
+	margin-left: 4px;
+}
 .fSInput input {
-	font-size: 10px; height: 15px; background-color: #626FB5; font-family: arial; border: 1px solid #3F4985; color: #ffffff;  padding: 1px; margin-left: 2px;
+	font-size: 10px; height: 15px; background-color: #626FB5; font-family: arial; border: 1px solid #3F4985; color: #ffffff;  padding: 1px; margin-left: 4px;
+}
+.fSOver {
+	background: url('../images/fSOver.png') no-repeat;
 }
 
 /* off/unchecked state */
 .fSOff div input {
-	font-size: 10px; height: 15px; background-color: #FF6600; font-family: arial; border: 1px solid #CA5100; color: #ffffff;  padding: 1px; margin-left: 2px;
+	font-size: 10px; height: 15px; background-color: #FF6600; font-family: arial; border: 1px solid #CA5100; color: #ffffff;  padding: 1px; margin-left: 4px;
 }
 .fSOff .fSTitle {
 	color: #FF6600;
@@ -451,13 +503,6 @@ div.resizable {
 .fSOff .fSCheck {
 	background: url('../images/checkbox_off.png') no-repeat top left;
 }
-
-
-
-.fCB1 {
-	/*any way to make this smaller?*/
-}
-
 
 
 .fFooterLink {
@@ -469,18 +514,6 @@ div.resizable {
 	float: left;
 	padding: 18px 5px 0 0;
 }
-
-.fFooterDivider {
-	color: #ffffff;
-	font-family: verdana;
-	font-size: 12px;
-	
-	display: inline;
-	float: left;
-	padding: 16px 5px 0 5px;
-}
-
-
 
 
 
@@ -685,6 +718,6 @@ div.resizable {
 	float: right;
 	position: relative;
 	width: 112px;
-	height: 51px;
+	height: 37px;
 	background: url('../images/cbMini.png') no-repeat top right;
 }
