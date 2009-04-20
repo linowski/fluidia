@@ -26,7 +26,10 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	font: 12px verdana;
 	color: #ffffff;
 }
-
+.fT18 {
+	font: 18px verdana;
+	color: #999999;
+}
 .fT11 {
 	font: 11px verdana;
 	color: #cccccc;
@@ -44,15 +47,20 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	font: bold 10px verdana;
 	color: #ffffff;
 }
-
-.fTThick {
+.fTThick, .fTThickDrk {
 	font-size: 32px;
 	color: #4C4C4C;
 	font-family: verdana;
 	font-weight: bold;
 }
+.fTThickDrk {
+	color: #333333;
+}
 .fTBlue {
 	color: #8C92C5;
+}
+.fTOrange {
+	color: #FF6600;
 }
 
 
@@ -65,6 +73,7 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	position: absolute;
 	right: 0px;
 	height: 100%;
+	z-index: 100000;
 }
 #fRightClickMenu {
 	width: 200px;
@@ -119,14 +128,12 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 
 .panelTitle {
 	padding:4px;
-	padding-left: 17px;
 	font-family: verdana;
 	font-size: 10px;
 	font-weight: bold;
 	color: #ffffff;
 	background-color: #888888;
 	margin-bottom: 1px;
-	background-image: url('../images/blank.gif');
 }
 
 
@@ -381,7 +388,7 @@ div.resizable {
 
 
 
-.fFTop * {
+.fFTop *,.fTThick * {
 	font-size: 18px;
 	color: #999999;
 	font-family: verdana;
@@ -558,6 +565,12 @@ div.resizable {
 	padding-top: 2px;
 }
 
+
+#fCBManager,#fPManager,#fEventManager,#fStateManager,#fIdeaManager {
+	z-index: 100000;
+}
+
+
 #fEventManager {
 	width: 238px;
 	background-color: #ffffff;
@@ -571,13 +584,46 @@ div.resizable {
 	background: #333333; color: #dfdfdf; padding:5px;
 }
 
-/* Alt Manager Stuff */
-#fAltManager {
+/* Idea Manager Stuff */
+#fIdeaManager {
 	position: absolute;
-	height: 80px;
 	top: 100px;
 	left: 100px;
 	display: none;
+}
+.fIMIdea {
+	padding: 3px 3px 0 5px;
+	margin: 0px;
+	position: relative;
+}
+#fIMTop {
+	height: 7px;
+	width: 103px;
+	background: url('../images/bg_imTop.png');
+}
+
+#fIMCore {
+	width: 83px;
+	background: url('../images/bg_smCore.png');
+	padding: 0px 10px 0px 10px;
+	margin: 0px;
+	font-size: 1px;
+	position: relative;
+}
+
+#fIMBottom {
+	height: 7px;
+	width: 103px;
+	background: url('../images/bg_imBottom.png');
+}
+.fIMArrows {
+	padding: 5px;
+}
+.fIMHeader {
+	position: absolute;
+	top:0px;
+	right: -5px;
+	width: 50px;
 }
 
 
@@ -593,14 +639,14 @@ div.resizable {
 #fSMLeft {
 	height: 80px;
 	width: 7px;
-	background: url('../images/bg_smLeft.png') no-repeat top right;
+	background: url('../images/bg_smLeft.png');
 	display: inline;
 	float: left;
 }
 
 #fSMCore {
 	height: 80px;
-	background: url('../images/bg_smCore.png') repeat-x top right;
+	background: url('../images/bg_smCore.png') repeat-x;
 	float: left;
 	padding-right: 5px;
 	padding-top: 5px;
@@ -611,7 +657,7 @@ div.resizable {
 #fSMRight {
 	height: 80px;
 	width: 7px;
-	background: url('../images/bg_smRight.png') no-repeat top right;
+	background: url('../images/bg_smRight.png');
 	float: left;
 }
 
@@ -632,8 +678,9 @@ div.resizable {
 	margin: 0px;
 }
 
-
-
+#editAll {
+	padding: 9px 10px 0 0;
+}
 .fSMState {
 	float: left;
 	padding: 0 3px 0 0;
@@ -643,7 +690,7 @@ div.resizable {
 	vertical-align: top;
 	position: relative;
 }
-.fSMState input {
+.fSMState input,.fIMIdea input {
 	position: absolute;
 	left: 11px;
 	bottom: -17px;
@@ -651,6 +698,10 @@ div.resizable {
 	padding: 0px;
 	width: 14px;
 	height: 14px;
+}
+.fIMIdea input {
+	left: 45px;
+	top: 15px;
 }
 
 .fSMArrows {
@@ -670,31 +721,47 @@ div.resizable {
 
 
 
-#fCBManager {
+#fCBManager,#fPManager {
 	position: absolute;
 	width: 270px;
 	top: 100px;
 	left: 100px;
 	display: none;	
 }
-#fCBTop {
+.fCBTop {
 	background: url('../images/bg_cpTop.png') no-repeat;	
 	height: 7px;
 }
-#fCBCore {
+.fCBCore,.fCBCorePaste {
 	background: url('../images/bg_cpCore.png');	
-	padding: 0px 10px 0 10px;
+	padding: 0px 10px 10px 10px;
 }
-#fCBBottom {
+.fCBCorePaste {
+	background: url('../images/bg_cpCore.png');	
+	padding: 20px 0 20px 0;
+	text-align: center;
+}
+.fCBBottom {
 	background: url('../images/bg_cpBottom.png') no-repeat;	
 	height: 7px;
 }
-
-
-
-
-
-
+.fCBContents {
+	display: none;
+}
+#CBEmpty {
+	padding: 20px;
+	
+}
+#fCBInto {
+	width: 100%;
+	height: 33px;
+	background: url('../images/into.png') no-repeat;	
+	vertical-align: middle;
+	padding: 10px 0 0 70px;
+	text-align: left;
+	font-weight: bold;
+	font-color: #cccccc;
+}
 #fTempJData {
 	width: 650px;
 	height: 550px;

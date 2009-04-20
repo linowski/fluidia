@@ -35,10 +35,10 @@ $(document).ready(function(){
 	//init listeners
 	$(window).bind("resize",resized); // window resizing listener
 	hotkeysEnable(); //enable hotkey listening
-	$("#setwidth").bind("change blur",updateWidth);
-	$("#setheight").bind("change blur",updateHeight);
-	$("#xpos").bind("change blur",updateXpos);
-	$("#ypos").bind("change blur",updateYpos);
+	$("#setwidth").bind("keyup blur",updateWidth);
+	$("#setheight").bind("keyup blur",updateHeight);
+	$("#xpos").bind("keyup blur",updateXpos);
+	$("#ypos").bind("keyup blur",updateYpos);
 	$(document).bind("mousemove",fGM.capture); //global mouse with page coordinates
 
 	//first tool
@@ -143,10 +143,11 @@ function keyreleased(event) {
 	if (whichkey == "90") { fStateManager.hideManager(); }
 	
 	//x released
-	if (whichkey == "88") { fAltManager.hideManager(); }
+	if (whichkey == "88") { fIdeaManager.hideManager(); }
 	
 	// c key
-	if (whichkey == "67") { cPressed = false; if(fCBManager.mouseover == false) {fCBManager.hideManager();} }
+	//if (whichkey == "67") { cPressed = false; if(fCBManager.mouseover == false) {fCBManager.hideManager();} }
+	if (whichkey == "67") { fCBManager.hideManager(); }
 }
 
 function keypressed(event) {
@@ -225,7 +226,7 @@ function keypressed(event) {
 	if (whichkey == "90") { fStateManager.displayManager(); }
 	
 	// x key
-	if (whichkey == "88") { fAltManager.displayManager(); }
+	if (whichkey == "88") { fIdeaManager.displayManager(); }
 	
 	// c key
 	if (whichkey == "67") { cPressed = true; fCBManager.displayManager(); }
@@ -374,7 +375,14 @@ function keyCtrlC(event) {
 	fCBManager.copy();
 }
 function keyCtrlV(event) {
-	fCBManager.paste();
+	//launch paste box if not opened
+	if(fCBManager.openedPaste == false) {
+		fCBManager.displayPasteManager();	
+	}
+	//paste if ctrlV pressed a second time
+	else {
+		fCBManager.paste();	
+	}
 }
 
 
@@ -465,14 +473,14 @@ function Draw(event){
 
 	posx = event.pageX;
 	posy = event.pageY;
-	
 	this.onmousedown=function(){
-		// set drawWhere
-		//alert(fSel.sInstances[0]);
+		//kill focus on input fields on click
+		//todo
 		
+		
+		// set drawWhere
 		if (fSel.sInstances[0] != null) {
 			drawWhere = $("#" + fSel.sInstances[0]);
-			
 		}
 		
 		//check if the selected item is on the selected page
@@ -480,6 +488,12 @@ function Draw(event){
 			//if not, then select the workspace :)
 			fSel.selectObject($("#fWorkspace"));
 			drawWhere = $("#fWorkspace");
+		}
+		
+		//select the parent if workspace or instance is not selected
+		if (!(fSel.sInstances[0].match("fWorkspace")||fSel.sInstances[0].match("ins"))) {
+			fSel.selectObject($("#" + fSel.sInstances[0]).parent());
+			drawWhere = $("#" + fSel.sInstances[0]);
 		}
 		
 		
@@ -507,6 +521,8 @@ function Draw(event){
 		if ((selectedTool != "toolObject") && (selectedTool != "toolText")) {
 			fWorkspace.allowDraw = false;
 		}
+
+		
 
 		// draw rectangle
 		if (fWorkspace.allowDraw == true) {
@@ -1306,6 +1322,14 @@ var jO = {
 			fWorkspace.redraw({type: 'page'});
 		});
 	},
+	getAvailableIdeaId : function(objName) {
+		var availableId = 0;
+		for (i=1;i < 10000;i++) {
+			if (i in jO.jData.ideas[objName]) {}
+			else { availableId = i; break;	}
+		}
+		return(availableId);
+	},
 	getAvailableInstId : function() {
 		var availableId = 0;
 		for (i=1;i < 10000;i++) {
@@ -1343,7 +1367,7 @@ var jO = {
 		for (i=1;i < 10000;i++) {
 			if (inst == "fWorkspace") { availableId = "s1"; break; }
 			else if (jO.jData.instances[inst] == undefined) { availableId = "s1"; break; }
-			else if ("s" + i in jO.jData.instances[inst].states) {}
+			else if ("s" + i in jO.jData.objects[jO.jData.instances[inst].of].states) {}
 			else { availableId = "s" + i; break;	}
 		}
 		return(availableId);
@@ -1505,7 +1529,9 @@ var jO = {
 		//create it
 		jO.jData.objects[newObjId] = new Object();
 		jO.jData.objects[newObjId].name = name;
+		jO.jData.objects[newObjId].i = "1";
 		jO.jData.objects[newObjId].defState = "s1";
+		jO.jData.objects[newObjId].defIdea = "1";
 		jO.jData.objects[newObjId].allInstances = new Object;
 		jO.jData.objects[newObjId].states = new Object;
 
@@ -1535,7 +1561,7 @@ var jO = {
 		return (newTxtId);
 	},
 	instantiate : function (ID,instanceId,state) {
-		//what object, instatiate in which instances, and in what state 
+		//what object (or text), instatiate in which instances, and in what state 
 		
 		// FOR INSTANCES
 		if (ID.match("obj") != null) {
@@ -1551,7 +1577,6 @@ var jO = {
 			
 			//create states as they are in the object
 			//this.createState(newInstId);
-			
 			for (states in jO.jData.objects[ID].states) {
 				//copy properites of instances from instance if 
 				jO.jData.instances[newInstId].states[states] = new Object;
@@ -1621,6 +1646,21 @@ var jO = {
 		
 		return(newInstId);
 	},
+	copyInstance : function(from,to) {
+		
+	},
+	copyObject : function(what) {
+		//determine which Id to give the object and create it
+		newObjId = jO.getAvailableObjId();
+		jO.jData.objects[newObjId] = new Object;
+		
+		//copy 
+		jQuery.extend(true, jO.jData.objects[newObjId], jO.jData.objects[what]);
+		return (newObjId);
+	},
+	copyText : function(from,to) {
+		
+	},
 	createState : function(instance) {
 		// instance, is used to figure out where to add the new state
 		if (instance == undefined) {
@@ -1647,15 +1687,6 @@ var jO = {
 				objRef.states[newState]['z-index'] = fSel.jObj.states[fSession[fSel.nInst].state]['z-index'];
 				//populate contents as well from objects only
 				for (items in fSel.jObj.states[fSession[fSel.nInst].state].contains) {
-					//create new instances and their children
-					
-					//determine if the contents or events should be assignmed to the instance (or unassignmed and inherited from the object)
-					
-					//objId = jO.jData.instances[items].of;
-					//this.instantiate(objId,instanceId,state) {
-					//what object, instatiate in which instances, and in what state 
-					//objRef.states[newState].contains[items] = fSel.jObj.states[fSession[fSel.nInst].state].contains.items;
-					
 					//objects
 					if(items.match("ins")) {
 						newInstanceName = jO.instantiate(jO.jData.instances[items].of, fSel.nInst, newState);
@@ -1663,20 +1694,12 @@ var jO = {
 					}
 					//txt
 					else if (items.match("t")) {
+						//newTxtId = jO.instantiate(jO.jData.elements[items]);
 						tref = jO.jData.elements[items];
 						newTxtId = jO.createTxt(tref.txt,tref.x,tref.y,tref.w,tref.h);
 						//update state contains
 						objRef.states[newState].contains[newTxtId] = "";
-					
 					}
-					
-					//objRef.states[newState].contains[newInstanceName] = "";
-					
-					//todo update allinstances TODO
-					//instatiate it
-					
-					
-					
 				}
 				//TODO populate events
 			}
@@ -1694,18 +1717,53 @@ var jO = {
 		
 		//create blank states from the instancesToUpdate array, with inheritance from object
 		for (i=0;i<instancesToUpdate.length;i++) {
-			jO.jData.instances[instancesToUpdate[i]].states[newState] = new Object;
-			jO.jData.instances[instancesToUpdate[i]].states[newState].iPos = 1;
-			jO.jData.instances[instancesToUpdate[i]].states[newState].iSize = 1;
-			jO.jData.instances[instancesToUpdate[i]].states[newState].iContents = 1;
-			jO.jData.instances[instancesToUpdate[i]].states[newState].iEvents = 1;
-			jO.jData.instances[instancesToUpdate[i]].states[newState].iPriority = 1;
-			jO.jData.instances[instancesToUpdate[i]].states[newState].contains = new Object;
+			//check if newState (determined from objects) does not already exist in instaces. As sometimes obj / inst states get out of syn during idea creation, and it's important not to overwrite existing states
+			if (!jO.jData.instances[instancesToUpdate[i]].states.hasOwnProperty(newState)) {
+				jO.jData.instances[instancesToUpdate[i]].states[newState] = new Object;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iPos = 1;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iSize = 1;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iContents = 1;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iEvents = 1;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iPriority = 1;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].contains = new Object;
+			}
 		}
 		
 		return(newState);
 	},
 	updateAddPage : function(what) {
+		
+	},
+	createIdea: function(instance){
+		//CREATING FOR FIRST TIME
+		objName = jO.jData.instances[instance].of;
+		if(!jO.jData.ideas.hasOwnProperty(objName)) {
+			//create obj
+			jO.jData.ideas[objName] = new Object;
+			
+			//create idea
+			newIdeaId = jO.getAvailableIdeaId(objName);
+			jO.jData.ideas[objName][newIdeaId] = new Object;
+			
+			//copy 
+			jQuery.extend(true, jO.jData.ideas[objName][newIdeaId], jO.jData.objects[objName]);
+		}
+		
+		//create idea
+		newIdeaId = jO.getAvailableIdeaId(objName);
+		jO.jData.ideas[objName][newIdeaId] = new Object;
+		
+		//copy 
+		jQuery.extend(true, jO.jData.ideas[objName][newIdeaId], jO.jData.objects[objName]);
+		
+		//FOREACH STATE
+		for (state in jO.jData.ideas[objName][newIdeaId].states) {
+			//clear contains
+			delete jO.jData.ideas[objName][newIdeaId].states[state].contains;
+			jO.jData.ideas[objName][newIdeaId].states[state].contains = new Object;
+		}
+		
+		return(newIdeaId);
 		
 	}
 };
@@ -1715,8 +1773,10 @@ var jO = {
 // this section contains the clibboard objects
 var fCBManager = {
 	opened : false,
+	pasteAs: "", //master or instance
+	openedPaste : false,
 	mouseover : false, //checked by keyReleased function to see if the mouse is still not over, before hiding it
-	mode : "", //wholepage, multiple instances, multiple objects, instance, objects
+	mode : "empty", //wholepage, multiple instances, multiple objects, instance, objects
 	states : "", //one state or all 
 	instances : [], //array with instance names to copy
 	title : "", // display title
@@ -1725,18 +1785,7 @@ var fCBManager = {
 			var setx = 0;
 			var sety = 0;
 
-			$('#fCBManager').fadeIn(100);
-			//check if x is not exceeding maximum x allowed
-			if(fGM.x + $("#fCBManager").width() > $().width() - 40) {	setx = $().width() - 40 - $("#fCBManager").width();	}
-			else { setx = fGM.x; }
-			//check if y is not exceeding maximum y allowed
-			if(fGM.y + $("#fCBManager").height() > $().height() - 30) {	sety = $().height() - 30 - $("#fCBManager").height();	}
-			else { sety = fGM.y; }
-			//check if x is not exceeding minimum x allowed
-			if (fGM.x < 180) { setx = 180; }
-			//check if y is not exceeding minimum y allowed
-			if (fGM.y < 90) { sety = 90; }
-			
+			[setx,sety] = fWorkspace.positionManager('fCBManager');
 				
 			//reposition so that cursor is closer to the state selection area
 			setx -= 130;
@@ -1755,11 +1804,103 @@ var fCBManager = {
 			this.redraw();
 		
 			//assign hiding ... if not holding down C, hide on mouseleave
-			$("#fCBManager").bind("mouseleave", function(e){ if(cPressed == false) {fCBManager.hideManager(); this.mouseover=false;}}); 
-			$("#fCBManager").bind("mouseenter", function(e){ this.mouseover=true;}); 
+			//$("#fCBManager").bind("mouseleave", function(e){ if(cPressed == false) {fCBManager.hideManager(); this.mouseover=false;}}); 
+			//$("#fCBManager").bind("mouseenter", function(e){ this.mouseover=true;}); 
+			
+			//reset all
+			$(".fCBContents").hide();
+			
+			//display types
+			//CB Empty
+			if(this.mode == "empty") {
+				$("#CBEmpty").show();
+			}
+			else if(this.mode == "instance") {
+				$("#CBInstance").show();
+			}
+			else if(this.mode == "text") {
+				$("#CBText").show();
+			}
+			else if(this.mode == "page") {
+				$("#CBPage").show();
+				$("#CBPage > div").html("Page: " + this.instances[0]);
+			}
+			
+
 			
 			//update opened state
 			this.opened = true;
+		}
+	},
+	displayPasteManager : function() {
+		if (this.openedPaste == false) {
+			var setx = 0;
+			var sety = 0;
+
+			[setx,sety] = fWorkspace.positionManager('fPManager');
+				
+			//reposition so that cursor is closer to the state selection area
+			setx -= 130;
+			sety -= 40;
+			
+			$("#fPManager").css({left: setx});
+			$("#fPManager").css({top: sety});
+			
+			//set mouseover 
+			this.mouseover = true;
+			
+			//assign hiding ... if not holding down C, hide on mouseleave
+			$("#fPManager").bind("mouseleave", function(e){ fCBManager.hidePasteManager(); this.mouseover=false;}); 
+			$("#fPManager").bind("mouseenter", function(e){ this.mouseover=true;}); 
+			
+			
+			//SHOW HIDE buttons
+			if(this.mode == "instance") {
+				$("#buttonNewMaster").show();
+				$("#buttonNewInstance").show();
+				//set default paste as
+				this.pasteAsInstance();	
+			}
+			else if (this.mode == "text") {
+				$("#buttonNewMaster").hide();
+				$("#buttonNewInstance").hide();
+				//update "as" field
+				$("#fPasteMode").html("text");
+			}
+			
+			
+			
+			//PASTE INTO
+			//workspace
+			if (fSel.sInstances[0].match("fWorkspace")) {
+				$("#fCBInto1").html("Workspace");
+				$("#fCBInto2").html("");
+			}
+			//instances
+			else {
+				//update first part of paste into
+				if (fSel.editStatesAs == 0) {
+					$("#fCBInto1").html("One State of");
+				}
+				else {
+					$("#fCBInto1").html("All States of");
+				}
+				
+				//update second part of paste into
+				if (fSel.editAs == 0) { //for edit as object
+					$("#fCBInto2").html(jO.jData.objects[fSel.nObj].name);
+					$("#fCBInto2").removeClass("fTOrange");
+					$("#fCBInto2").addClass("fTBlue");
+				}
+				else {
+					$("#fCBInto2").html(jO.jData.objects[fSel.nObj].name);
+					$("#fCBInto2").removeClass("fTBlue");
+					$("#fCBInto2").addClass("fTOrange");
+				}
+			}
+			
+			//update opened state
+			this.openedPaste = true;
 		}
 	},
 	copy : function() {
@@ -1767,18 +1908,31 @@ var fCBManager = {
 			//set copy type
 			if(fSel.editAs == 0) { this.type = "object";}
 			else { this.type = "instance"; }
+			
 				
 			//copy instance names
 			this.instances = fSel.sInstances.slice();
 			
 			//set mode
-			this.mode = "object";
-			
-			//update selected object
-			this.title = "Object: " + fSel.nObj + " " + jO.jData.objects[fSel.nObj].name;
+			if(this.instances[0].match("ins")) {
+				this.mode = "instance";
+				//update selected object
+				this.title = "Object: " + jO.jData.objects[fSel.nObj].name;
+			}
+			else if(this.instances[0].match("t")) {
+				this.mode = "text";
+			}
+			else if(this.instances[0].match("fWorkspace")) {
+				this.mode = "page";
+				this.instances[0] = panelPages.rememberPageSelectedId;
+			}
 			
 			//display
-			this.displayManager();
+			//this.displayManager();
+			
+			//highlight cbMini
+			$("#cbMini").animate({opacity: "0"}, 100).animate({opacity: "1"}, 500);			
+			
 		}
 	},
 	paste : function() {
@@ -1791,30 +1945,147 @@ var fCBManager = {
 			fSel.selectObject($("#fWorkspace"));
 		}
 		
-		if (fSel.sInstances[0].match("ins")) {
-			ID = jO.instantiate(jO.jData.instances[this.instances[0]].of, fSel.sInstances[0], fSession[fSel.nInst].state);
-			//redraw Objects
-			fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		if (this.mode == "instance") {
+			for (var i = 0; i < this.instances.length; i++) {
+				if (fSel.sInstances[0].match("ins") || fSel.sInstances[0].match("fWorkspace")) {
+					//check if trying to paste an instance into its own master object (in which case do not allow)
+					//alert(fSel.nObj + ":" + jO.jData.instances[this.instances[i]].of);
+					if ((fSel.nObj == jO.jData.instances[this.instances[i]].of) && fSel.sInstances[0].match("ins")) {
+					//todo display error message
+					}
+					else {
+						if (this.pasteAs == "instance") {
+							ID = jO.instantiate(jO.jData.instances[this.instances[i]].of, fSel.sInstances[0], fSession[fSel.nInst].state);
+						}
+						else if (this.pasteAs == "master") {
+							
+							newID = jO.copyObject(jO.jData.instances[this.instances[i]].of);
+							ID = jO.instantiate(newID, fSel.sInstances[0], fSession[fSel.nInst].state);
+						}
+						//redraw Objects
+						//fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+						fWorkspace.redraw({
+							type: 'page'
+						});
+						
+						//reposition if overlapping
+						this.indentPosition(ID);
+						
+						//give visual feedback that paste has occured
+						this.pasteFeedback(ID);
+					}
+				}
+			}
 		}
-		else if (fSel.sInstances[0].match("fWorkspace")) {
-			ID = jO.instantiate(jO.jData.instances[this.instances[0]].of, "fWorkspace");
-			//redraw Page
-			fWorkspace.redraw({type: 'page'});
+		else if (this.mode == "text") {
+			for (var i = 0; i < this.instances.length; i++) {
+				//create new text from existing one
+				tref = jO.jData.elements[this.instances[i]];
+				newTxtId = jO.createTxt(tref.txt,tref.x,tref.y,tref.w,tref.h);
+
+				jO.instantiate(newTxtId, fSel.sInstances[0], fSession[fSel.nInst].state);
+				
+				fWorkspace.redraw({
+							type: 'page'
+						});
+						
+				//give visual feedback that paste has occured
+				this.pasteFeedback(newTxtId);
+			}
 		}
+	},
+	pasteAsMaster : function() {
+		//clear button Instance
+		var imgsrc = $("#buttonNewInstance").attr("src");
+		imgsrc = imgsrc.replace("_on","_off");
+		$("#buttonNewInstance").attr("src",imgsrc);
 		
-		//give visual feedback that paste has occured
-		$("#"+ID).prepend('<div class="pasteFillInst" id="pasteFill"></div>');
-		$("#pasteFill").animate({"opacity": "0"}, { duration: "fast", complete: function(){
-			$("#pasteFill").remove();
-		}});
-
-
+		//set Master
+		imgsrc = $("#buttonNewMaster").attr("src");
+		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
+		$("#buttonNewMaster").attr("src",imgsrc);
 		
+		//update "as" field
+		$("#fPasteMode").html("master");
+		
+		this.pasteAs = "master";
+	},
+	pasteAsInstance : function() {
+		//clear button Master
+		var imgsrc = $("#buttonNewMaster").attr("src");
+		imgsrc = imgsrc.replace("_on","_off");
+		$("#buttonNewMaster").attr("src",imgsrc);
+		
+		//set Instance
+		imgsrc = $("#buttonNewInstance").attr("src");
+		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
+		$("#buttonNewInstance").attr("src",imgsrc);
+		
+		//update "as" field
+		$("#fPasteMode").html("instance");
+		
+		this.pasteAs = "instance";
+	},
+	pasteFeedback : function(what) {
+		$("#" + what).prepend('<div class="pasteFillInst" id="pasteFill"></div>');
+		$("#pasteFill").animate({
+			"opacity": "0"
+		}, {
+			duration: "fast",
+			complete: function(){
+				$("#pasteFill").remove();
+			}
+		});
+	},
+	indentPosition : function(what) {
+		var reposition = false;
+		howmuch = 0;
+		$("#" +what).siblings(".fObject").each(function(i){
+			//detect if to reposition the newly pasted object
+			// check if the ID has a position the same as any of the siblings
+			//alert($("#" +what).css("left") + ":" + $(this).css("left"));
+			if((parseInt($("#" +what).css("left")) + (howmuch * 10) ) == parseInt($(this).css("left"))) {
+				reposition = true;
+				howmuch++;
+			}
+		});
+	
+		if(reposition == true) {
+			//update workspace
+			$("#" + what).css({left: parseInt($("#" + what).css("left")) + (10 * howmuch)});
+			$("#" + what).css({top: parseInt($("#" + what).css("top")) + (10 * howmuch)});
+			
+			//updata jData
+			if (fCBManager.pasteAs == "master") { //if 0 editing as Object
+				//update JSON + Force inheritance of iPos = 1
+				jO.update(what, {
+					type: "object",
+					x: $("#" + what).position().left,
+					y: $("#" + what).position().top,
+					iPos: 1
+				});
+			}
+			else { //else editing as Instance
+				//update JSON + Force inheritance of iPos = 0
+				jO.update(what, {
+					type: "instance",
+					x: $("#" + what).position().left,
+					y: $("#" + what).position().top,
+					iPos: 0
+				});
+			}
+		}
 	},
 	hideManager : function() {
 		if (this.opened == true) {
 			$("#fCBManager").fadeOut(100);
 			this.opened = false;
+		}
+	},
+	hidePasteManager : function() {
+		if (this.openedPaste == true) {
+			$("#fPManager").fadeOut(100);
+			this.openedPaste = false;
 		}
 	},
 	redraw : function() {
@@ -1824,35 +2095,31 @@ var fCBManager = {
 
 
 
-// -------- AltManager Popup Object -----
+
+
+
+// -------- IdeaManager Popup Object -----
 // this section contains the state manager
-var fAltManager = {
+var fIdeaManager = {
 	opened : false,
+	selIdea : "1",
 	displayManager : function() {
-		if ((this.opened == false) && (fSel.sInstances[0] != "fWorkspace")) {
+		if ((this.opened == false) && (fSel.sInstances[0].match("ins"))) {
 			var setx = 0;
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
-			$('#fAltManager').fadeIn(100);
-			//check if x is not exceeding maximum x allowed
-			if(fGM.x + $("#fAltManager").width() > $().width() - 40) {	setx = $().width() - 40 - $("#fAltManager").width();	}
-			else { setx = fGM.x; }
-			//check if y is not exceeding maximum y allowed
-			if(fGM.y + $("#fAltManager").height() > $().height() - 60) {	sety = $().height() - 60 - $("#fAltManager").height();	}
-			else { sety = fGM.y; }
-			//check if x is not exceeding minimum x allowed
-			if (fGM.x < 180) { setx = 180; }
-			//check if y is not exceeding minimum y allowed
-			if (fGM.y < 90) { sety = 90; }
 			
+			[setx,sety] = fWorkspace.positionManager('fIdeaManager');
 				
 			//reposition so that cursor is closer to the state selection area
-			setx -= 130;
-			sety -= 40;
+			setx -= 40;
+			sety -= 60;
 			
-			$("#fAltManager").css({left: setx});
-			$("#fAltManager").css({top: sety});
+			$("#fIdeaManager").css({left: setx});
+			$("#fIdeaManager").css({top: sety});
 			
+			//update 
+			this.redraw();
 		
 			//update opened state
 			this.opened = true;
@@ -1860,10 +2127,98 @@ var fAltManager = {
 	},
 	hideManager : function() {
 		if (this.opened == true) {
-			$("#fAltManager").fadeOut(100);
+			$("#fIdeaManager").fadeOut(100);
 			this.opened = false;
 		}
-	}
+	},
+	addIdea: function(){
+		var newIdea = jO.createIdea(fSel.nInst);
+		this.redraw();
+		this.chooseIdea(newIdea);
+		
+		//fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		fWorkspace.redraw({type: 'page'}); 
+	},
+	redraw : function() {
+		//clear all ideas
+		$(".fIMIdeas").children().remove();
+		
+		//preload number of ideas
+		// if no ideas
+		if (!jO.jData.ideas.hasOwnProperty(fSel.nObj)) {
+			$(".fIMIdeas").append('<div class="fIMIdea" id="i1"><a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_state_off.png" border="0" title="Idea"></a><input type="radio" name="fStartingIdea"></div>');
+		}
+		else {
+			var i = 1;
+			for (items in jO.jData.ideas[fSel.nObj]) {
+				$(".fIMIdeas").append('<div class="fIMIdea" id="i' + i + '"><a href="#" onclick="fIdeaManager.chooseIdea(\'' + i + '\')" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_state_off.png" border="0" title="Idea"></a><input type="radio" name="fStartingIdea" onclick="fIdeaManager.chooseDefaultIdea(\'' + i + '\');"></div>');
+				i++;
+			}
+			
+		}
+		//get current idea number
+		this.selIdea = jO.jData.objects[fSel.nObj].i;
+		
+		//select the currently selected idea
+		var imgsrc = $("#i" + this.selIdea + " img").attr("src");
+		imgsrc = imgsrc.replace("_off", "_on");
+		$("#i" + this.selIdea + " img").attr("src", imgsrc);
+		
+		//update State Text
+		$("#fIdeaNumber").text(this.selIdea);
+		
+		//set default idea (grab from object)
+		var defIdea = fSel.jObj.defIdea;
+		$("#i" + defIdea + " input").attr("checked", true);
+	},
+	chooseIdea : function(which) {
+		//copy current object to temporary one 
+		tempObject = new Object;
+		jQuery.extend(true, tempObject, jO.jData.objects[fSel.nObj]);
+		
+		//copy from chosen ideas to current object
+		delete jO.jData.objects[fSel.nObj];
+		jO.jData.objects[fSel.nObj] = new Object;
+		oRef = jO.jData.objects[fSel.nObj];
+		jQuery.extend(true, oRef, jO.jData.ideas[fSel.nObj][which]);
+		
+		//copy temporary to ideas
+		delete oRef[tempObject.i];
+		oRef[tempObject.i] = new Object;
+		jQuery.extend(true, jO.jData.ideas[fSel.nObj][tempObject.i], tempObject);
+		
+		//keep some object properties up to date
+		delete oRef.allInstances;
+		oRef.allInstances = new Object;
+		jQuery.extend(true, oRef.allInstances, tempObject.allInstances); 
+
+		//update a number of important properties
+		oRef.name = tempObject.name;
+		oRef.defState = tempObject.defState;
+		oRef.defIdea = tempObject.defIdea;
+		
+		//delete temporary
+		delete tempObject;
+		
+		//update object selects
+		jO.jData.objects[fSel.nObj].i = which;
+		
+		//downshift a state possibly, if it doesn't exist
+		if(!jO.jData.objects[fSel.nObj].states.hasOwnProperty(fSession[fSel.nInst].state)) {
+			fSession[fSel.nInst].state = "s1";
+		}
+		
+		//reselect (as objects were deleted and references lost)
+		fSel.selectObject($("#"+fSel.nInst));
+		
+		//redraw
+		this.redraw();
+		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+	},
+	chooseDefaultIdea : function(whichIdea) {
+		//update selected object's defaultState
+		fSel.jObj.defIdea = whichIdea;
+	},
 }
 
 
@@ -1873,23 +2228,13 @@ var fAltManager = {
 var fStateManager = {
 	opened : false,
 	displayManager : function() {
-		if ((this.opened == false) && (fSel.sInstances[0] != "fWorkspace")) {
+		if ((this.opened == false) && (fSel.sInstances[0].match("ins"))) {
 			var setx = 0;
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
-			$('#fStateManager').fadeIn(100);
-			//check if x is not exceeding maximum x allowed
-			if(fGM.x + $("#fStateManager").width() > $().width() - 40) {	setx = $().width() - 40 - $("#fStateManager").width();	}
-			else { setx = fGM.x; }
-			//check if y is not exceeding maximum y allowed
-			if(fGM.y + $("#fStateManager").height() > $().height() - 60) {	sety = $().height() - 60 - $("#fStateManager").height();	}
-			else { sety = fGM.y; }
-			//check if x is not exceeding minimum x allowed
-			if (fGM.x < 180) { setx = 180; }
-			//check if y is not exceeding minimum y allowed
-			if (fGM.y < 90) { sety = 90; }
 			
-				
+			[setx,sety] = fWorkspace.positionManager('fStateManager');
+			
 			//reposition so that cursor is closer to the state selection area
 			setx -= 130;
 			sety -= 40;
@@ -1905,31 +2250,60 @@ var fStateManager = {
 		}
 	},
 	hoverOn : function(state) {
-		$("#fSMStateName").text(fSel.jObj.states[state].sName);
+		if (state == "all") {
+			$("#fSMStateName").text("All States");
+		}	
+		else {
+			$("#fSMStateName").text(fSel.jObj.states[state].sName);
+		}	
 	},
 	hoverOff : function() {
-		$("#fSMStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
+		if (fSession[fSel.nInst].editStatesAs == 1) {
+			$("#fSMStateName").text("All States");
+		}
+		else {
+			$("#fSMStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
+		}
 	},
 	redraw : function() {
 		//clear all states
-			$(".fSMStates").children().remove();
-			
-		//update State Text
-		$("#fSMStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
+		$(".fSMStates").children().remove();
+		
+		//clear editAll
+		imgsrc = $("#editAll").attr("src");
+		imgsrc = imgsrc.replace(/(_over|_on)/,"_off");
+		$("#editAll").attr("src",imgsrc);
 			
 		//preload number of states
 		var i = 0;
-		for (items in jO.jData.instances[fSel.nInst].states) {
+		for (items in jO.jData.objects[fSel.nObj].states) {
 			$(".fSMStates").append('<div class="fSMState" id="' + items + '"><a href="#" onclick="fStateManager.chooseState(\'' + items + '\')" onmouseover="rollOver(this); fStateManager.hoverOn(\'' + items + '\')" onmouseout="rollOut(this); fStateManager.hoverOff();"><img src="engine/images/b_state_off.png" border="0" title="State"></a><input type="radio" name="fStartingState" onclick="fStateManager.chooseDefaultState(\'' + items + '\');"></div>');
+		}
+		
+		
+		// if editAll true
+		if (fSession[fSel.nInst].editStatesAs == 1) {
+			//set editAll
+			imgsrc = $("#editAll").attr("src");
+			imgsrc = imgsrc.replace(/(_over|_off)/, "_on");
+			$("#editAll").attr("src", imgsrc);
+			
+			//update State Text
+			$("#fSMStateName").text("All States");
+		}
+		else {
+			var imgsrc = $("#" + fSession[fSel.sInstances[0]].state + " img").attr("src");
+			imgsrc = imgsrc.replace("_off", "_on");
+			$("#" + fSession[fSel.sInstances[0]].state + " img").attr("src", imgsrc);
+			
+			//update State Text
+			$("#fSMStateName").text(fSel.jObj.states[fSession[fSel.nInst].state].sName);
 		}
 		
 		//set default state (grab from object)
 		var defState = fSel.jObj.defState;
-		$("#" + defState + " input").attr("checked",true)
-		
-		var imgsrc = $("#" + fSession[fSel.sInstances[0]].state + " img").attr("src");
-		imgsrc = imgsrc.replace("_off","_on");
-		$("#" + fSession[fSel.sInstances[0]].state + " img").attr("src",imgsrc);
+		$("#" + defState + " input").attr("checked", true)
+
 	},
 	hideManager : function() {
 		if (this.opened == true) {
@@ -1953,8 +2327,8 @@ var fStateManager = {
 		//redraw Objects
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
 		
-		//update fStateManager
-		this.redraw();
+		// no longer edit all
+		this.editOneState();
 		
 		//update footer
 		fFooter.redrawFooter();
@@ -1963,6 +2337,16 @@ var fStateManager = {
 	chooseDefaultState : function(whichState) {
 		//update selected object's defaultState
 		fSel.jObj.defState = whichState;
+	},
+	editOneState : function() {
+		//update fSession
+		fSession[fSel.nInst].editStatesAs = 0;
+		this.redraw();
+	},
+	editAllStates : function() {
+		//update fSession
+		fSession[fSel.nInst].editStatesAs = 1;
+		this.redraw();
 	}
 }
 
@@ -2271,6 +2655,24 @@ var fWorkspace = {
 			$("#" + fSel.sInstances[0]).parent().addClass("parent");
 		}
 	},
+	positionManager : function(what) {
+		var setx = 0;
+		var sety = 0;
+
+		$('#' + what).fadeIn(100);
+		//check if x is not exceeding maximum x allowed
+		if(fGM.x + $("#" + what).width() > $().width() - 40) {	setx = $().width() - 40 - $("#" + what).width();	}
+		else { setx = fGM.x; }
+		//check if y is not exceeding maximum y allowed
+		if(fGM.y + $("#" + what).height() > $().height() - 60) {	sety = $().height() - 60 - $("#" + what).height();	}
+		else { sety = fGM.y; }
+		//check if x is not exceeding minimum x allowed
+		if (fGM.x < 180) { setx = 180; }
+		//check if y is not exceeding minimum y allowed
+		if (fGM.y < 90) { sety = 90; }
+		
+		return[setx,sety];
+	},
 	saveLabel : function(event) {
 		if (fWorkspace.allowSaveLabel == true) {
 			//if the user clicks on the input box, do not run the rest of the code (to allow clicking on the input box / selecting text)
@@ -2365,7 +2767,6 @@ var fSel = {
 	nObj : "", //string name of selected object
 	nInst : "", //string name of selected instance
 	
-
 	selectObject : function(what) {
 		//feedbackWrite($(what).attr("id"));
 		// can access an index number to a DOM element, a DOM reference or an instance name
@@ -2507,10 +2908,10 @@ var fSel = {
 				
 				//set editStatesAs MODE
 				if (fSession[fSel.nInst].editStatesAs == 0) {
-					fFooter.editOneState();
+					fStateManager.editOneState();
 				}
 				else {
-					fFooter.editAllStates();
+					fStateManager.editAllStates();
 				}
 		}
 		//restyle workspace items
@@ -2700,34 +3101,6 @@ var fFooter = {
 		else if (fSel.sInstances[0].match("t")) {
 		}
 	},
-	editOneState : function() {
-		//clear AllStates
-		//var imgsrc = $("#buttonAllStates").attr("src");
-		//imgsrc = imgsrc.replace("_on","_off");
-		//$("#buttonAllStates").attr("src",imgsrc);
-		
-		//set OneState
-		//imgsrc = $("#buttonOneState").attr("src");
-		//imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
-		//$("#buttonOneState").attr("src",imgsrc);
-		
-		//update fSession
-		fSession[fSel.nInst].editStatesAs = 0;
-	},
-	editAllStates : function() {
-		//clear OneState
-		var imgsrc = $("#buttonOneState").attr("src");
-		imgsrc = imgsrc.replace("_on","_off");
-		$("#buttonOneState").attr("src",imgsrc);
-		
-		//set AllStates
-		imgsrc = $("#buttonAllStates").attr("src");
-		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
-		$("#buttonAllStates").attr("src",imgsrc);
-		
-		//update fSession
-		fSession[fSel.nInst].editStatesAs = 1;
-	}
 }
 
 
@@ -2871,4 +3244,5 @@ var panelPages = {
 		fWorkspace.restyle();
 	}
 };
+
 
