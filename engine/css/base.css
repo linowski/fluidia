@@ -354,11 +354,17 @@ div.resizable {
 
 
 /**** Footer Items - generic classes *****/
-.fFItem {
+.fFItem,.fFInstItem {
 	float: left;
 	bottom: 0px;
 	height: 95px;
 	padding-left: 10px;
+}
+.fFInstItem {
+	left: 901px;
+	height: auto;
+	bottom: 0px;
+	position: absolute;
 }
 .fFRight{
 	width: 5px;
@@ -386,6 +392,26 @@ div.resizable {
 	position: relative;
 }
 
+.fFInstTop {
+	height: 7px;
+	width: 200px;
+	background: url('../images/bg_instTop.png');
+}
+.fFInstCore {
+	width: 190px;
+	background: url('../images/bg_instCore.png');
+	padding-left: 10px;
+}
+#fFInstItems {
+	padding: 5px 0 5px 0;
+}
+#fFInstItems a img {
+	opacity: 0.5;
+	border: 0px;
+}
+#fFInstItems a {
+	padding: 0 2px 2px 0;
+}
 
 
 .fFTop *,.fTThick * {

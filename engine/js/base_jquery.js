@@ -44,8 +44,8 @@ $(document).ready(function(){
 	//first tool
 	toolSelect();
 	
-	$("div.fObject").live("click", makeResizable); //unique
-	$("div.fText").live("click", makeResizable); //unique
+	//$("div.fObject").live("click", fSel.makeResizable); //unique
+	//$("div.fText").live("click", fSel.makeResizable); //unique
 	
 	$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
 	$(window).focus();
@@ -62,7 +62,16 @@ $(document).ready(function(){
         $(this).parent().removeClass('fSOver');
       }
     );
-
+	
+	//hovers for instances
+	$("#fFInstItems a").live("mouseover",
+      function () {
+	  	$("#fFInstTitle").html("Select: " + $(this).attr("title"));
+      });
+	$("#fFInstItems a").live("mouseout",
+      function () {
+	  	$("#fFInstTitle").html("All Instances:");
+      });
 
 });
 
@@ -444,23 +453,7 @@ function updateInfoWH() {
 
 
 
-function makeResizable(event){
-	//can take an event or an instance name
-	if(typeof event == "object") {
-		var element=$(event.target).attr("id");
-		event.stopPropagation();
-		
-		//only resize fObject (as a result of nested events, items within fObject also call the resize function)
-		if(($(event.target).hasClass("fObject") == false) && ($(event.target).hasClass("fText") == false)) {return false;}
-	}
-	else {
-		var element=event;
-	}
 
-	//make resizable
-	myresize = element;
-	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
-}
 
 
 
@@ -1290,6 +1283,7 @@ var fSession = {
 	// .editAs - whether the instance is being editted as Obj 0 or Inst 1 // this is populate with fFooter
 	// .state - the remembered state of the instace //this is first prepopulated with jO.load 
 	// .editStatesAs - 0 is one, 1 is all // this is first prepopulated with jO.load 
+	// .changed = 0 or 1 
 }
 
 
@@ -1494,6 +1488,18 @@ var jO = {
 				statesToEdit[i].iPriority = options.iPriority;
 			}
 		}
+		
+		//set fSession.changed to 1 (need instance name)
+		if(options.type == "instance")    {  
+			fSession[instance].changed = 1;
+		}
+		else if(options.type == "object") { 
+		for (items in objRef.allInstances)
+			fSession[items].changed = 1;
+			fFooter.instRedraw();
+		}
+		
+
 	},
 	updateElements : function(element, options) {
 		//updates either object or instance
@@ -1574,6 +1580,8 @@ var jO = {
 			addWhereRef[newInstId] = new Object;
 			addWhereRef[newInstId].of = ID;
 			addWhereRef[newInstId].states = new Object;
+			addWhereRef[newInstId].p = instanceId; if(instanceId == "fWorkspace") {addWhereRef[newInstId].p = panelPages.selectedPageId;}
+			addWhereRef[newInstId].ps = state;
 			
 			//create states as they are in the object
 			//this.createState(newInstId);
@@ -1656,7 +1664,14 @@ var jO = {
 		
 		//copy 
 		jQuery.extend(true, jO.jData.objects[newObjId], jO.jData.objects[what]);
+		
+		for (items in jO.jData.objects[newObjId].allInstances) {
+			delete jO.jData.objects[newObjId].allInstances[items];
+		};
+		
 		return (newObjId);
+		
+		
 	},
 	copyText : function(from,to) {
 		
@@ -1973,6 +1988,9 @@ var fCBManager = {
 						
 						//give visual feedback that paste has occured
 						this.pasteFeedback(ID);
+						
+						//select the newly pasted object
+						fSel.selectObject(ID);
 					}
 				}
 			}
@@ -2208,12 +2226,12 @@ var fIdeaManager = {
 			fSession[fSel.nInst].state = "s1";
 		}
 		
-		//reselect (as objects were deleted and references lost)
-		fSel.selectObject($("#"+fSel.nInst));
-		
 		//redraw
 		this.redraw();
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		
+		//reselect (as objects were deleted and references lost)
+		fSel.selectObject(fSel.nInst);
 	},
 	chooseDefaultIdea : function(whichIdea) {
 		//update selected object's defaultState
@@ -2472,7 +2490,7 @@ var fWorkspace = {
 					//bug fix: removal of children disables resizability. turn resizability if it is supposed to be on
 					if (myresize == item) {
 						killResizable();
-						makeResizable(item);
+						fSel.makeResizable(item);
 					}
 					
 					// grab properties from object
@@ -2590,7 +2608,7 @@ var fWorkspace = {
 					// create the instance & bind events if creating for the first time (ex: PAGE CHANGES)
 					if ($("#" + item).length == 0) {
 						$("#" + attachWhereArray[i]).append("<div id=\"" + item + "\" class=\"fText\">" + txt + "</div>"); //unique
-						//$("div.fObject").bind("dblclick", makeResizable); //unique
+						//$("div.fObject").bind("dblclick", fSel.makeResizable); //unique
 					}
 					//if has real txt add a different class
 					if(txt != "") {
@@ -2600,8 +2618,6 @@ var fWorkspace = {
 					//make it editable
 					$("#" + item).bind("dblclick",function() {$(this).fEditableText();});
 					
-
-					
 					// adjust properties
 					$("#" + item).css({
 						left: x,
@@ -2609,8 +2625,6 @@ var fWorkspace = {
 						width: width,
 						height: height
 					});
-					
-
 				}
 			}
 		}
@@ -2619,11 +2633,7 @@ var fWorkspace = {
 		//make draggable / resizable selected items
 		//reselect first selected object
 		if((fSel.sInstances[0] != "fWorkspace") && $("#" + fSel.sInstances[0]).length) {
-			//if (myresize) {
-			//	var backup = myresize;
-			//	killResizable();
-			//	makeResizable(backup);
-			//}
+			fSel.makeResizable(fSel.sInstances[0]);
 			fSel.makeDraggable(fSel.sInstances[0]);
 		}
 		}
@@ -2776,14 +2786,42 @@ var fSel = {
 			what = $(what);
 		}
 		else if (typeof what == "string") {
-			if(what.indexOf("#") != -1) {
-				what = $("#" + what);	
+			instLoop = what;
+			//check if the instance is on the page, otherwise get the proper page and switch to it
+			if ( $("#" + what).length == 0 ) {
+				var foundPage = null;
+				
+				while (foundPage == null)
+				{
+					// do the check to find the page number
+					if(jO.jData.instances[instLoop].p.match("page")) {
+						foundPage = jO.jData.instances[instLoop].p;
+					}
+					else {
+						//set proper states of the parent
+						fSession[jO.jData.instances[instLoop].p].state = jO.jData.instances[instLoop].ps;
+						
+						//loop through the next instance (parent)
+						instLoop = jO.jData.instances[instLoop].p;
+					}
+				}
+				
+				//switchtopage
+				panelPages.setSelectedPage(foundPage);
 			}
+
+			//convert to jQuery
+			what = $("#" + what);	
 		}
+		
+		
+
+		
+
 		
 		//destroy last draggable
 		killDrag();
-		this.makeDraggable($(what).attr("id"));
+		killResizable();
 	
 		//clear styles
 		fWorkspace.clearStyles();
@@ -2913,11 +2951,19 @@ var fSel = {
 				else {
 					fStateManager.editAllStates();
 				}
+				
+				//set AllInstances 
+				fFooter.instRedraw();
+				
 		}
 		//restyle workspace items
 		fWorkspace.restyle();
 		
-		
+		//make draggable and resizable
+		if (fSel.sInstances[0] != "fWorkspace") {
+			this.makeDraggable($(what).attr("id"));
+			this.makeResizable($(what).attr("id"));
+		}
 		
 	},
 	makeDraggable : function(what) {
@@ -2926,6 +2972,23 @@ var fSel = {
 		mydrag = what;
 		//feedbackWrite(mydrag);
 		$("#"+mydrag).draggable({cancel: [''], distance: 5, containment: "#fWorkspace", handle: what, start: dragRegister, drag: dragItems, stop: dragStop});
+	},
+	makeResizable : function(event){
+	//can take an event or an instance name
+	if(typeof event == "object") {
+		var element=$(event.target).attr("id");
+		event.stopPropagation();
+		
+		//only resize fObject (as a result of nested events, items within fObject also call the resize function)
+		if(($(event.target).hasClass("fObject") == false) && ($(event.target).hasClass("fText") == false)) {return false;}
+	}
+	else {
+		var element=event;
+	}
+
+	//make resizable
+	myresize = element;
+	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
 	},
 	highlight : function() {
 		if (fSel.sInstances[0] != null) {
@@ -3101,6 +3164,29 @@ var fFooter = {
 		else if (fSel.sInstances[0].match("t")) {
 		}
 	},
+	instRedraw : function () {
+		//clear
+		$("#fFInstItems").children().remove();
+		
+		//populate
+		for (items in fSel.jObj.allInstances) {
+			$("#fFInstItems").append('<a href="#" onclick="fSession.' + items + '.changed = 0; fSel.selectObject(\'' + items +  '\');" title="' + items + '"><img src="engine/images/buttonInst_off.png" id="fFInst_' + items + '"></a>');
+			
+			//set changed view
+			if(fSession[items].changed == 1) {
+				$("#fFInst_" + items).css("opacity","1");
+			}
+		}
+		
+
+		
+		//set selected
+		imgsrc = $("#fFInst_" + fSel.nInst).attr("src");
+		newimgsrc = imgsrc.replace("_off","_on");
+		$("#fFInst_" + fSel.nInst).attr("src",newimgsrc);
+		$("#fFInst_" + fSel.nInst).css("opacity","1");
+		fSession[fSel.nInst].changed = 0;
+	}
 }
 
 
@@ -3128,7 +3214,7 @@ var panelPages = {
 			////PANELPAGES CODE - custom
 			if (thisref.panelId == "panelPages") {
 				//attach single click for select 
-				$(thisref.attachTo + " div.fPanelItemsList").children(':last').bind("click", function() {thisref.setSelectedPage(i); fWorkspace.redraw({type: 'page'});});
+				$(thisref.attachTo + " div.fPanelItemsList").children(':last').bind("click", function() {thisref.setSelectedPage(i); });
 				//loadnew items TODO
 			}	
 		});
@@ -3241,7 +3327,9 @@ var panelPages = {
 		//fSel.selectObject($("fWorkspace"));
 		
 		//redraw workspace
+		fWorkspace.redraw({type: 'page'});
 		fWorkspace.restyle();
+		
 	}
 };
 
