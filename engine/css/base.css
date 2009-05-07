@@ -224,8 +224,11 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 .fTextHasTxt {
 	outline: 0px solid #ffffff;
 	border: 1px solid transparent;
-	background: url('');
+	background: url('') !important;
+	color: #909090;
 }
+
+
 
 .fLabelHolder {
 	top: 50%;
@@ -252,20 +255,29 @@ div.fLabel:hover {
 	position:absolute;
 	top: 0px;
 	left: 0px;
-	border: 6px solid #cfcfcf;
+	outline: 6px solid #cfcfcf;
+	outline-offset: -5px;
 	text-align: left;
+}
+.fHmaster {
+	outline-color: #626FB5;
+}
+.fHinstance {
+	outline-color: #FF6600;
 }
 .fHighlightArrow {
 	position:absolute;
 	top: 0px;
 	left: 0px;
-	margin-left: -130px;
+	margin-left: -120px;
 	margin-top: 10px;
 	text-align: left;
 	z-index: 100000;
 }
 .fHARight {
-   margin-left: 10px;
+   margin-right: -120px;
+   text-align: right;
+   right: 0px;
 }
 
 .parent {
@@ -274,7 +286,7 @@ div.fLabel:hover {
 	background-repeat: no-repeat;
 }
 
-.selected {
+.selected,.selectedWorkspace {
 	border-color: #353E6F;
 	background-image: url('../images/bg_selected.gif');
 	background-position: top right;
@@ -295,17 +307,20 @@ div.fLabel:hover {
 	font-size: 12px;
 }
 	
-.selected div.fObject { 
-	/*border-color: #8C95C8;*/
-	background-image: url('../images/bg_child.gif');
-	background-position: top right;
-	background-repeat: no-repeat;
+.selected div.fInsideMaster {
+	border-color: #626FB5;
 }
-.selectedInst div.fObject {
-	/*border-color: #FF9E5E;*/
-	background-image: url('../images/bg_childInst.gif');
+.selected div.fInsideInstance {
+	border-color: #FF6600;
 }
-
+.selected div.fInsideMasterText {
+	background: url('../images/bg_txtM01.png') 0px 1px repeat;
+	color: #626FB5;
+}
+.selected div.fInsideInstanceText {
+	background: url('../images/bg_txtI01.png') 0px 1px repeat;
+	color: #FF6600;
+}
 
 /*cursor handling*/
 .cursorMove {
@@ -315,7 +330,6 @@ div.fLabel:hover {
 div.resizable {
 	cursor: auto;	
 }
-
 
 
 .cursorCrosshair {
