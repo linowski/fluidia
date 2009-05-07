@@ -74,7 +74,9 @@ $(document).ready(function(){
       function () {
 	  	$("#fFInstTitle").html("All Instances:");
       });
-
+	  
+	 //focus window on click
+	 $("#container").bind("click",fFocusWindow);
 });
 
 
@@ -99,7 +101,9 @@ function setWorkspaceDimensions() {
 	$(".fPanelItemsList").css("height",$("#panelPages").height() - 48);
 }
 
-
+function fFocusWindow() {
+	$(window).focus();
+}
 
 
 
@@ -282,18 +286,21 @@ function keyShiftDownS(event) {
 			newxpos = parseInt($("#" + fSel.sInstances[i]).css("top"));
 			newxpos = newxpos + shiftAmount;
 			$("#" + fSel.sInstances[i]).css({top: newxpos});
-
+			
 			if (fSel.sInstances[i].match("ins")) {
+				//force inheritance
+				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				//update
 				jO.update(fSel.sInstances[i], {y: newxpos});
-				fWorkspace.redraw({type: 'object',item: fSel.nObj});
 			}
 			else if (fSel.sInstances[i].match("t")) {
 				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {y: newxpos});
-				fWorkspace.redraw({type: 'page'}); 
 			}
 		}
+		fWorkspace.redraw({type: 'page'}); 
+		fFooter.redrawFooter();
 	}
-	updateInfoXYPos();
 }
 
 function keyShiftUpS(event) {
@@ -305,16 +312,19 @@ function keyShiftUpS(event) {
 			$("#" + fSel.sInstances[i]).css({top: newxpos});
 			
 			if (fSel.sInstances[i].match("ins")) {
+				//force inheritance
+				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				//update
 				jO.update(fSel.sInstances[i], {y: newxpos});
-				fWorkspace.redraw({type: 'object',item: fSel.nObj});
 			}
 			else if (fSel.sInstances[i].match("t")) {
 				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {y: newxpos});
-				fWorkspace.redraw({type: 'page'}); 
 			}
 		}
+		fWorkspace.redraw({type: 'page'}); 
+		fFooter.redrawFooter();
 	}
-	updateInfoXYPos();
 }
 
 function keyShiftRightS(event) {
@@ -326,16 +336,19 @@ function keyShiftRightS(event) {
 			$("#" + fSel.sInstances[i]).css({left: newxpos});
 
 			if (fSel.sInstances[i].match("ins")) {
+				//force inheritance
+				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				//update
 				jO.update(fSel.sInstances[i], {x: newxpos});
-				fWorkspace.redraw({type: 'object',item: fSel.nObj});
 			}
 			else if (fSel.sInstances[i].match("t")) {
 				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {x: newxpos});
-				fWorkspace.redraw({type: 'page'}); 
 			}
 		}
+		fWorkspace.redraw({type: 'page'}); 
+		fFooter.redrawFooter();
 	}
-	updateInfoXYPos();
 }
 
 function keyShiftLeftS(event) {
@@ -347,16 +360,19 @@ function keyShiftLeftS(event) {
 			$("#" + fSel.sInstances[i]).css({left: newxpos});
 			
 			if (fSel.sInstances[i].match("ins")) {
+				//force inheritance
+				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				//update
 				jO.update(fSel.sInstances[i], {x: newxpos});
-				fWorkspace.redraw({type: 'object',item: fSel.nObj});
 			}
 			else if (fSel.sInstances[i].match("t")) {
 				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {x: newxpos});
-				fWorkspace.redraw({type: 'page'}); 
 			}
 		}
+		fWorkspace.redraw({type: 'page'}); 
+		fFooter.redrawFooter();
 	}
-	updateInfoXYPos();
 }
 function keyCtrlC(event) {
 	fCBManager.copy();
@@ -431,16 +447,10 @@ function updateInfoWH() {
 
 
 
-
-
-
-
-
-
 function Draw(event){
 	var element=$(event.target);
 	//disable dragging during drawing
-	killDrag(); lastDraggable = null;
+	//killDrag(); lastDraggable = null;
 
 	posx = event.pageX;
 	posy = event.pageY;
@@ -455,12 +465,6 @@ function Draw(event){
 			//if not, then select the workspace :)
 			fSel.selectObject($("#fWorkspace"));
 			drawWhere = $("#fWorkspace");
-		}
-		
-		//select the parent if workspace or instance is not selected
-		if (!(fSel.sInstances[0].match("fWorkspace")||fSel.sInstances[0].match("ins"))) {
-			fSel.selectObject($("#" + fSel.sInstances[0]).parent());
-			drawWhere = $("#" + fSel.sInstances[0]);
 		}
 		
 		// do not allow to draw by default
@@ -489,6 +493,13 @@ function Draw(event){
 
 		// draw rectangle
 		if (fWorkspace.allowDraw == true) {
+			//select the parent if workspace or instance is not selected
+			if (!(fSel.sInstances[0].match("fWorkspace")||fSel.sInstances[0].match("ins"))) {
+				fSel.selectObject($("#" + fSel.sInstances[0]).parent());
+				drawWhere = $("#" + fSel.sInstances[0]);
+			}
+				
+			
 			//disable select
 			Unselectable.enable;
 			
@@ -1000,36 +1011,6 @@ $.fn.fEditableText = function() {
 // -------- Tool Functions -----
 // The left most tool functions
 
-function toolHotspot() {
-	//selectedTool
-	selectedTool = "toolHotspot";
-
-	//clear all tools
-	toolClearAllIcons(); // visually
-	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOn();
-	killDrag(); // remove all dragging behaviours
-
-	document.getElementById("iconHotspot").src = "engine/images/button_hotspot_on.gif";
-
-	$("#fWorkspace").bind("mousemove",Draw);
-}
-
-function toolElement() {
-	//selectedTool
-	selectedTool = "toolElement";
-
-	//clear all tools
-	toolClearAllIcons(); // Visually
-	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOn();
-	killDrag(); // remove all dragging behaviours
-
-	document.getElementById("iconElement").src = "engine/images/button_element_on.gif";
-
-	$("#fWorkspace").bind("mousemove",Draw);
-}
-
 
 function toolObject() {
 	//selectedTool
@@ -1049,6 +1030,23 @@ function toolObject() {
 	fSel.highlight();
 }
 
+
+function toolForm() {
+	selectedTool = "toolForm";
+
+	//clear all tools
+	toolClearAllIcons(); // Visually
+	toolClearAllEvents(); // Eventwise
+	toolCursorCrosshairOn();
+	killDrag(); // remove all dragging behaviours
+	killResizable(); // remove all resizable
+
+	document.getElementById("iconForm").src = "engine/images/button_form_on.gif";
+
+	$("#fWorkspace").bind("mousemove",Draw);
+	
+	fSel.highlight();
+}
 
 
 function toolText() {
@@ -2690,6 +2688,7 @@ var fSel = {
 		//feedbackWrite($(what).attr("id"));
 		// can access an index number to a DOM element, a DOM reference or an instance name
 		// what is converted to a jQuery object
+		//alert(what + ":" + $(what).attr("id"));
 		if (typeof what == "number") {
 			what = $("div").get(what);
 			what = $(what);
@@ -2870,6 +2869,7 @@ var fSel = {
 		
 		//make draggable and resizable
 		if (fSel.sInstances[0] != "fWorkspace") {
+			//alert($(what).attr("id"));
 			this.makeDraggable($(what).attr("id"));
 			this.makeResizable($(what).attr("id"));
 		}
@@ -3087,8 +3087,6 @@ var fFooter = {
 				$("#fFInst_" + items).css("opacity","1");
 			}
 		}
-		
-
 		
 		//set selected
 		imgsrc = $("#fFInst_" + fSel.nInst).attr("src");
