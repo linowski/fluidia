@@ -24,7 +24,7 @@
 		<a href="#" onclick="toolSelect();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_arrow_off.gif" border="0" id="iconSelect" title="Selection"></a><br>
 		<a href="#" onclick="toolObject();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_object_off.gif" border="0" id="iconObject" title="Object"></a><br>
 		<a href="#" onclick="toolText();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_text_off.gif" border="0" id="iconText" title="Text"></a><br>
-		<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_form_off.gif" border="0" id="iconForm" title="Form"></a><br>
+		<a href="#" onclick="toolForm();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_form_off.gif" border="0" id="iconForm" title="Form"></a><br>
 		<!--<a href="#" onclick="toolElement();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_element_off.gif" border="0" id="iconElement" title="Element"></a><br>-->
 		<!--<a href="#" onclick="toolHotspot();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/button_hotspot_off.gif" border="0" id="iconHotspot" title="Hotspot"></a><br>-->
 	</div>
@@ -146,6 +146,23 @@
 
 
 <!-- HIDDEN DIVS -->
+<div id="fFormManager">
+	<div class="fTThick">form elements</div>
+	<div id="fSMLeft"></div>
+	<div id="fSMCore">
+		<table cellpadding="0" cellspacing="0" border="0">
+			<tr>
+				<td>
+					<input type="text">
+				</div>
+				</td>
+			</tr>
+		</table>
+		
+	</div>
+	<div id="fSMRight"></div>
+</div>
+
 <div id="fStateManager">
 	<div class="fTThick">states</div>
 	<div id="fSMLeft"></div>

@@ -606,7 +606,7 @@ div.resizable {
 }
 
 
-#fCBManager,#fPManager,#fEventManager,#fStateManager,#fIdeaManager {
+#fCBManager,#fPManager,#fEventManager,#fStateManager,#fIdeaManager,#fFormManager {
 	z-index: 100000;
 }
 
@@ -668,7 +668,7 @@ div.resizable {
 
 
 /* State Manager Stuff */
-#fStateManager {
+#fStateManager, #fFormManager {
 	position: absolute;
 	height: 80px;
 	top: 100px;

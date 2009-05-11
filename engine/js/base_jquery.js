@@ -77,6 +77,9 @@ $(document).ready(function(){
 	  
 	 //focus window on click
 	 $("#container").bind("click",fFocusWindow);
+	 
+	 //select workspace
+	 fSel.selectObject("fWorkspace");
 });
 
 
@@ -161,6 +164,9 @@ function keyreleased(event) {
 	//x released
 	if (whichkey == "88") { fIdeaManager.hideManager(); }
 	
+	//f released
+	if (whichkey == "70") { fFormManager.hideManager(); }
+	
 	// c key
 	//if (whichkey == "67") { cPressed = false; if(fCBManager.mouseover == false) {fCBManager.hideManager();} }
 	if (whichkey == "67") { fCBManager.hideManager(); }
@@ -230,8 +236,8 @@ function keypressed(event) {
 	if ((whichkey == "83") && (shiftPressed == false) && (ctrlPressed == false)) { toolSelect(); }
 	if ((whichkey == "79") && (shiftPressed == false) && (ctrlPressed == false)) { toolObject(); }
 	if ((whichkey == "84") && (shiftPressed == false) && (ctrlPressed == false)) { toolText(); }
-	if ((whichkey == "69") && (shiftPressed == false) && (ctrlPressed == false)) { toolElement(); }
-	if ((whichkey == "72") && (shiftPressed == false) && (ctrlPressed == false)) { toolHotspot(); }
+	//if ((whichkey == "70") && (shiftPressed == false) && (ctrlPressed == false)) { toolForm(); }
+
 	
 	//run code to open fEventManager on press of shift
 	if (event.shiftKey) {
@@ -242,6 +248,9 @@ function keypressed(event) {
 	
 	// z key
 	if (whichkey == "90") { fStateManager.displayManager(); }
+	
+	// f key
+	if ((whichkey == "70") && ($("#fFormManager").css("display") == "none")) { fFormManager.displayManager(); }
 	
 	// x key
 	if (whichkey == "88") { fIdeaManager.displayManager(); }
@@ -1037,15 +1046,20 @@ function toolForm() {
 	//clear all tools
 	toolClearAllIcons(); // Visually
 	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOn();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
 
 	document.getElementById("iconForm").src = "engine/images/button_form_on.gif";
 
-	$("#fWorkspace").bind("mousemove",Draw);
-	
 	fSel.highlight();
+	
+	fFormManager.displayManager();
+	
+	$(window).bind("mousedown",hideFormTool);
+}
+
+function hideFormTool() {
+	fFormManager.hideManager();
 }
 
 
@@ -1094,8 +1108,7 @@ function toolClearAllIcons() {
 	document.getElementById("iconObject").src = "engine/images/button_object_off.gif";
 	document.getElementById("iconSelect").src = "engine/images/button_arrow_off.gif";
 	document.getElementById("iconText").src = "engine/images/button_text_off.gif";
-	//document.getElementById("iconElement").src = "engine/images/button_element_off.gif";
-	//document.getElementById("iconHotspot").src = "engine/images/button_hotspot_off.gif";
+	document.getElementById("iconForm").src = "engine/images/button_form_off.gif";
 }
 
 
@@ -2307,6 +2320,55 @@ var fStateManager = {
 	}
 }
 
+
+
+
+
+// -------- Form Manager Popup Object -----
+// this section contains the state manager
+var fFormManager = {
+	opened : false,
+	displayManager : function() {
+		if (this.opened == false) {
+			var setx = 0;
+			var sety = 0;
+			
+			[setx,sety] = fWorkspace.positionManager('fFormManager');
+			
+			//reposition so that cursor is closer to the state selection area
+			setx -= 130;
+			sety -= 40;
+			
+			$("#fFormManager").css({left: setx});
+			$("#fFormManager").css({top: sety});
+			
+			toolClearAllIcons(); // Visually
+			toolClearAllEvents(); // Eventwise
+			killDrag(); // remove all dragging behaviours
+			killResizable(); // remove all resizable
+		
+			document.getElementById("iconForm").src = "engine/images/button_form_on.gif";
+		
+			fSel.highlight();
+			
+			//update opened state
+			this.opened = true;
+		}
+	},
+	hideManager : function() {
+		if (this.opened == true) {
+			$("#fFormManager").fadeOut(100);
+			
+			toolSelect();
+			
+			this.opened = false;
+		}
+	}
+}
+
+
+
+
 // -------- EventManager Popup Object -----
 // this section contains the events manager 
 var fEventManager = {
@@ -2678,7 +2740,7 @@ var fSel = {
 	editAs : 0, //editing selected item as 0 Object, or 1 Instance
 	editStatesAs : 0, //editing selected item states as 0 individual state, or 1 as All states 
 	
-	sInstances : new Array, //selected instances (strings)
+	sInstances : new Array(), //selected instances (strings)
 	jObj : "", //reference to first selected JSON object (without state)
 	jInst : "", //reference to first selected JSON instance (without state)
 	nObj : "", //string name of selected object
