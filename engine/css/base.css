@@ -1,5 +1,5 @@
 html,body{margin:0;padding:0}
-body{font-family: arial, sans-serif; margin:0;}
+body{font-family: arial, sans-serif; margin:0; background-color: #ffffff;}
 input { padding: 0; margin: 0px;}
 a { outline: none; }
 
@@ -177,6 +177,7 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	border: solid 1px #dFdFdF;
 	overflow: hidden;
 	position: absolute;
+	background-color: #ffffff;
 }
 
 .fObject {
@@ -190,6 +191,12 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	box-sizing: border-box !important;
 	*/
 }
+
+.fForm {
+	position: absolute;
+	cursor: default;
+}
+
 .p1 {
 
 }
@@ -275,9 +282,9 @@ div.fLabel:hover {
 	z-index: 100000;
 }
 .fHARight {
-   margin-right: -120px;
-   text-align: right;
-   right: 0px;
+   margin-left: 10px;
+   text-align: left;
+   left: 0px;
 }
 
 .parent {
@@ -322,9 +329,25 @@ div.fLabel:hover {
 	color: #FF6600;
 }
 
+input,textarea {
+	border: 1px inset #cfcfcf;
+}
+
+input.selected,textarea.selected {
+	border: 1px solid #626FB5;
+
+}
+
+/*.selected input.fInsideMaster {
+	border: 1px solid #626FB5;
+}*/
+
+
+
+
 /*cursor handling*/
 .cursorMove {
-	cursor: move;	
+	cursor: move !important;	
 }
 
 div.resizable {
@@ -676,7 +699,7 @@ div.resizable {
 	display: none;
 }
 
-#fSMLeft {
+.fSMLeft {
 	height: 80px;
 	width: 7px;
 	background: url('../images/bg_smLeft.png');
@@ -684,7 +707,7 @@ div.resizable {
 	float: left;
 }
 
-#fSMCore {
+.fSMCore,.fFMCore {
 	height: 80px;
 	background: url('../images/bg_smCore.png') repeat-x;
 	float: left;
@@ -693,8 +716,14 @@ div.resizable {
 	margin: 0px;
 	font-size: 1px;
 }
+.fFMCore {
+	padding: 10px 0 10px 0;
+}
+.fFMCore a {
+	padding: 0 5px 0 5px;
+}
 
-#fSMRight {
+.fSMRight {
 	height: 80px;
 	width: 7px;
 	background: url('../images/bg_smRight.png');

@@ -36,7 +36,7 @@
 			<div class="fPanelItemsList"></div>
 			<div class="panelArrowDown"></div>
 			<div class="panelIcons">
-				<a href="#" onclick="panelPages.add();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconAdd_off.png" border="0" id="buttonIconAdd" title="Add"></a><a href="#" onclick="panelPages.remove();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconRemove_off.png" border="0" id="buttonIconRemove" title="Remove"></a><a href="#" onclick="toolPanelPagesDuplicate();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconDuplicate_off.png" border="0" id="buttonIconDuplicate" title="Duplicate"></a>
+				<a href="#" onclick="panelPages.add();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconAdd_off.png" border="0" id="buttonIconAdd" title="Add"></a><a href="#" onclick="panelPages.remove();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconRemove_off.png" border="0" id="buttonIconRemove" title="Remove"></a><!--<a href="#" onclick="toolPanelPagesDuplicate();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/buttonIconDuplicate_off.png" border="0" id="buttonIconDuplicate" title="Duplicate"></a>-->
 			</div>
 		</div>
 	</div>
@@ -147,26 +147,22 @@
 
 <!-- HIDDEN DIVS -->
 <div id="fFormManager">
-	<div class="fTThick">form elements</div>
-	<div id="fSMLeft"></div>
-	<div id="fSMCore">
-		<table cellpadding="0" cellspacing="0" border="0">
-			<tr>
-				<td>
-					<input type="text">
-				</div>
-				</td>
-			</tr>
-		</table>
-		
+	<div class="fTThick">form tool</div>
+	<div class="fSMLeft"></div>
+	<div class="fFMCore">
+		<a href="#" style="" onclick="fFormManager.addFormElement('if');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_f1_off.png" border="0" alt="Input Field"></a>
+		<a href="#" style="" onclick="fFormManager.addFormElement('cb');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_f2_off.png" border="0" alt="Checkbox"></a>
+		<a href="#" style="" onclick="fFormManager.addFormElement('rb');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_f3_off.png" border="0" alt="Radio Button"></a>
+		<a href="#" style="" onclick="fFormManager.addFormElement('ta');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_f4_off.png" border="0" alt="Text Area"></a>
+		<a href="#" style="" onclick="fFormManager.addFormElement('pm');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_f5_off.png" border="0" alt="Pulldown"></a>
 	</div>
-	<div id="fSMRight"></div>
+	<div class="fSMRight"></div>
 </div>
 
 <div id="fStateManager">
 	<div class="fTThick">states</div>
-	<div id="fSMLeft"></div>
-	<div id="fSMCore">
+	<div class="fSMLeft"></div>
+	<div class="fSMCore">
 		<table cellpadding="0" cellspacing="0" border="0">
 			<tr>
 				<td rowspan="2">
@@ -189,7 +185,7 @@
 		</table>
 		
 	</div>
-	<div id="fSMRight"></div>
+	<div class="fSMRight"></div>
 </div>
 
 
@@ -221,6 +217,11 @@
 		<div class="fCBContents" id="CBText">
 			<br>
 			<div class="fT12 fTI">Text</div>
+		</div>
+		
+		<div class="fCBContents" id="CBForm">
+			<br>
+			<div class="fT12 fTI">Form Element</div>
 		</div>
 		
 		<div class="fCBContents" id="CBPage">
