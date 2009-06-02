@@ -22,7 +22,8 @@ $(document).ready(function(){
 
 	// init functions
 	setWorkspaceDimensions(); // set window dimensions the first time
-	jO.load('projects/project01.json','','fSel.selectObject($("#fWorkspace"))'); //load JSON data + select workspace
+	
+	jO.load('projects/project01.json','file'); //load JSON data + select workspace
 	
 	$("#fWorkspace").showMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {alert('tf');});
 
@@ -100,6 +101,10 @@ function setWorkspaceDimensions() {
 	document.getElementById("rightpanel").style.height = windowheight;
 	
 	$(".fPanelItemsList").css("height",$("#panelPages").height() - 48);
+	
+	//set minmum and maximum widths of panelpages after they have been loaded
+	panelPages.cssPanelWidthCon = parseInt($("#panelPages").css("width"));
+	panelPages.cssPanelWidthExp = parseInt($("#panelPages").css("width")) + 80;
 }
 
 function fFocusWindow() {
@@ -154,7 +159,7 @@ function keyreleased(event) {
 	if (whichkey == "16") {
 		shiftPressed = false;
 		shiftAmount = 1;
-		fEventManager.triggerPressedRecently = true;
+		fDebugJson.triggerPressedRecently = true;
 	}
 	//ctrl released
 	if (whichkey == "17") {
@@ -183,39 +188,39 @@ function keypressed(event) {
 	//alert(whichkey);
 	// 46 is the delete key
 	if (whichkey == "46") {
-		if (fSel.sInstances.length > 0) {
-			for (var i = 0; i < fSel.sInstances.length; i++) {
+		if (fSel.sI.length > 0) {
+			for (var i = 0; i < fSel.sI.length; i++) {
 				//remove from "contains" of parent instance in jData
-				parentInsName = $("#" + fSel.sInstances[i]).parent().attr("id");
+				parentInsName = $("#" + fSel.sI[i]).parent().attr("id");
 				if (parentInsName == "fWorkspace") {
-					delete jO.jData.pages[panelPages.selectedPageId].contains[jO.truncRef(fSel.sInstances[i])];
+					delete jO.jData.pages[panelPages.selectedPageId].contains[jO.tr(fSel.sI[i])];
 				}
 				else if (parentInsName.match("ins")) {
 					parentObjName = jO.jData.instances[parentInsName].of;
 					//remove contains in parent and object
-					delete jO.jData.instances[parentInsName].states[fSession[parentInsName].state].contains[jO.truncRef(fSel.sInstances[i])];
-					delete jO.jData.objects[parentObjName].states[fSession[parentInsName].state].contains[jO.truncRef(fSel.sInstances[i])];
+					delete jO.jData.instances[parentInsName].states[fSession[parentInsName].state].contains[jO.tr(fSel.sI[i])];
+					delete jO.jData.objects[parentObjName].states[fSession[parentInsName].state].contains[jO.tr(fSel.sI[i])];
 				}
 
-				if (fSel.sInstances[i].match("ins")) {
+				if (fSel.sI[i].match("ins")) {
 					//remove instance
-					delete jO.jData.instances[fSel.sInstances[i]];
+					delete jO.jData.instances[fSel.sI[i]];
 					
 					//todo clear actual objects in jO if (last instance cleared)
 				}
-				else if (fSel.sInstances[i].match("t")) {
+				else if (fSel.sI[i].match("t")) {
 					//remove real text element
-					delete jO.jData.elements[jO.truncRef(fSel.sInstances[i])];
+					delete jO.jData.elements[jO.tr(fSel.sI[i])];
 				}
 				
 				//remove DOM objects from the workspace
-				if(fSel.sInstances[i] != "fWorkspace") {
-					$("#" + fSel.sInstances[i]).remove();
+				if(fSel.sI[i] != "fWorkspace") {
+					$("#" + fSel.sI[i]).remove();
 				}
 				
 			}
 			//empty the whole array
-			fSel.sInstances.splice(0);
+			fSel.sI.splice(0);
 			fSel.selectObject($("#fWorkspace"));
 		}
 		
@@ -232,7 +237,7 @@ function keypressed(event) {
 	if (whichkey == "16") {
 		shiftAmount = 10;
 	}
-	shiftPressed = event.shiftKey; // sets as true or false. used by fEventManager and multiple object selection
+	shiftPressed = event.shiftKey; // sets as true or false. used by fDebugJson and multiple object selection
 	
 	
 	//toolbars (only run if shift / ctrl are NOT pressed)
@@ -242,12 +247,12 @@ function keypressed(event) {
 	//if ((whichkey == "70") && (shiftPressed == false) && (ctrlPressed == false)) { toolForm(); }
 
 	
-	//run code to open fEventManager on press of shift
+	//run code to open fDebugJson on press of shift
 	if (event.shiftKey) {
-		fEventManager.trigger();
+		fDebugJson.trigger();
 	}
 	// and close it when an ESC is pressed
-	if (whichkey == "27") { fEventManager.hideManager(); }
+	if (whichkey == "27") { fDebugJson.hideManager(); }
 	
 	// z key
 	if (whichkey == "90") { fStateManager.displayManager(); }
@@ -293,21 +298,21 @@ function setPriority(what){
 
 function keyShiftDownS(event) {
 	// move selected object 1 pixels down
-	if ((fSel.sInstances.length > 0) && (fSel.sInstances[0] != "fWorkspace")) {
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			newxpos = parseInt($("#" + fSel.sInstances[i]).css("top"));
+	if ((fSel.sI.length > 0) && (fSel.sI[0] != "fWorkspace")) {
+		for (var i = 0; i < fSel.sI.length; i++) {
+			newxpos = parseInt($("#" + fSel.sI[i]).css("top"));
 			newxpos = newxpos + shiftAmount;
-			$("#" + fSel.sInstances[i]).css({top: newxpos});
+			$("#" + fSel.sI[i]).css({top: newxpos});
 			
-			if (fSel.sInstances[i].match("ins")) {
+			if (fSel.sI[i].match("ins")) {
 				//force inheritance
-				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
-				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				if(fSession[jO.tr(fSel.sI[i])].editAs == 0) {	jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.tr(fSel.sI[i])].editAs == 1) { jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 0}); }
 				//update
-				jO.update(fSel.sInstances[i], {y: newxpos});
+				jO.update(fSel.sI[i], {y: newxpos});
 			}
-			else if (fSel.sInstances[i].match("t|f")) {
-				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {y: newxpos});
+			else if (fSel.sI[i].match("t|f")) {
+				jO.updateElements(jO.tr(fSel.sI[i]), {y: newxpos});
 			}
 		}
 		fWorkspace.redraw({type: 'page'}); 
@@ -317,21 +322,21 @@ function keyShiftDownS(event) {
 
 function keyShiftUpS(event) {
 	// move selected object 1 pixels up
-	if ((fSel.sInstances.length > 0) && (fSel.sInstances[0] != "fWorkspace")) {
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			newxpos = parseInt($("#" + fSel.sInstances[i]).css("top"));
+	if ((fSel.sI.length > 0) && (fSel.sI[0] != "fWorkspace")) {
+		for (var i = 0; i < fSel.sI.length; i++) {
+			newxpos = parseInt($("#" + fSel.sI[i]).css("top"));
 			newxpos = newxpos - shiftAmount;
-			$("#" + fSel.sInstances[i]).css({top: newxpos});
+			$("#" + fSel.sI[i]).css({top: newxpos});
 			
-			if (fSel.sInstances[i].match("ins")) {
+			if (fSel.sI[i].match("ins")) {
 				//force inheritance
-				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
-				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				if(fSession[jO.tr(fSel.sI[i])].editAs == 0) {	jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.tr(fSel.sI[i])].editAs == 1) { jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 0}); }
 				//update
-				jO.update(fSel.sInstances[i], {y: newxpos});
+				jO.update(fSel.sI[i], {y: newxpos});
 			}
-			else if (fSel.sInstances[i].match("t|f")) {
-				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {y: newxpos});
+			else if (fSel.sI[i].match("t|f")) {
+				jO.updateElements(jO.tr(fSel.sI[i]), {y: newxpos});
 			}
 		}
 		fWorkspace.redraw({type: 'page'}); 
@@ -341,21 +346,21 @@ function keyShiftUpS(event) {
 
 function keyShiftRightS(event) {
 	// move selected object 1 pixels right
-	if ((fSel.sInstances.length > 0) && (fSel.sInstances[0] != "fWorkspace")) {
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			newxpos = parseInt($("#" + fSel.sInstances[i]).css("left"));
+	if ((fSel.sI.length > 0) && (fSel.sI[0] != "fWorkspace")) {
+		for (var i = 0; i < fSel.sI.length; i++) {
+			newxpos = parseInt($("#" + fSel.sI[i]).css("left"));
 			newxpos = newxpos + shiftAmount;
-			$("#" + fSel.sInstances[i]).css({left: newxpos});
+			$("#" + fSel.sI[i]).css({left: newxpos});
 
-			if (fSel.sInstances[i].match("ins")) {
+			if (fSel.sI[i].match("ins")) {
 				//force inheritance
-				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
-				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				if(fSession[jO.tr(fSel.sI[i])].editAs == 0) {	jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.tr(fSel.sI[i])].editAs == 1) { jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 0}); }
 				//update
-				jO.update(fSel.sInstances[i], {x: newxpos});
+				jO.update(fSel.sI[i], {x: newxpos});
 			}
-			else if (fSel.sInstances[i].match("t|f")) {
-				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {x: newxpos});
+			else if (fSel.sI[i].match("t|f")) {
+				jO.updateElements(jO.tr(fSel.sI[i]), {x: newxpos});
 			}
 		}
 		fWorkspace.redraw({type: 'page'}); 
@@ -365,21 +370,21 @@ function keyShiftRightS(event) {
 
 function keyShiftLeftS(event) {
 	// move selected object 1 pixels left
-	if ((fSel.sInstances.length > 0) && (fSel.sInstances[0] != "fWorkspace")) {
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			newxpos = parseInt($("#" + fSel.sInstances[i]).css("left"));
+	if ((fSel.sI.length > 0) && (fSel.sI[0] != "fWorkspace")) {
+		for (var i = 0; i < fSel.sI.length; i++) {
+			newxpos = parseInt($("#" + fSel.sI[i]).css("left"));
 			newxpos = newxpos - shiftAmount;
-			$("#" + fSel.sInstances[i]).css({left: newxpos});
+			$("#" + fSel.sI[i]).css({left: newxpos});
 			
-			if (fSel.sInstances[i].match("ins")) {
+			if (fSel.sI[i].match("ins")) {
 				//force inheritance
-				if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 0) {	jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 1});	}
-				else if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) { jO.update(jO.truncRef(fSel.sInstances[i]), {type: "instance",iPos: 0}); }
+				if(fSession[jO.tr(fSel.sI[i])].editAs == 0) {	jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 1});	}
+				else if(fSession[jO.tr(fSel.sI[i])].editAs == 1) { jO.update(jO.tr(fSel.sI[i]), {type: "instance",iPos: 0}); }
 				//update
-				jO.update(fSel.sInstances[i], {x: newxpos});
+				jO.update(fSel.sI[i], {x: newxpos});
 			}
-			else if (fSel.sInstances[i].match("t|f")) {
-				jO.updateElements(jO.truncRef(fSel.sInstances[i]), {x: newxpos});
+			else if (fSel.sI[i].match("t|f")) {
+				jO.updateElements(jO.tr(fSel.sI[i]), {x: newxpos});
 			}
 		}
 		fWorkspace.redraw({type: 'page'}); 
@@ -403,45 +408,45 @@ function keyCtrlV(event) {
 
 
 function updateWidth(event) {
-	if(fSel.sInstances[0] != "fWorkspace") {
+	if(fSel.sI[0] != "fWorkspace") {
 		//make sure it's an integer
 		var val = parseInt($("#setwidth").val());
 		$("#setwidth").val(val);
-		$("#" + fSel.sInstances[0]).width($("#setwidth").val());
-		jO.update(fSel.sInstances[0],{w : parseInt($("#setwidth").val())});
+		$("#" + fSel.sI[0]).width($("#setwidth").val());
+		jO.update(fSel.sI[0],{w : parseInt($("#setwidth").val())});
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
 	}
 }
 
 function updateHeight(event) {
-	if(fSel.sInstances[0] != "fWorkspace") {
+	if(fSel.sI[0] != "fWorkspace") {
 		//make sure it's an integer
 		var val = parseInt($("#setheight").val());
 		$("#setheight").val(val);
-		$("#" + fSel.sInstances[0]).height($("#setheight").val());
-		jO.update(fSel.sInstances[0],{h : parseInt($("#setheight").val())});
+		$("#" + fSel.sI[0]).height($("#setheight").val());
+		jO.update(fSel.sI[0],{h : parseInt($("#setheight").val())});
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
 	}
 }
 
 function updateXpos(event) {
-	if(fSel.sInstances[0] != "fWorkspace") {
+	if(fSel.sI[0] != "fWorkspace") {
 		//make sure it's an integer
 		var val = parseInt($("#xpos").val());
 		$("#xpos").val(val);
-		$("#" + fSel.sInstances[0]).css("left", $("#xpos").val() + "px");
-		jO.update(fSel.sInstances[0],{x : parseInt($("#xpos").val())});
+		$("#" + fSel.sI[0]).css("left", $("#xpos").val() + "px");
+		jO.update(fSel.sI[0],{x : parseInt($("#xpos").val())});
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
 	}
 }
 
 function updateYpos(event) {
-	if(fSel.sInstances[0] != "fWorkspace") {
+	if(fSel.sI[0] != "fWorkspace") {
 		//make sure it's an integer
 		var val = parseInt($("#ypos").val());
 		$("#ypos").val(val);
-		$("#" + fSel.sInstances[0]).css("top", $("#ypos").val() + "px");
-		jO.update(fSel.sInstances[0],{y : parseInt($("#ypos").val())});
+		$("#" + fSel.sI[0]).css("top", $("#ypos").val() + "px");
+		jO.update(fSel.sI[0],{y : parseInt($("#ypos").val())});
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
 	}
 }
@@ -450,20 +455,20 @@ function updateYpos(event) {
 
 
 function updateInfoXYPos() {
-	$("#xpos").val(parseInt($("#" + fSel.sInstances[0]).css("left")));
-	$("#ypos").val(parseInt($("#" + fSel.sInstances[0]).css("top")));
+	$("#xpos").val(parseInt($("#" + fSel.sI[0]).css("left")));
+	$("#ypos").val(parseInt($("#" + fSel.sI[0]).css("top")));
 
-	if(fSel.sInstances[0] == "fWorkspace") {
+	if(fSel.sI[0] == "fWorkspace") {
 		$("#xpos").val(0);
 		$("#ypos").val(0);
 	}
 }
 
 function updateInfoWH() {
-	$("#setwidth").val($("#" + fSel.sInstances[0]).width());
-	$("#setheight").val($("#" + fSel.sInstances[0]).height());
+	$("#setwidth").val($("#" + fSel.sI[0]).width());
+	$("#setheight").val($("#" + fSel.sI[0]).height());
 
-	if(fSel.sInstances[0] == "fWorkspace") {
+	if(fSel.sI[0] == "fWorkspace") {
 		$("#setwidth").val(0);
 		$("#setheight").val(0);
 	}
@@ -480,12 +485,12 @@ function Draw(event){
 	posy = event.pageY;
 	this.onmousedown=function(){
 		// set drawWhere
-		if (fSel.sInstances[0] != null) {
-			drawWhere = $("#" + fSel.sInstances[0]);
+		if (fSel.sI[0] != null) {
+			drawWhere = $("#" + fSel.sI[0]);
 		}
 		
 		//check if the selected item is on the selected page
-		if(!$("#" + fSel.sInstances[0]).length > 0) {
+		if(!$("#" + fSel.sI[0]).length > 0) {
 			//if not, then select the workspace :)
 			fSel.selectObject($("#fWorkspace"));
 			drawWhere = $("#fWorkspace");
@@ -518,9 +523,9 @@ function Draw(event){
 		// draw rectangle
 		if (fWorkspace.allowDraw == true) {
 			//select the parent if workspace or instance is not selected
-			if (!(fSel.sInstances[0].match("fWorkspace")||fSel.sInstances[0].match("ins"))) {
-				fSel.selectObject($("#" + fSel.sInstances[0]).parent());
-				drawWhere = $("#" + fSel.sInstances[0]);
+			if (!(fSel.sI[0].match("fWorkspace")||fSel.sI[0].match("ins"))) {
+				fSel.selectObject($("#" + fSel.sI[0]).parent());
+				drawWhere = $("#" + fSel.sI[0]);
 			}
 				
 			
@@ -584,15 +589,15 @@ function Draw(event){
 			}
 
 			//instatiate it
-			if (fSel.sInstances[0] != "fWorkspace") {
-				newInstanceName = jO.instantiate(ID, fSel.sInstances[0], fSession[fSel.nInst].state);
+			if (fSel.sI[0] != "fWorkspace") {
+				newInstanceName = jO.instantiate(ID, fSel.sI[0], fSession[fSel.nInst].state);
 				
 				//force inheritance
 				//if 0 editing as Object
 				if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iContents: 1});}
 			}
 			else {
-				newInstanceName = jO.instantiate(ID, fSel.sInstances[0]);
+				newInstanceName = jO.instantiate(ID, fSel.sI[0]);
 			}
 		
 			//update footer
@@ -601,7 +606,7 @@ function Draw(event){
 			//update Workspace
 			//INSTANCE
 			if (selectedTool == "toolObject") {
-				if (fSel.sInstances[0] != "fWorkspace") {
+				if (fSel.sI[0] != "fWorkspace") {
 				//redraw parent
 				//fWorkspace.redraw({type: 'object',item: fSel.jInst.of});
 				}
@@ -679,7 +684,7 @@ function toolSelectDo(event) {
 	if (element.attr("id") == "fWorkspace") {
 		// select the fWorkspace
 		fSel.selectObject(element);
-		//if (fSel.sInstances.length > 0) {	fSel.sInstances.splice(0); }
+		//if (fSel.sI.length > 0) {	fSel.sI.splice(0); }
 		
 		// kill draggables
 		killDrag();
@@ -690,10 +695,10 @@ function toolSelectDo(event) {
 function dragRegister() {
 	startdragx = parseInt($("#"+mydrag).css("left"));
 	startdragy = parseInt($("#"+mydrag).css("top"));
-	for (var i = 0; i < fSel.sInstances.length; i++) {
-		startdragObjects[fSel.sInstances[i]] = {};
-		startdragObjects[fSel.sInstances[i]].x = parseInt($("#" + fSel.sInstances[i]).css("left"));
-		startdragObjects[fSel.sInstances[i]].y = parseInt($("#" + fSel.sInstances[i]).css("top"));
+	for (var i = 0; i < fSel.sI.length; i++) {
+		startdragObjects[fSel.sI[i]] = {};
+		startdragObjects[fSel.sI[i]].x = parseInt($("#" + fSel.sI[i]).css("left"));
+		startdragObjects[fSel.sI[i]].y = parseInt($("#" + fSel.sI[i]).css("top"));
 	}
 }
 
@@ -705,10 +710,10 @@ function dragItems() {
 	movey = parseInt($("#"+mydrag).css("top")) - startdragy;
 
 	// loop through all remaining selected items except fWorkspace and
-	for (var i = 0; i < fSel.sInstances.length; i++) {
+	for (var i = 0; i < fSel.sI.length; i++) {
 		//update position on workspace
-		$("#" + fSel.sInstances[i]).css("left", startdragObjects[fSel.sInstances[i]].x + movex + "px");
-		$("#" + fSel.sInstances[i]).css("top", startdragObjects[fSel.sInstances[i]].y + movey + "px");
+		$("#" + fSel.sI[i]).css("left", startdragObjects[fSel.sI[i]].x + movex + "px");
+		$("#" + fSel.sI[i]).css("top", startdragObjects[fSel.sI[i]].y + movey + "px");
 	}
 	//update footer
 	updateInfoXYPos();
@@ -722,29 +727,29 @@ function dragStop() {
 	movey = parseInt($("#"+mydrag).css("top")) - startdragy;
 	
 	//update JSON position of items
-	for (var i = 0; i < fSel.sInstances.length; i++) {
+	for (var i = 0; i < fSel.sI.length; i++) {
 		var itemRef = "";
 		// OBJECTS / INSTANCES
-		if (fSel.sInstances[i].match("ins") != null) {
+		if (fSel.sI[i].match("ins") != null) {
 			if (fSel.editAs == 0) { //if 0 editing as Object
 				//update JSON + Force inheritance of iPos = 1
-				jO.update(fSel.sInstances[i], {
+				jO.update(fSel.sI[i], {
 					type: "object",
-					x: $("#" + fSel.sInstances[i]).position().left,
-					y: $("#" + fSel.sInstances[i]).position().top,
+					x: $("#" + fSel.sI[i]).position().left,
+					y: $("#" + fSel.sI[i]).position().top,
 				});
 				
-				jO.update(fSel.sInstances[i], {
+				jO.update(fSel.sI[i], {
 					type: "instance",
 					iPos: 1
 				});
 			}
 			else { //else editing as Instance
 				//update JSON + Force inheritance of iPos = 0
-				jO.update(fSel.sInstances[i], {
+				jO.update(fSel.sI[i], {
 					type: "instance",
-					x: $("#" + fSel.sInstances[i]).position().left,
-					y: $("#" + fSel.sInstances[i]).position().top,
+					x: $("#" + fSel.sI[i]).position().left,
+					y: $("#" + fSel.sI[i]).position().top,
 					iPos: 0
 				});
 			}
@@ -756,10 +761,10 @@ function dragStop() {
 			}
 		}
 		// Text
-		if ((fSel.sInstances[i].match("t") != null) || (fSel.sInstances[i].match("f") != null)) {
-			jO.updateElements(jO.truncRef(fSel.sInstances[i]), {
-				x: $("#" + fSel.sInstances[i]).position().left,
-				y: $("#" + fSel.sInstances[i]).position().top,
+		if ((fSel.sI[i].match("t") != null) || (fSel.sI[i].match("f") != null)) {
+			jO.updateElements(jO.tr(fSel.sI[i]), {
+				x: $("#" + fSel.sI[i]).position().left,
+				y: $("#" + fSel.sI[i]).position().top,
 			});
 			
 			fWorkspace.redraw({type: 'page'}); 
@@ -776,12 +781,12 @@ function resizeStop() {
 	
 	//update JSON position of items
 	
-	for (var i = 0; i < fSel.sInstances.length; i++) {
+	for (var i = 0; i < fSel.sI.length; i++) {
 		var itemRef = "";
 		
 		
 		// OBJECTS / INSTANCES
-		if (fSel.sInstances[i].match("ins") != null) {
+		if (fSel.sI[i].match("ins") != null) {
 			//calculate necessary relative position change
 			//if editing as object master
 			
@@ -803,8 +808,8 @@ function resizeStop() {
 				}
 			//}
 			//calculate difference in positional change
-			changeX = $("#" + fSel.sInstances[i]).position().left - initx;
-			changeY = $("#" + fSel.sInstances[i]).position().top - inity;
+			changeX = $("#" + fSel.sI[i]).position().left - initx;
+			changeY = $("#" + fSel.sI[i]).position().top - inity;
 			
 			//if 0 editing as Object
 			if (fSel.editAs == 0) {
@@ -818,15 +823,15 @@ function resizeStop() {
 					instRef = jO.jData.instances[Instances[j]];
 					
 					//if they inherit size but not position
-					if ((instRef.states[fSession[fSel.nInst].state].iSize == 1) && (instRef.states[fSession[fSel.nInst].state].iPos == 0) && (Instances[j] != fSel.sInstances[i])) {
-						//alert(Instances[j] + ":"+ fSel.sInstances[i]);
+					if ((instRef.states[fSession[fSel.nInst].state].iSize == 1) && (instRef.states[fSession[fSel.nInst].state].iPos == 0) && (Instances[j] != fSel.sI[i])) {
+						//alert(Instances[j] + ":"+ fSel.sI[i]);
 						//update the instance's position relatively + force inheritance of size
 						jO.update(Instances[j], {
 							type: "instance",
 							xs: changeX,
 							ys: changeY,
-							w: $("#" + fSel.sInstances[i]).width(),
-							h: $("#" + fSel.sInstances[i]).height()
+							w: $("#" + fSel.sI[i]).width(),
+							h: $("#" + fSel.sI[i]).height()
 						});
 					}
 				}
@@ -837,8 +842,8 @@ function resizeStop() {
 					type: "object",
 					xs: changeX,
 					ys: changeY,
-					w: $("#" + fSel.sInstances[i]).width(),
-					h: $("#" + fSel.sInstances[i]).height(),
+					w: $("#" + fSel.sI[i]).width(),
+					h: $("#" + fSel.sI[i]).height(),
 				});
 				
 				//force inheritance
@@ -857,8 +862,8 @@ function resizeStop() {
 					type: "instance",
 					xs: changeX,
 					ys: changeY,
-					w: $("#" + fSel.sInstances[i]).width(),
-					h: $("#" + fSel.sInstances[i]).height(),
+					w: $("#" + fSel.sI[i]).width(),
+					h: $("#" + fSel.sI[i]).height(),
 					iSize: 0
 				});
 			}
@@ -879,16 +884,16 @@ function resizeStop() {
 			
 		}	
 		// TEXT
-		if (fSel.sInstances[i].match("t") != null) {
+		if (fSel.sI[i].match("t") != null) {
 			//calculate difference in positional change
-			changeX = $("#" + fSel.sInstances[i]).position().left - jO.jData.elements[jO.truncRef(fSel.sInstances[i])].x;
-			changeY = $("#" + fSel.sInstances[i]).position().top - jO.jData.elements[jO.truncRef(fSel.sInstances[i])].y;
+			changeX = $("#" + fSel.sI[i]).position().left - jO.jData.elements[jO.tr(fSel.sI[i])].x;
+			changeY = $("#" + fSel.sI[i]).position().top - jO.jData.elements[jO.tr(fSel.sI[i])].y;
 			
-			jO.updateElements(jO.truncRef(fSel.sInstances[i]), {
+			jO.updateElements(jO.tr(fSel.sI[i]), {
 				xs: changeX,
 				ys: changeY,
-				w: $("#" + fSel.sInstances[i]).width(),
-				h: $("#" + fSel.sInstances[i]).height(),
+				w: $("#" + fSel.sI[i]).width(),
+				h: $("#" + fSel.sI[i]).height(),
 			});
 			
 			fWorkspace.redraw({type: 'page'});
@@ -919,8 +924,8 @@ function killResizable(event) {
 // -------- Object Functions ----
 function objectSortUp() {
 	//increase zindex of first selected item // todo multiple item?
-	alert($("#" + fSel.sInstances[0]).css("z-index"));
-	$("#" + fSel.sInstances[0]).css("z-index",100);
+	alert($("#" + fSel.sI[0]).css("z-index"));
+	$("#" + fSel.sI[0]).css("z-index",100);
 }
 
 
@@ -1003,7 +1008,7 @@ $.fn.fEditableText = function() {
 	fWorkspace.editingText = true;
 	clickedElement = this;
 
-	txtref = jO.jData.elements[jO.truncRef($(clickedElement).attr("id"))];
+	txtref = jO.jData.elements[jO.tr($(clickedElement).attr("id"))];
 	
 	//objref = jO.jData.objects[jO.jData.instances[$(clickedElement).attr("id")].of];
 	clickedElement = $("#" + clickedElement.attr("id"));
@@ -1114,8 +1119,8 @@ function toolSelect() {
 	$("#fWorkspace").bind("click",toolSelectDo);
 	
 	//enable last drag
-	if (fSel.sInstances[0] != null) {
-		fSel.selectObject(fSel.sInstances[0]);
+	if (fSel.sI[0] != null) {
+		fSel.selectObject(fSel.sI[0]);
 	}
 }
 
@@ -1141,15 +1146,15 @@ function toolClearAllEvents() {
 
 
 function toolCursorCrosshairOn() {
-	for (var i = 0; i < fSel.sInstances.length; i++) {
-		$("#" + fSel.sInstances[i]).removeClass("cursorMove");
+	for (var i = 0; i < fSel.sI.length; i++) {
+		$("#" + fSel.sI[i]).removeClass("cursorMove");
 	}
 	$("#fWorkspace").addClass("cursorCrosshair");
 }
 
 function toolCursorCrosshairOff() {
-	for (var i = 0; i < fSel.sInstances.length; i++) {
-		if (fSel.sInstances[i] != "fWorkspace") { $("#" + fSel.sInstances[i]).addClass("cursorMove");}
+	for (var i = 0; i < fSel.sI.length; i++) {
+		if (fSel.sI[i] != "fWorkspace") { $("#" + fSel.sI[i]).addClass("cursorMove");}
 	}
 	$("#fWorkspace").removeClass("cursorCrosshair");
 }
@@ -1196,8 +1201,8 @@ $.fn.showMenu = function(options) {
 				$("#fRightClickMenu div:first-child a").html(whatelement.attr("id"));
 				
 				// attach parent,child,selected indicators if available
-				if (whatelement.attr("id") == fSel.sInstances[0]) { $("#fRightClickMenu div:first-child").addClass("selected"); }
-				if (whatelement.attr("id") == $("#" + fSel.sInstances[0]).parent().attr("id")) { $("#fRightClickMenu div:first-child").addClass("parent"); }
+				if (whatelement.attr("id") == fSel.sI[0]) { $("#fRightClickMenu div:first-child").addClass("selected"); }
+				if (whatelement.attr("id") == $("#" + fSel.sI[0]).parent().attr("id")) { $("#fRightClickMenu div:first-child").addClass("parent"); }
 				// TODO children??
 				// TODO reflect multiple selects?
 				countItems++;
@@ -1289,31 +1294,34 @@ var fSession = {
 // this section contains the JSON data objects and instances
 var jO = {
 	jData : null,
-	load : function (whatfile) {
+	load : function (whatToLoad, type) {
+		//type = can be either 'file' or 'json'
 		ref = this;
-		$.getJSON(whatfile, function(data){
-			jO.jData = data;
+		
+		//clear jData
+		delete	jO.jData;
+		jO.jData = new Object;
+		
+		//file loading
+		if(type == 'file') {
+			$.getJSON(whatToLoad, function(data){
+				jO.jData = data;
+				fWorkspace.initAfterLoad();
+			});
 			
-			//select first page
-			panelPages.selectedPageId = "page1";
-			//set minmum and maximum widths of panelpages after they have been loaded
-			panelPages.cssPanelWidthCon = parseInt($("#panelPages").css("width"));
-			panelPages.cssPanelWidthExp = parseInt($("#panelPages").css("width")) + 80;
-			//Draw Panel Pages
-			panelPages.draw();
+		}
+		else if(type == 'json') {
+			//jO.jData = $.evalJSON(whatToLoad);
+			//alert(whatToLoad);
+			jQuery.extend(true, jO.jData, $.evalJSON(whatToLoad));
 			
-			//populate all fSession instance with default states & 
-			for (items in jO.jData.instances) {
-				fSession[items] = new Object;
-				fSession[items].state = jO.jData.objects[jO.jData.instances[items].of].defState;
-				fSession[items].editStatesAs = 0; //by default edit OneState
-			}
+			fWorkspace.initAfterLoad();
+		}
 			
-			//draw instances
-			fWorkspace.redraw({type: 'page'});
-		});
+		
+		
 	},
-	truncRef : function(item) { //removes _ref string from element references
+	tr : function(item) { //removes _ref string from element references
 		item = item.replace(/_.*/, '');
 		return (item);
 	},
@@ -1428,8 +1436,7 @@ var jO = {
 				if (lines[i].indexOf("}") != "-1") { frontSpacer--; } 
 			}
 			
-			//make visible
-			$("#container").append('<div id="fTempJData"><textarea>' + myJSONText + '</textarea></div>');
+			return(myJSONText);
 	},
 	update : function(instance, options) {
 		//updates either object or instance
@@ -1440,8 +1447,8 @@ var jO = {
 		// options.xs, .ys are x,y coordinates but are summed to existing values
 		// options can also be contents or events TODO
 
-		var instRef = jO.jData.instances[jO.truncRef(instance)];
-		var objRef = jO.jData.objects[jO.jData.instances[jO.truncRef(instance)].of];
+		var instRef = jO.jData.instances[jO.tr(instance)];
+		var objRef = jO.jData.objects[jO.jData.instances[jO.tr(instance)].of];
 		statesToEdit = new Array(); // this will hold all states to be edited
 		
 		//determine which statesToEdit
@@ -1459,13 +1466,13 @@ var jO = {
 		}
 		//one
 		else {
-			if(options.type == "instance")    { statesToEdit.push(instRef.states[fSession[jO.truncRef(instance)].state]); }
-			else if(options.type == "object") { statesToEdit.push(objRef.states[fSession[jO.truncRef(instance)].state]); }
+			if(options.type == "instance")    { statesToEdit.push(instRef.states[fSession[jO.tr(instance)].state]); }
+			else if(options.type == "object") { statesToEdit.push(objRef.states[fSession[jO.tr(instance)].state]); }
 			else {
 				//determine instance or object from fSession
-				if (fSession[jO.truncRef(instance)].editAs == 0) { statesToEdit.push(objRef.states[fSession[jO.truncRef(instance)].state]); }
+				if (fSession[jO.tr(instance)].editAs == 0) { statesToEdit.push(objRef.states[fSession[jO.tr(instance)].state]); }
 				else {
-					statesToEdit.push(instRef.states[fSession[jO.truncRef(instance)].state]); 
+					statesToEdit.push(instRef.states[fSession[jO.tr(instance)].state]); 
 					//force inheritance
 				}
 			}
@@ -1489,7 +1496,7 @@ var jO = {
 		
 		//set fSession.changed to 1 (need instance name)
 		if(options.type == "instance")    {  
-			fSession[jO.truncRef(instance)].changed = 1;
+			fSession[jO.tr(instance)].changed = 1;
 		}
 		else if(options.type == "object") { 
 		for (items in objRef.allInstances)
@@ -1574,9 +1581,13 @@ var jO = {
 		
 		return (newFormId);
 	},
-	instantiate : function (ID,instanceId,state) {
-		//what object (or text), instatiate in which instances, and in what state 
+	instantiate : function (ID,instanceId,state,parentType) {
+		//what object (or text), instatiate in which instances, in what state, and update parent object 0 or instance 1
 		//alert(ID + ":" + instanceId + ":" + state);
+		if(parentType == undefined) {
+			if (fSel.editAs == 0) {parentType = 0;}
+			else {parentType = 1;}
+		}
 		
 		// FOR INSTANCES
 		if (ID.match("obj") != null) {
@@ -1644,11 +1655,12 @@ var jO = {
 		}
 		// update parent instances or object
 		else {
-			if (fSel.editAs == 0) {
+			if (parentType == 0) {
 				jO.jData.objects[fSel.nObj].states[state].contains[newInstId] = "";
 			}
 			else {
-				jO.jData.instances[jO.truncRef(instanceId)].states[state].contains[newInstId] = "";
+				//alert(instanceId + ":" + state);
+				jO.jData.instances[jO.tr(instanceId)].states[state].contains[newInstId] = "";
 			}
 		}
 		
@@ -1704,7 +1716,7 @@ var jO = {
 				for (items in fSel.jObj.states[fSession[fSel.nInst].state].contains) {
 					//objects
 					if(items.match("ins")) {
-						newInstanceName = jO.instantiate(jO.jData.instances[items].of, fSel.nInst, newState);
+						newInstanceName = jO.instantiate(jO.jData.instances[items].of, fSel.nInst, newState, 0);
 						//todo this has to happen recursively
 					}
 					//txt
@@ -1894,7 +1906,7 @@ var fCBManager = {
 			
 			//PASTE INTO
 			//workspace
-			if (fSel.sInstances[0].match("fWorkspace")) {
+			if (fSel.sI[0].match("fWorkspace")) {
 				$("#fCBInto1").html("Workspace");
 				$("#fCBInto2").html("");
 			}
@@ -1926,14 +1938,14 @@ var fCBManager = {
 		}
 	},
 	copy : function() {
-		if ((this.opened == false) && (fSel.sInstances.length != 0)) {
+		if ((this.opened == false) && (fSel.sI.length != 0)) {
 			//set copy type
 			if(fSel.editAs == 0) { this.type = "object";}
 			else { this.type = "instance"; }
 			
 				
 			//copy instance names
-			this.instances = fSel.sInstances.slice();
+			this.instances = fSel.sI.slice();
 			
 			//set mode
 			if(this.instances[0].match("ins")) {
@@ -1962,29 +1974,29 @@ var fCBManager = {
 	},
 	paste : function() {
 		//instantiate
-		//alert(this.instances[0] + ":" + jO.jData.instances[this.instances[0]].of +  ":" + fSel.sInstances[0] + ":" + fSession[fSel.nInst].state);
+		//alert(this.instances[0] + ":" + jO.jData.instances[this.instances[0]].of +  ":" + fSel.sI[0] + ":" + fSession[fSel.nInst].state);
 		
 		//check if the selected item is on the selected page
-		if(!$("#" + fSel.sInstances[0]).length > 0) {
+		if(!$("#" + fSel.sI[0]).length > 0) {
 			//if not, then select the workspace :)
 			fSel.selectObject($("#fWorkspace"));
 		}
 		
 		if (this.mode == "instance") {
 			for (var i = 0; i < this.instances.length; i++) {
-				if (fSel.sInstances[0].match("ins") || fSel.sInstances[0].match("fWorkspace")) {
+				if (fSel.sI[0].match("ins") || fSel.sI[0].match("fWorkspace")) {
 					//check if trying to paste an instance into its own master object (in which case do not allow)
-					if ((fSel.nObj == jO.jData.instances[this.instances[i]].of) && fSel.sInstances[0].match("ins")) {
+					if ((fSel.nObj == jO.jData.instances[this.instances[i]].of) && fSel.sI[0].match("ins")) {
 						//todo display error message - cannot paste intstance into itself
 						
 					}
 					else {
 						if (this.pasteAs == "instance") {
-							ID = jO.instantiate(jO.jData.instances[this.instances[i]].of, fSel.sInstances[0], fSession[fSel.nInst].state);
+							ID = jO.instantiate(jO.jData.instances[this.instances[i]].of, fSel.sI[0], fSession[fSel.nInst].state);
 						}
 						else if (this.pasteAs == "master") {
 							newID = jO.copyObject(jO.jData.instances[this.instances[i]].of);
-							ID = jO.instantiate(newID, fSel.sInstances[0], fSession[fSel.nInst].state);
+							ID = jO.instantiate(newID, fSel.sI[0], fSession[fSel.nInst].state);
 						}
 						//redraw Objects
 						fWorkspace.redraw({type: 'page'});
@@ -2008,10 +2020,10 @@ var fCBManager = {
 				newTxtId = jO.createTxt(tref.txt,tref.x,tref.y,tref.w,tref.h);
 				
 				if (fSession[fSel.nInst] != undefined) {
-					ID = jO.instantiate(newTxtId, fSel.sInstances[0], fSession[fSel.nInst].state);
+					ID = jO.instantiate(newTxtId, fSel.sI[0], fSession[fSel.nInst].state);
 				}
 				else {
-					ID = jO.instantiate(newTxtId, fSel.sInstances[0]);
+					ID = jO.instantiate(newTxtId, fSel.sI[0]);
 				}
 				
 				fWorkspace.redraw({type: 'page'});
@@ -2027,10 +2039,10 @@ var fCBManager = {
 				newTxtId = jO.createForm(tref.type,tref.x,tref.y,tref.w,tref.h);
 
 				if (fSession[fSel.nInst] != undefined) {
-					ID = jO.instantiate(newTxtId, fSel.sInstances[0], fSession[fSel.nInst].state);
+					ID = jO.instantiate(newTxtId, fSel.sI[0], fSession[fSel.nInst].state);
 				}
 				else {
-					ID = jO.instantiate(newTxtId, fSel.sInstances[0]);
+					ID = jO.instantiate(newTxtId, fSel.sI[0]);
 				}
 				
 				fWorkspace.redraw({type: 'page'});
@@ -2153,7 +2165,7 @@ var fIdeaManager = {
 	opened : false,
 	selIdea : "1",
 	displayManager : function() {
-		if ((this.opened == false) && (fSel.sInstances[0].match("ins"))) {
+		if ((this.opened == false) && (fSel.sI[0].match("ins"))) {
 			var setx = 0;
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
@@ -2277,7 +2289,7 @@ var fIdeaManager = {
 var fStateManager = {
 	opened : false,
 	displayManager : function() {
-		if ((this.opened == false) && (fSel.sInstances[0].match("ins"))) {
+		if ((this.opened == false) && (fSel.sI[0].match("ins"))) {
 			var setx = 0;
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
@@ -2341,12 +2353,12 @@ var fStateManager = {
 			$("#fSMStateName").text("All States");
 		}
 		else {
-			var imgsrc = $("#" + fSession[jO.truncRef(fSel.sInstances[0])].state + " img").attr("src");
+			var imgsrc = $("#" + fSession[jO.tr(fSel.sI[0])].state + " img").attr("src");
 			imgsrc = imgsrc.replace("_off", "_on");
-			$("#" + fSession[jO.truncRef(fSel.sInstances[0])].state + " img").attr("src", imgsrc);
+			$("#" + fSession[jO.tr(fSel.sI[0])].state + " img").attr("src", imgsrc);
 			
 			//update State Text
-			$("#fSMStateName").text(fSel.jObj.states[fSession[jO.truncRef(fSel.nInst)].state].sName);
+			$("#fSMStateName").text(fSel.jObj.states[fSession[jO.tr(fSel.nInst)].state].sName);
 		}
 		
 		//set default state (grab from object)
@@ -2448,15 +2460,15 @@ var fFormManager = {
 		newFormId = jO.createForm(formtype);
 		
 		//instantiate it
-		if (fSel.sInstances[0] != "fWorkspace") {
-			newInstanceName = jO.instantiate(newFormId, fSel.sInstances[0], fSession[fSel.nInst].state);
+		if (fSel.sI[0] != "fWorkspace") {
+			newInstanceName = jO.instantiate(newFormId, fSel.sI[0], fSession[fSel.nInst].state);
 			
 			//force inheritance
 			//if 0 editing as Object
 			if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iContents: 1});}
 		}
 		else {
-			newInstanceName = jO.instantiate(newFormId, fSel.sInstances[0]);
+			newInstanceName = jO.instantiate(newFormId, fSel.sI[0]);
 		}
 		
 		
@@ -2471,9 +2483,8 @@ var fFormManager = {
 
 
 
-// -------- EventManager Popup Object -----
-// this section contains the events manager 
-var fEventManager = {
+// -------- JSON Debugger Popup Object -----
+var fDebugJson = {
 	opened : false,
 	triggerPressedRecently : false,
 	trigger : function() {
@@ -2489,8 +2500,8 @@ var fEventManager = {
 		if (this.opened == false) {
 			this.opened = true;
 			
-			// temp stuff show JSON
-			jO.jsonToText();
+			//make JSON visible
+			$("#container").append('<div id="fTempJData"><textarea>' + jO.jsonToText() + '</textarea></div>');
 		}		
 	},
 	hideManager : function () {
@@ -2498,9 +2509,12 @@ var fEventManager = {
 			this.opened = false;
 			this.triggerPressedRecently = false;
 			
+			//grab the modified JSON contents and reload everything base on it
+			var jsonText = $("#fTempJData textarea").val();
+			jO.load(jsonText,'json');
+			
 			// temp stuff hide JSON
 			$("#fTempJData").remove();
-			
 		}
 	}
 	
@@ -2521,13 +2535,13 @@ var fWorkspace = {
 	clearStyles : function() {
 		//unselect old one(s)
 		//alert('clearing Styles');
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			$("#" + fSel.sInstances[i]).removeClass("selectedWorkspace");
-			$("#" + fSel.sInstances[i]).removeClass("selected");
-			$("#" + fSel.sInstances[i]).parent().removeClass("parent");
-			$("#" + fSel.sInstances[i]).removeClass("cursorMove");
-			$("#" + fSel.sInstances[i]).removeClass("selectedInst");
-			$("#" + fSel.sInstances[i]).removeClass("selectedTxt");
+		for (var i = 0; i < fSel.sI.length; i++) {
+			$("#" + fSel.sI[i]).removeClass("selectedWorkspace");
+			$("#" + fSel.sI[i]).removeClass("selected");
+			$("#" + fSel.sI[i]).parent().removeClass("parent");
+			$("#" + fSel.sI[i]).removeClass("cursorMove");
+			$("#" + fSel.sI[i]).removeClass("selectedInst");
+			$("#" + fSel.sI[i]).removeClass("selectedTxt");
 		}
 	},
 	redraw : function(options){
@@ -2766,11 +2780,11 @@ var fWorkspace = {
 		}
 		
 		//make draggable / resizable selected items
-		if((fSel.sInstances[0] != "fWorkspace") && $("#" + fSel.sInstances[0]).length) {
-			fSel.makeDraggable(fSel.sInstances[0]);
+		if((fSel.sI[0] != "fWorkspace") && $("#" + fSel.sI[0]).length) {
+			fSel.makeDraggable(fSel.sI[0]);
 			
-			if (!fSel.sInstances[0].match("f")) {
-				fSel.makeResizable(fSel.sInstances[0]);
+			if (!fSel.sI[0].match("f")) {
+				fSel.makeResizable(fSel.sI[0]);
 			}
 		}
 
@@ -2781,35 +2795,52 @@ var fWorkspace = {
 		$(window).focus();
 		
 	},
+	initAfterLoad : function() {
+		//select first page
+		panelPages.selectedPageId = "page1";
+		
+		//Draw Panel Pages
+		panelPages.draw();
+		
+		//populate all fSession instance with default states & 
+		for (items in jO.jData.instances) {
+			fSession[items] = new Object;
+			fSession[items].state = jO.jData.objects[jO.jData.instances[items].of].defState;
+			fSession[items].editStatesAs = 0; //by default edit OneState
+		}
+		
+		//draw instances
+		fWorkspace.redraw({type: 'page'});
+	},
 	restyle : function() {
 		//restyles all elements on the workspace
-		if (fSel.sInstances[0] == "fWorkspace") {
-			$("#" + fSel.sInstances[0]).addClass("selectedWorkspace");
+		if (fSel.sI[0] == "fWorkspace") {
+			$("#" + fSel.sI[0]).addClass("selectedWorkspace");
 		}
 		else {
 			//style the new selection ones
-			for (var i = 0; i < fSel.sInstances.length; i++) {
+			for (var i = 0; i < fSel.sI.length; i++) {
 				//instances
-				if (fSel.sInstances[i].match("ins")) {
-					$("#" + fSel.sInstances[i]).addClass("selected");
-					$("#" + fSel.sInstances[i]).addClass("cursorMove");
+				if (fSel.sI[i].match("ins")) {
+					$("#" + fSel.sI[i]).addClass("selected");
+					$("#" + fSel.sI[i]).addClass("cursorMove");
 					
 					//change look of selected class
-					if(fSession[jO.truncRef(fSel.sInstances[i])].editAs == 1) {
-						$("#" + fSel.sInstances[i]).addClass("selectedInst");	
+					if(fSession[jO.tr(fSel.sI[i])].editAs == 1) {
+						$("#" + fSel.sI[i]).addClass("selectedInst");	
 					}
 				}
-				else if (fSel.sInstances[i].match("t")) {
-					$("#" + fSel.sInstances[i]).addClass("selectedTxt");
-					$("#" + fSel.sInstances[i]).addClass("cursorMove");
+				else if (fSel.sI[i].match("t")) {
+					$("#" + fSel.sI[i]).addClass("selectedTxt");
+					$("#" + fSel.sI[i]).addClass("cursorMove");
 				}
-				else if (fSel.sInstances[i].match("f")) {
-					$("#" + fSel.sInstances[i]).addClass("selected");
-					$("#" + fSel.sInstances[i]).addClass("cursorMove");
+				else if (fSel.sI[i].match("f")) {
+					$("#" + fSel.sI[i]).addClass("selected");
+					$("#" + fSel.sI[i]).addClass("cursorMove");
 				}
 			}
 			//style the parent
-			$("#" + fSel.sInstances[0]).parent().addClass("parent");
+			$("#" + fSel.sI[0]).parent().addClass("parent");
 		}
 	},
 	positionManager : function(what) {
@@ -2873,7 +2904,7 @@ var fWorkspace = {
 		
 			//update jData
 			saveAs = $("#fEditing").val();
-			jO.jData.elements[jO.truncRef(fWorkspace.editingTextInstance)].txt = saveAs;
+			jO.jData.elements[jO.tr(fWorkspace.editingTextInstance)].txt = saveAs;
 			
 			hotkeysEnable();
 			
@@ -2906,7 +2937,7 @@ var fSel = {
 	editAs : 0, //editing selected item as 0 Object, or 1 Instance
 	editStatesAs : 0, //editing selected item states as 0 individual state, or 1 as All states 
 	
-	sInstances : new Array(), //selected instances (strings)
+	sI : new Array(), //selected instances (strings)
 	jObj : "", //reference to first selected JSON object (without state)
 	jInst : "", //reference to first selected JSON instance (without state)
 	nObj : "", //string name of selected object
@@ -2960,15 +2991,15 @@ var fSel = {
 	
 		// IF NO SHIFT IS HELD DOWN empty the whole array
 		if (shiftPressed == false) {
-			if (fSel.sInstances.length > 0) {	fSel.sInstances.splice(0,fSel.sInstances.length); }
+			if (fSel.sI.length > 0) {	fSel.sI.splice(0,fSel.sI.length); }
 		}
 	
 		//CONTINUE ADDING TO THE ARRAY
 		// if the item is already selected, unselect it, otherwise add it
 		itemExists = false;
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			if ((fSel.sInstances[i] == what.attr("id")) && (fSel.sInstances.length > 1)) {
-				fSel.sInstances.splice(i,1); //remove the item from the selected list
+		for (var i = 0; i < fSel.sI.length; i++) {
+			if ((fSel.sI[i] == what.attr("id")) && (fSel.sI.length > 1)) {
+				fSel.sI.splice(i,1); //remove the item from the selected list
 				i--; // update loop index since an array item was removed
 				itemExists = true;
 				break;
@@ -2976,42 +3007,42 @@ var fSel = {
 		}
 		// Add the newly selected item
 		if (itemExists == false) {
-			fSel.sInstances.push(what.attr("id"));
+			fSel.sI.push(what.attr("id"));
 		}
 	
 		// Begin Removal Part 1: remove: children of selected objects, and duplicates
 		uniqueIds = {};
 		childIds = {};
-		for (var i = 0; i < fSel.sInstances.length; i++) {
+		for (var i = 0; i < fSel.sI.length; i++) {
 			// children Ids collection
 			// make a full list of children Ids to be deleted in case of a match
-			childrenrarray = $("#" + fSel.sInstances[i]).find("div"); // matches any children of a selected element except using the workspace
+			childrenrarray = $("#" + fSel.sI[i]).find("div"); // matches any children of a selected element except using the workspace
 			for (var j=0, len=childrenrarray.length; j<len; j++ ){
 				childIds[$(childrenrarray[j]).attr("id")] = true;
 			}
 	
 			// unique Ids collection + store how many instances there are of each duplicates
-			if (uniqueIds[fSel.sInstances[i]] == undefined) {
-				uniqueIds[fSel.sInstances[i]] = 1;
+			if (uniqueIds[fSel.sI[i]] == undefined) {
+				uniqueIds[fSel.sI[i]] = 1;
 			}
 			else {
-				uniqueIds[fSel.sInstances[i]]++;
+				uniqueIds[fSel.sI[i]]++;
 			}
 		}
 	
 	
 		// go over the list again and actually remove the children and duplicates
-		for (var i = 0; i < fSel.sInstances.length; i++) {
-			//remove the fSel.sInstances that are kids of fSel.sInstances
-			if (childIds[fSel.sInstances[i]] == true) {
-				fSel.sInstances.splice(i,1); //remove workspace
+		for (var i = 0; i < fSel.sI.length; i++) {
+			//remove the fSel.sI that are kids of fSel.sI
+			if (childIds[fSel.sI[i]] == true) {
+				fSel.sI.splice(i,1); //remove workspace
 				i--; // update loop index since an array item was removed
 				continue;
 			}
 			//remove the duplicates if more than 1
-			if (uniqueIds[fSel.sInstances[i]] > 1) {
-				uniqueIds[fSel.sInstances[i]]--;
-				fSel.sInstances.splice(i,1); //remove workspace
+			if (uniqueIds[fSel.sI[i]] > 1) {
+				uniqueIds[fSel.sI[i]]--;
+				fSel.sI.splice(i,1); //remove workspace
 				i--; // update loop index since an array item was removed
 				continue;
 			}
@@ -3019,21 +3050,21 @@ var fSel = {
 	
 		
 		//WORKSPACE selected
-		if (fSel.sInstances[0] == "fWorkspace") {
+		if (fSel.sI[0] == "fWorkspace") {
 			//enable Footer
 			$("#fObjInstHolder").hide();
 			$("#fNoneSelectedHolder").show();
 			$("#fFooterText").hide();
 		}
 		//TEXT elements
-		else if (fSel.sInstances[0].match("t")) {
+		else if (fSel.sI[0].match("t")) {
 			//enable Footer
 			$("#fObjInstHolder").hide();
 			$("#fNoneSelectedHolder").hide();
 			$("#fFooterText").show();
 		}
 		//FORM elements
-		else if (fSel.sInstances[0].match("f")) {
+		else if (fSel.sI[0].match("f")) {
 			//enable Footer
 			$("#fObjInstHolder").hide();
 			$("#fNoneSelectedHolder").hide();
@@ -3041,12 +3072,12 @@ var fSel = {
 		}
 		//REAL OBJECTS / INSTANCES selected
 		else 
-			if (fSel.sInstances[0].match("ins")) {
+			if (fSel.sI[0].match("ins")) {
 				//update selected variables used by other functions
-				fSel.jObj = jO.jData.objects[jO.jData.instances[jO.truncRef(fSel.sInstances[0])].of];
-				fSel.jInst = jO.jData.instances[jO.truncRef(fSel.sInstances[0])];
-				fSel.nObj = jO.jData.instances[jO.truncRef(fSel.sInstances[0])].of
-				fSel.nInst = jO.truncRef(fSel.sInstances[0]);
+				fSel.jObj = jO.jData.objects[jO.jData.instances[jO.tr(fSel.sI[0])].of];
+				fSel.jInst = jO.jData.instances[jO.tr(fSel.sI[0])];
+				fSel.nObj = jO.jData.instances[jO.tr(fSel.sI[0])].of
+				fSel.nInst = jO.tr(fSel.sI[0]);
 				
 				//enable footer
 				$("#fNoneSelectedHolder").hide();
@@ -3099,11 +3130,11 @@ var fSel = {
 		fWorkspace.restyle();
 		
 		//make draggable and resizable
-		if (fSel.sInstances[0] != "fWorkspace") {
+		if (fSel.sI[0] != "fWorkspace") {
 			//alert($(what).attr("id"));
 			this.makeDraggable($(what).attr("id"));
 			
-			if (!fSel.sInstances[0].match("f")) {
+			if (!fSel.sI[0].match("f")) {
 				this.makeResizable($(what).attr("id"));
 			}
 		}
@@ -3134,23 +3165,23 @@ var fSel = {
 	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
 	},
 	highlight : function() {
-		if (fSel.sInstances[0] != null) {
-			if ((fSel.sInstances[0].match("ins")) || (fSel.sInstances[0].match("fWorkspace"))) {
-				highLightWhat = fSel.sInstances[0];
+		if (fSel.sI[0] != null) {
+			if ((fSel.sI[0].match("ins")) || (fSel.sI[0].match("fWorkspace"))) {
+				highLightWhat = fSel.sI[0];
 			}
 			else {
 				//grab parent
-				highLightWhat = $("#" + fSel.sInstances[0]).parent().attr("id");
+				highLightWhat = $("#" + fSel.sI[0]).parent().attr("id");
 			}
 			//determine what color to show depending on editmode (if instance)
 			highlightClass = "";
 			highlightA = "";
 			if ((highLightWhat.match("ins"))) {
-				if(fSession[jO.truncRef(highLightWhat)].editAs == 0) {
+				if(fSession[jO.tr(highLightWhat)].editAs == 0) {
 					highlightClass = " fHmaster";
 					highlightA = "M";
 				}
-				else if(fSession[jO.truncRef(highLightWhat)].editAs == 1) {
+				else if(fSession[jO.tr(highLightWhat)].editAs == 1) {
 					highlightClass = " fHinstance";
 					highlightA = "I";
 				}
@@ -3159,7 +3190,7 @@ var fSel = {
 			//animate border to indicate where you are drawing (for instances)
 			$("#" + highLightWhat).prepend('<div class="fHighlight' + highlightClass + '"></div>');
 			//determine if to put the arrow on the left or on the right of the selected box
-			//alert($("#" + fSel.sInstances[0]).offset().left);
+			//alert($("#" + fSel.sI[0]).offset().left);
 			if($("#" + highLightWhat).offset().left < 175) {
 				$("#" + highLightWhat).prepend('<div class="fHighlightArrow fHARight"><img src="engine/images/drawingInside' + highlightA + 'Right.png"></div>');					
 			}
@@ -3222,7 +3253,7 @@ var fFooter = {
 		$("#fEditMode").html("master");
 		
 		//change look of selected class
-		$("#" + fSel.sInstances[0]).removeClass("selectedInst");
+		$("#" + fSel.sI[0]).removeClass("selectedInst");
 		
 		//clear button Instance
 		var imgsrc = $("#buttonInstance").attr("src");
@@ -3249,7 +3280,7 @@ var fFooter = {
 		$("#fEditMode").html("instance");
 		
 		//change look of selected class
-		$("#" + fSel.sInstances[0]).addClass("selectedInst");
+		$("#" + fSel.sI[0]).addClass("selectedInst");
 		
 		//clear button Instance
 		var imgsrc = $("#buttonMaster").attr("src");
@@ -3262,7 +3293,7 @@ var fFooter = {
 		$("#buttonInstance").attr("src",imgsrc);
 	},
 	redrawFooter : function () {
-		if (fSel.sInstances[0].match("ins")) {
+		if (fSel.sI[0].match("ins")) {
 			//update object name
 			$("#fObjName").html(fSel.jObj.name);
 			
@@ -3305,7 +3336,7 @@ var fFooter = {
 			updateInfoWH();
 			updateInfoXYPos();
 		}
-		else if (fSel.sInstances[0].match("t")) {
+		else if (fSel.sI[0].match("t")) {
 		}
 	},
 	instRedraw : function () {
