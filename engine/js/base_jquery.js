@@ -9,8 +9,6 @@ $(document).ready(function(){
 	minWidthForLabel = 60; //pixel width necesarry to start showing label
 	startdragObjects = {}; // initial positions of all select objects; used to add delta x,y values to during drag
 
-	selectedTool = null;
-
 	disableKeyListeners = false; //global variable which affects hot key listening
 	shiftPressed = false; // if true, then shift key is being pressed down
 	shiftAmount = 1; //1 or 10 pixels depending of shiftPressed
@@ -23,16 +21,20 @@ $(document).ready(function(){
 	// init functions
 	setWorkspaceDimensions(); // set window dimensions the first time
 	
+	//set minmum and maximum widths of panelpages after they have been loaded
+	fPanelPages.cssPanelWidthCon = parseInt($("#fPanelPages").css("width"));
+	fPanelPages.cssPanelWidthExp = parseInt($("#fPanelPages").css("width")) + 80;
+	
 	jO.load('projects/project01.json','file'); //load JSON data + select workspace
 	
-	$("#fWorkspace").showMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {alert('tf');});
+	$("#fWorkspace").fShowMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {alert('tf');});
 
 	// make document unselectable
 	if (typeof(document.onselectstart) != "undefined") {
-		document.onselectstart = Unselectable.enable;
+		document.onselectstart = fUnselectable.enable;
 	} else {
-		document.onmousedown = Unselectable.enable;
-		document.onmouseup = Unselectable.disable;
+		document.onmousedown = fUnselectable.enable;
+		document.onmouseup = fUnselectable.disable;
 	}
 
 	//init listeners
@@ -85,7 +87,6 @@ $(document).ready(function(){
 
 
 // -------- General Resizing Functions -----
-
 function setWorkspaceDimensions() {
 	// get window height
 	windowheight = $(window).height();
@@ -100,11 +101,7 @@ function setWorkspaceDimensions() {
 	document.getElementById("toolbox").style.height = windowheight + 3;
 	document.getElementById("rightpanel").style.height = windowheight;
 	
-	$(".fPanelItemsList").css("height",$("#panelPages").height() - 48);
-	
-	//set minmum and maximum widths of panelpages after they have been loaded
-	panelPages.cssPanelWidthCon = parseInt($("#panelPages").css("width"));
-	panelPages.cssPanelWidthExp = parseInt($("#panelPages").css("width")) + 80;
+	$(".fPanelItemsList").css("height",$("#fPanelPages").height() - 48);
 }
 
 function fFocusWindow() {
@@ -193,7 +190,7 @@ function keypressed(event) {
 				//remove from "contains" of parent instance in jData
 				parentInsName = $("#" + fSel.sI[i]).parent().attr("id");
 				if (parentInsName == "fWorkspace") {
-					delete jO.jData.pages[panelPages.selectedPageId].contains[jO.tr(fSel.sI[i])];
+					delete jO.jData.pages[fPanelPages.selectedPageId].contains[jO.tr(fSel.sI[i])];
 				}
 				else if (parentInsName.match("ins")) {
 					parentObjName = jO.jData.instances[parentInsName].of;
@@ -280,6 +277,30 @@ function keypressed(event) {
 	
 	// 5 key
 	if (whichkey == "53") { setPriority(5); }
+	
+	
+	//handle autotext if lastText is defined 
+	if(fSel.lastText != null) {
+		//if exists on page and does not have any text
+		if (($("#" + fSel.lastText).length > 0) && (!$("#" + fSel.lastText).hasClass("fTextHasTxt"))) { //test if exists on workspace
+		
+			//if is a proper key. keypressed is not: shift,ctrl,esc,alt,tab,pgup,pgdn,home,end,insr,delete,fkeys
+			var allowEdit = true;
+			shiftPressed = false; //unlock shift just in case (buggy when starting to auto edit while holding SHIFT)
+			var forbiddenKeys = new Array(16,17,27,18,9,33,34,35,36,45,46,112,113,114,115,116,117,118,119,120,121,122,123);
+			for (i=0; i < forbiddenKeys.length; i++) {
+				if (forbiddenKeys[i] == whichkey) { allowEdit = false;}
+			}
+
+			if(allowEdit) {
+				//make editable
+				$("#" + fSel.lastText).fEditableText();
+				
+				//select
+				fSel.selectObject(fSel.lastText);
+			}
+		}
+	}
 }
 
 
@@ -477,12 +498,12 @@ function updateInfoWH() {
 
 
 function Draw(event){
+	//Draw function is rerun continously onmousemove when a text or object tool is selected
 	var element=$(event.target);
-	//disable dragging during drawing
-	//killDrag(); lastDraggable = null;
-
 	posx = event.pageX;
 	posy = event.pageY;
+	
+	//This is ran once after a mousepress
 	this.onmousedown=function(){
 		// set drawWhere
 		if (fSel.sI[0] != null) {
@@ -516,7 +537,7 @@ function Draw(event){
 		}
 		
 		//do not allow to draw if drawing tools are not chosen
-		if ((selectedTool != "toolObject") && (selectedTool != "toolText")) {
+		if ((fTools.selected != "toolObject") && (fTools.selected != "toolText")) {
 			fWorkspace.allowDraw = false;
 		}
 
@@ -530,7 +551,7 @@ function Draw(event){
 				
 			
 			//disable select
-			Unselectable.enable;
+			fUnselectable.enable;
 			
 			// not on the clicked element, but on the selected
 			offsetx = drawWhere.offset().left;
@@ -540,15 +561,15 @@ function Draw(event){
 			initx=posx - offsetx;
 			inity=posy - offsety;
 
-			if (selectedTool == "toolText") {
+			if (fTools.selected == "toolText") {
 				whatelement = "div";
 				whatclass = "fText";
-				whatid = jO.getAvailableTxtId();
+				whatid = jO.getAvailableId('txt');
 			}
-			if (selectedTool == "toolObject") {
+			if (fTools.selected == "toolObject") {
 				whatelement = "div";
 				whatclass = "fObject";
-				whatid = jO.getAvailableInstId();
+				whatid = jO.getAvailableId('inst');
 			}
 
 			d = document.createElement(whatelement);
@@ -560,6 +581,7 @@ function Draw(event){
 		}
 	}
 	
+	//This is ran once after a mouseup
 	this.onmouseup=function(){
 		initx=false;
 		inity=false;
@@ -578,12 +600,12 @@ function Draw(event){
 			
 			//create the object in JSON
 			//INSTANCE
-			if (selectedTool == "toolObject") {
+			if (fTools.selected == "toolObject") {
 				name = "New Object";
 				ID = jO.createObj(name, position.left, position.top, width, height);
 			}
 			//TXT
-			if (selectedTool == "toolText") {
+			if (fTools.selected == "toolText") {
 				txt = "";
 				ID = jO.createTxt(txt, position.left, position.top, width, height);
 			}
@@ -605,7 +627,7 @@ function Draw(event){
 			
 			//update Workspace
 			//INSTANCE
-			if (selectedTool == "toolObject") {
+			if (fTools.selected == "toolObject") {
 				if (fSel.sI[0] != "fWorkspace") {
 				//redraw parent
 				//fWorkspace.redraw({type: 'object',item: fSel.jInst.of});
@@ -617,31 +639,31 @@ function Draw(event){
 				fWorkspace.redraw({type: 'page'});
 			}
 			//TXT
-			if (selectedTool == "toolText") {
+			if (fTools.selected == "toolText") {
 				//refresh page for all TXT items
 				fWorkspace.redraw({type: 'page'});
+				fSel.lastText = newInstanceName;
 			}
 			
 			
 			//INSTANCE Label make editable
-			if ((selectedTool == "toolObject") && (width > minWidthForLabel)) {
+			if ((fTools.selected == "toolObject") && (width > minWidthForLabel)) {
 				$(d).fEditableLabel();
 			}
-			
 			
 			
 			//enable cursor select tool
 			toolSelect();
 			
 			//enable select
-			Unselectable.disable;
+			fUnselectable.disable;
 			
 			// do not allow to draw - finished drawing
 			fWorkspace.allowDraw = false;
 		}
 	}
 
-	// redraw properties during onmousedown & drag
+	//This is ran continously after a mousepress and before a mouseup - it redraws the object
 	if(initx){
 		if (fWorkspace.allowDraw == true) {
 			var setwidth = Math.abs(posx - initx - offsetx);
@@ -656,38 +678,6 @@ function Draw(event){
 			document.getElementById("setwidth").value = setwidth;
 			document.getElementById("setheight").value = setheight;
 		}
-	}
-}
-
-
-function toolSelectDo(event) {
-	var element=$(event.target);
-	var whatClicked = event.which;
-
-	//clear resizable?
-	killResizable();
-	
-	//if clicked on label, grab the parent element
-	if(element.attr("class") == "fLabel") {element = element.parent().parent();}
-	
-	//make the new element draggable (if its not the workspace and it is not already selected (the same object))
-	if ((element.attr("id") != "fWorkspace") && (lastDraggable != element)) {
-
-		//only continue if not a right click (which is reserved for a different handler)
-		if(event.button != 2) {
-			//only allow to select fObjects or fText or fForm
-			if((element.attr("class").match("fObject")) || (element.attr("class").match("fText")) || (element.attr("class").match("fForm"))) {
-				fSel.selectObject(element); //change its class and update selectedObject
-			}
-		};
-	}
-	if (element.attr("id") == "fWorkspace") {
-		// select the fWorkspace
-		fSel.selectObject(element);
-		//if (fSel.sI.length > 0) {	fSel.sI.splice(0); }
-		
-		// kill draggables
-		killDrag();
 	}
 }
 
@@ -1039,16 +1029,14 @@ $.fn.fEditableText = function() {
 
 // -------- Tool Functions -----
 // The left most tool functions
-
-
 function toolObject() {
 	//selectedTool
-	selectedTool = "toolObject";
+	fTools.selected = "toolObject";
 
 	//clear all tools
-	toolClearAllIcons(); // Visually
-	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOn();
+	fTools.clearIcons(); // Visually
+	fTools.clearEvents(); // Eventwise
+	fTools.crosshairOn();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
 
@@ -1061,12 +1049,12 @@ function toolObject() {
 
 
 function toolForm() {
-	selectedTool = "toolForm";
+	fTools.selected = "toolForm";
 
 	//clear all tools
-	toolClearAllIcons(); // Visually
-	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOff();
+	fTools.clearIcons(); // Visually
+	fTools.clearEvents(); // Eventwise
+	fTools.crosshairOff();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
 
@@ -1074,27 +1062,21 @@ function toolForm() {
 
 	fSel.highlight();
 	
-	$(window).unbind("mouseup",hideFormTool);
+	$(window).unbind("mouseup",fFormManager.hideWrap);
 	
 	fFormManager.displayManager();
 	
-	$(window).bind("mouseup",hideFormTool);
-}
-
-function hideFormTool() {
-	fFormManager.hideManager();
-	fFormManager.opened = false;
-	$(window).unbind("mouseup",hideFormTool);
+	$(window).bind("mouseup",fFormManager.hideWrap);
 }
 
 
 function toolText() {
-	selectedTool = "toolText";
+	fTools.selected = "toolText";
 
 	//clear all tools
-	toolClearAllIcons(); // Visually
-	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOn();
+	fTools.clearIcons(); // Visually
+	fTools.clearEvents(); // Eventwise
+	fTools.crosshairOn();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
 
@@ -1107,57 +1089,23 @@ function toolText() {
 
 
 function toolSelect() {
-	selectedTool = "toolSelect";
+	fTools.selected = "toolSelect";
 
 	//clear all tools
-	toolClearAllIcons(); // Visually
-	toolClearAllEvents(); // Eventwise
-	toolCursorCrosshairOff();
+	fTools.clearIcons(); // Visually
+	fTools.clearEvents(); // Eventwise
+	fTools.crosshairOff();
 
 	document.getElementById("iconSelect").src = "engine/images/button_arrow_on.gif";
 
-	$("#fWorkspace").bind("click",toolSelectDo);
+	$("#fWorkspace").bind("click",fSel.selectBinding);
 	
 	//enable last drag
 	if (fSel.sI[0] != null) {
-		fSel.selectObject(fSel.sI[0]);
+	//	fSel.selectObject(fSel.sI[0]);
 	}
 }
 
-
-
-
-// ----- Tool supportive functions
-
-function toolClearAllIcons() {
-	document.getElementById("iconObject").src = "engine/images/button_object_off.gif";
-	document.getElementById("iconSelect").src = "engine/images/button_arrow_off.gif";
-	document.getElementById("iconText").src = "engine/images/button_text_off.gif";
-	document.getElementById("iconForm").src = "engine/images/button_form_off.gif";
-}
-
-
-
-function toolClearAllEvents() {
-	// stop listening
-	$("#fWorkspace").unbind("click",toolSelectDo);
-	$("#fWorkspace").unbind("mousemove",Draw);
-}
-
-
-function toolCursorCrosshairOn() {
-	for (var i = 0; i < fSel.sI.length; i++) {
-		$("#" + fSel.sI[i]).removeClass("cursorMove");
-	}
-	$("#fWorkspace").addClass("cursorCrosshair");
-}
-
-function toolCursorCrosshairOff() {
-	for (var i = 0; i < fSel.sI.length; i++) {
-		if (fSel.sI[i] != "fWorkspace") { $("#" + fSel.sI[i]).addClass("cursorMove");}
-	}
-	$("#fWorkspace").removeClass("cursorCrosshair");
-}
 
 
 function rollOver(what) {
@@ -1175,8 +1123,8 @@ function rollOut(what) {
 
 
 // ----- Modified jContextMenu for Right clicking ------
-$.fn.showMenu = function(options) {
-	var opts = $.extend({}, $.fn.showMenu.defaults, options);
+$.fn.fShowMenu = function(options) {
+	var opts = $.extend({}, $.fn.fShowMenu.defaults, options);
 	$(this).bind("contextmenu",function(e){
 		//chech how many and which objects are underneath the click
 		clickedX = e.pageX;
@@ -1228,7 +1176,7 @@ $.fn.showMenu = function(options) {
 	});
 };
 
-$.fn.showMenu.defaults = {
+$.fn.fShowMenu.defaults = {
 	zindex: 2000,
 	query: document,
 	opacity: 1.0
@@ -1236,26 +1184,48 @@ $.fn.showMenu.defaults = {
 
 
 
-
-// ----- Temporary Feedback Functions
-function feedbackWrite(what) {
-	$("#panelPages").append(what + " ");
-}
-
-
 // Global Mouse, used to capture global dimensions (used by statemanager for example)
 var fGM = {
 	x : 0,
 	y : 0,
+	reachedBottom : false,
+	distanceToBottom : 0,
 	capture : function(e) {
 		fGM.x = e.pageX;
 		fGM.y = e.pageY;
+		fGM.distanceToBottom = $(window).height() - e.pageY;
+		
+		//hide footer
+		var opacity = (fGM.distanceToBottom - 100) / 100;
+		var distance = (fGM.distanceToBottom - 140);
+		
+		if(fGM.distanceToBottom <= 40) {
+			fGM.reachedBottom = true;
+			$('#footerAll').animate({bottom: "0"}, 200);
+		}
+		else if ((fGM.reachedBottom == false) && (fGM.x <= 1100)) {
+			if(fGM.distanceToBottom < 140) {
+				$('#footerAll').stop();
+				$('#footerAll').css("bottom", distance);
+				//$('#footerAll').animate({bottom: distance}, 100);
+			}
+		}
+		
+		if(fGM.distanceToBottom > 140) {
+			fGM.reachedBottom = false;
+		}
+		
+		if(fGM.x > 1100) {
+			$('#footerAll').animate({bottom: "0"}, 200);
+		}
+		
+		
 	}
 }
 
 
 
-var Unselectable = {
+var fUnselectable = {
 	enable : function(e) {
 		var e = e ? e : window.event;
 
@@ -1325,57 +1295,27 @@ var jO = {
 		item = item.replace(/_.*/, '');
 		return (item);
 	},
-	getAvailableIdeaId : function(objName) {
+	getAvailableId : function(type,objName) {
+		var lookWhere = null;
+		var idName = null;
+		
+		if(type == 'idea') { lookWhere = jO.jData.ideas[objName]; idName = "";}
+		else if(type == 'inst') { lookWhere = jO.jData.instances; idName = "ins";}
+		else if(type == 'txt') { lookWhere = jO.jData.elements; idName = "t";}
+		else if(type == 'form') { lookWhere = jO.jData.elements; idName = "f";}
+		else if(type == 'obj') { lookWhere = jO.jData.objects; idName = "obj";}
+		else if(type == 'page') { lookWhere = jO.jData.pages; idName = "page";}
+		
 		var availableId = 0;
-		for (i=1;i < 10000;i++) {
-			if (i in jO.jData.ideas[objName]) {}
-			else { availableId = i; break;	}
-		}
-		return(availableId);
-	},
-	getAvailableInstId : function() {
-		var availableId = 0;
-		for (i=1;i < 10000;i++) {
-			if ("ins" + i in jO.jData.instances) {}
-			else { availableId = "ins" + i; break;	}
-		}
-		return(availableId);
-	},
-	getAvailableTxtId : function() {
-		var availableId = 0;
-		for (i=1;i < 10000;i++) {
-			if ("t" + i in jO.jData.elements) {}
-			else { availableId = "t" + i; break;	}
-		}
-		return(availableId);
-	},
-	getAvailableFormId : function() {
-		var availableId = 0;
-		for (i=1;i < 10000;i++) {
-			if ("f" + i in jO.jData.elements) {}
-			else { availableId = "f" + i; break;	}
-		}
-		return(availableId);
-	},
-	getAvailableObjId : function() {
-		var availableId = 0;
-		for (i=1;i < 10000;i++) {
-			if ("obj" + i in jO.jData.objects) {}
-			else { availableId = "obj" + i; break;	}
-		}
-		return(availableId);
-	},
-	getAvailablePageId : function() {
-		var availableId = 0;
-		for (i=1;i < 10000;i++) {
-			if ("page" + i in jO.jData.pages) {}
-			else { availableId = "page" + i; break;	}
+		for (i=1;i < 100000;i++) {
+			if (idName + i in lookWhere) {}
+			else { availableId = idName + i; break;	}
 		}
 		return(availableId);
 	},
 	getAvailableStateId : function(inst) {
 		var availableId = 0;
-		for (i=1;i < 10000;i++) {
+		for (i=1;i < 100000;i++) {
 			if (inst == "fWorkspace") { availableId = "s1"; break; }
 			else if (jO.jData.instances[inst] == undefined) { availableId = "s1"; break; }
 			else if ("s" + i in jO.jData.objects[jO.jData.instances[inst].of].states) {}
@@ -1530,7 +1470,7 @@ var jO = {
 	createObj : function(name,x,y,width,height) {
 		//alert('name:' + name + ', x:' + x + ', y:' + y + ', width:' + width + ', height:' + height);
 		//determine which Id to give the object
-		newObjId = jO.getAvailableObjId();
+		newObjId = jO.getAvailableId('obj');
 		//create it
 		jO.jData.objects[newObjId] = new Object();
 		jO.jData.objects[newObjId].name = name;
@@ -1553,7 +1493,7 @@ var jO = {
 		return (newObjId);
 	},
 	createTxt : function(txt,x,y,width,height) {
-		newTxtId = jO.getAvailableTxtId();
+		newTxtId = jO.getAvailableId('txt');
 		
 		//create it
 		jO.jData.elements[newTxtId] = new Object();
@@ -1566,7 +1506,7 @@ var jO = {
 		return (newTxtId);
 	},
 	createForm : function(formtype,x,y,width,height) {
-		newFormId = jO.getAvailableFormId();
+		newFormId = jO.getAvailableId('form');
 		
 		if(x == undefined) { x = 10;}
 		if(y == undefined) { y = 10;}
@@ -1593,14 +1533,14 @@ var jO = {
 		if (ID.match("obj") != null) {
 		
 			//grab available ID
-			newInstId = jO.getAvailableInstId();
+			newInstId = jO.getAvailableId('inst');
 			
 			//create instance
 			var addWhereRef = jO.jData.instances;
 			addWhereRef[newInstId] = new Object;
 			addWhereRef[newInstId].of = ID;
 			addWhereRef[newInstId].states = new Object;
-			addWhereRef[newInstId].p = instanceId; if(instanceId == "fWorkspace") {addWhereRef[newInstId].p = panelPages.selectedPageId;}
+			addWhereRef[newInstId].p = instanceId; if(instanceId == "fWorkspace") {addWhereRef[newInstId].p = fPanelPages.selectedPageId;}
 			addWhereRef[newInstId].ps = state;
 			
 			//recreate states in instace as they are in the object
@@ -1651,7 +1591,7 @@ var jO = {
 		
 		//if fWorkspace update pages
 		if (instanceId == "fWorkspace") {
-			jO.jData.pages[panelPages.selectedPageId].contains[newInstId] = "";
+			jO.jData.pages[fPanelPages.selectedPageId].contains[newInstId] = "";
 		}
 		// update parent instances or object
 		else {
@@ -1671,7 +1611,7 @@ var jO = {
 	},
 	copyObject : function(what) {
 		//determine which Id to give the object and create it
-		newObjId = jO.getAvailableObjId();
+		newObjId = jO.getAvailableId('obj');
 		jO.jData.objects[newObjId] = new Object;
 		
 		//copy 
@@ -1773,7 +1713,7 @@ var jO = {
 			jO.jData.ideas[objName] = new Object;
 			
 			//create idea
-			newIdeaId = jO.getAvailableIdeaId(objName);
+			newIdeaId = jO.getAvailableId('idea',objName);
 			jO.jData.ideas[objName][newIdeaId] = new Object;
 			
 			//copy 
@@ -1781,7 +1721,7 @@ var jO = {
 		}
 		
 		//create idea
-		newIdeaId = jO.getAvailableIdeaId(objName);
+		newIdeaId = jO.getAvailableId('idea',objName);
 		jO.jData.ideas[objName][newIdeaId] = new Object;
 		
 		//copy 
@@ -1961,7 +1901,7 @@ var fCBManager = {
 			}
 			else if(this.instances[0].match("fWorkspace")) {
 				this.mode = "page";
-				this.instances[0] = panelPages.rememberPageSelectedId;
+				this.instances[0] = fPanelPages.rememberPageSelectedId;
 			}
 			
 			//display
@@ -2433,8 +2373,8 @@ var fFormManager = {
 			$("#fFormManager").css({left: setx});
 			$("#fFormManager").css({top: sety});
 			
-			toolClearAllIcons(); // Visually
-			toolClearAllEvents(); // Eventwise
+			fTools.clearIcons(); // Visually
+			fTools.clearEvents(); // Eventwise
 			killDrag(); // remove all dragging behaviours
 			killResizable(); // remove all resizable
 		
@@ -2454,6 +2394,12 @@ var fFormManager = {
 			
 			//this.opened = false;
 		}
+	},
+	hideWrap : function() {
+		//this function only exists because of binding problems in hideManager
+		fFormManager.hideManager();
+		fFormManager.opened = false;
+		$(window).unbind("mouseup",fFormManager.hideWrap);
 	},
 	addFormElement : function(formtype) {
 		//create the element
@@ -2521,6 +2467,38 @@ var fDebugJson = {
 };
 
 
+// -------- fTools Object -----
+var fTools = {
+	selected : null,
+	selectTool : function(which) {
+		
+	},
+	clearIcons : function() {
+		document.getElementById("iconObject").src = "engine/images/button_object_off.gif";
+		document.getElementById("iconSelect").src = "engine/images/button_arrow_off.gif";
+		document.getElementById("iconText").src = "engine/images/button_text_off.gif";
+		document.getElementById("iconForm").src = "engine/images/button_form_off.gif";
+	},
+	clearEvents : function() {
+		$("#fWorkspace").unbind("click",fSel.selectBinding);
+		$("#fWorkspace").unbind("mousemove",Draw);
+	},
+	crosshairOn : function() {
+		for (var i = 0; i < fSel.sI.length; i++) {
+			$("#" + fSel.sI[i]).removeClass("cursorMove");
+		}
+		$("#fWorkspace").addClass("cursorCrosshair");
+	},
+	crosshairOff : function() {
+		for (var i = 0; i < fSel.sI.length; i++) {
+			if (fSel.sI[i] != "fWorkspace") { $("#" + fSel.sI[i]).addClass("cursorMove");}
+		}
+		$("#fWorkspace").removeClass("cursorCrosshair");
+	}
+}
+
+
+
 
 // -------- fWorkspace Object -----
 var fWorkspace = {
@@ -2562,7 +2540,7 @@ var fWorkspace = {
 		////// redraw whole page
 		// CLEARS & draws all instances on fWorkspace :)
 		attachWhereArray.push("fWorkspace");
-		attachWhatArray.push(jO.jData.pages[panelPages.selectedPageId].contains);			
+		attachWhatArray.push(jO.jData.pages[fPanelPages.selectedPageId].contains);			
 		attachInsideArray.push(2);			
 		fWorkspace.clear(); 
 		
@@ -2797,10 +2775,10 @@ var fWorkspace = {
 	},
 	initAfterLoad : function() {
 		//select first page
-		panelPages.selectedPageId = "page1";
+		fPanelPages.selectedPageId = "page1";
 		
 		//Draw Panel Pages
-		panelPages.draw();
+		fPanelPages.draw();
 		
 		//populate all fSession instance with default states & 
 		for (items in jO.jData.instances) {
@@ -2867,13 +2845,13 @@ var fWorkspace = {
 			if (!((event.type == "click") && ($(event.target).attr("id") == "fEditing"))) {
 				//alert($(event.target).attr("id") + event.type);
 				
-				//stop saveLabel from tunning twice (since multiple events are bound which call this function)
+				//stop saveLabel from running twice (since multiple events are bound which call this function)
 				fWorkspace.allowSaveLabel = false;
 				
 				//update jData
 				//alert(fWorkspace.editingLabelInstance);
 				saveAs = $("#" + fWorkspace.editingLabelInstance).find("input").attr("value");
-				if (saveAs == "") {
+				if ((saveAs == "") || saveAs == undefined) {
 					saveAs = "New Object";
 				}
 				jO.jData.objects[jO.jData.instances[fWorkspace.editingLabelInstance].of].name = saveAs;
@@ -2942,9 +2920,39 @@ var fSel = {
 	jInst : "", //reference to first selected JSON instance (without state)
 	nObj : "", //string name of selected object
 	nInst : "", //string name of selected instance
+	lastText : null, //string name of last drawn or selected text
 	
+	selectBinding : function(event) {
+		var element=$(event.target);
+		var whatClicked = event.which;
+	
+		//clear resizable?
+		killResizable();
+		
+		//if clicked on label, grab the parent element
+		if(element.attr("class") == "fLabel") {element = element.parent().parent();}
+		
+		//make the new element draggable (if its not the workspace and it is not already selected (the same object))
+		if ((element.attr("id") != "fWorkspace") && (lastDraggable != element)) {
+	
+			//only continue if not a right click (which is reserved for a different handler)
+			if(event.button != 2) {
+				//only allow to select fObjects or fText or fForm
+				if((element.attr("class").match("fObject")) || (element.attr("class").match("fText")) || (element.attr("class").match("fForm"))) {
+					fSel.selectObject(element); //change its class and update selectedObject
+				}
+			};
+		}
+		if (element.attr("id") == "fWorkspace") {
+			// select the fWorkspace
+			fSel.selectObject(element);
+			//if (fSel.sI.length > 0) {	fSel.sI.splice(0); }
+			
+			// kill draggables
+			killDrag();
+		}
+	},
 	selectObject : function(what) {
-		//feedbackWrite($(what).attr("id"));
 		// can access an index number to a DOM element, a DOM reference or an instance name
 		// what is converted to a jQuery object
 		//alert(what + ":" + $(what).attr("id"));
@@ -2974,7 +2982,7 @@ var fSel = {
 				}
 				
 				//switchtopage
-				panelPages.setSelectedPage(foundPage);
+				fPanelPages.setSelectedPage(foundPage);
 			}
 
 			//convert to jQuery
@@ -2985,6 +2993,9 @@ var fSel = {
 		//destroy last draggable
 		killDrag();
 		killResizable();
+		
+		//destroy last text
+		this.lastText = null;
 	
 		//clear styles
 		fWorkspace.clearStyles();
@@ -3062,6 +3073,8 @@ var fSel = {
 			$("#fObjInstHolder").hide();
 			$("#fNoneSelectedHolder").hide();
 			$("#fFooterText").show();
+			//record lastText
+			this.lastText = fSel.sI[0];
 		}
 		//FORM elements
 		else if (fSel.sI[0].match("f")) {
@@ -3144,7 +3157,6 @@ var fSel = {
 		// create new draggable & store it
 		lastDraggable = what; //remember the new draggable object
 		mydrag = what;
-		//feedbackWrite(mydrag);
 		$("#"+mydrag).draggable({cancel: [''], distance: 5, containment: "#fWorkspace", handle: what, start: dragRegister, drag: dragItems, stop: dragStop});
 	},
 	makeResizable : function(event){
@@ -3365,11 +3377,11 @@ var fFooter = {
 
 
 
-var panelPages = {
+var fPanelPages = {
 	itemCount : 0,
 	rememberPageSelectedId : null,
-	panelId : "panelPages",
-	attachTo : "#panelPages",
+	panelId : "fPanelPages",
+	attachTo : "#fPanelPages",
 	draw : function () {
 		var thisref = this; //I need this private reference for the bindings events
 		
@@ -3385,7 +3397,7 @@ var panelPages = {
 		
 		
 			////PANELPAGES CODE - custom
-			if (thisref.panelId == "panelPages") {
+			if (thisref.panelId == "fPanelPages") {
 				//attach single click for select 
 				$(thisref.attachTo + " div.fPanelItemsList").children(':last').bind("click", function() {thisref.setSelectedPage(i); });
 				//loadnew items TODO
@@ -3393,7 +3405,7 @@ var panelPages = {
 		});
 		
 		//attach extend event
-		$(this.attachTo).hover(function() {	 $("#panelPages").animate({"width" : thisref.cssPanelWidthExp}, {queue : false, duration: 150, easing: "swing"})}, function() {$(this).animate({"width" : thisref.cssPanelWidthCon}, {queue : false, duration: 150, easing: "swing"}); });
+		$(this.attachTo).hover(function() {	 $("#fPanelPages").animate({"width" : thisref.cssPanelWidthExp}, {queue : false, duration: 150, easing: "swing"})}, function() {$(this).animate({"width" : thisref.cssPanelWidthCon}, {queue : false, duration: 150, easing: "swing"}); });
 		
 		//attach bg icon in title
 		//grab the existing blank - workaround for not being able to set the background-image property relatively
@@ -3440,17 +3452,20 @@ var panelPages = {
 
 	add : function () {
 		var thisref = this;
-		pageId = jO.getAvailablePageId();
+		pageId = jO.getAvailableId('page');
 		jO.jData.pages[pageId] = new Object();
 		jO.jData.pages[pageId].pageName = "New Page2";
 		jO.jData.pages[pageId].contains = new Object;
+		
+		//trigger a click just in case elements are being edited. in order to run click bound save functions 
+		$("#fPanelPages").click();
 		
 		//select the last page in line
 		this.selectedPageId = pageId;
 		this.draw();
 		
 		////PANELPAGES CODE - custom
-		if (thisref.panelId == "panelPages") {
+		if (thisref.panelId == "fPanelPages") {
 		//clear previous workspace
 		fWorkspace.clear();	
 		}
@@ -3461,6 +3476,9 @@ var panelPages = {
 	},
 
 	remove : function () {
+		//trigger a click just in case elements are being edited. in order to run click bound save functions 
+		$("#fPanelPages").click();
+		
 		//if more than 1 page 
 		//count
 		var i = 0;

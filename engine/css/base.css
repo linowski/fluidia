@@ -1,5 +1,5 @@
 html,body{margin:0;padding:0}
-body{font-family: arial, sans-serif; margin:0; background-color: #ffffff;}
+body{font-family: arial, sans-serif; margin:0; background-color: #ffffff; overflow: hidden;}
 input { padding: 0; margin: 0px;}
 a { outline: none; }
 
@@ -606,6 +606,8 @@ div.resizable {
 	width: 65%;
 	border: 1px solid #CFCFCF;
 	display: inline;
+	font-family: inherit;
+	font-size: inherit;
 }
 .fEditableText{
 	width: 100%;
@@ -613,10 +615,9 @@ div.resizable {
 	border: 0px;
 	margin: 0px;
 	background-color: #ffffff;
-
 	position: absolute;
-	font-family: verdana;
-	font-size: 11px;
+	font-family: inherit;
+	font-size: inherit;
 }
 
 
