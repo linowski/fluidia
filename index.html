@@ -16,7 +16,12 @@
 
 <body id="body">
 <div id="container">
-	<div id="header"><img src="engine/images/header.png"><img src="engine/images/views.gif"><img src="engine/images/button_view_design_on.gif"><img src="engine/images/button_view_prototype_off.gif"></div>
+	<div id="header"><img src="engine/images/header.png"><img src="engine/images/views.gif"><img src="engine/images/b_design_on.png" class="hButton"><img src="engine/images/b_present_off.png" class="hButton">
+		<div id="hSave">
+			<a href="#" onclick="fServer.save();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_save_off.png" class="hButton" border="0" id="bSave" title="Save"></a>
+			<a href="#" onclick="fServer.load();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_load_off.png" class="hButton" border="0" id="bLoad" title="Load"></a>
+		</div>
+	</div>
 
 	<div id="wrapper"><div id="fWorkspace" class="fWorkspace"></div></div>
 

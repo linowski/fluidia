@@ -5,16 +5,11 @@ a { outline: none; }
 
 div#header{position:relative; background: #f3f3f3; margin-bottom: 2px;}
 div#header h1{height:40px;line-height:80px;margin:0; padding-left:10px; color: #79B30B}
-div#header a{position:absolute;right:0;top:23px}
-
 div#toolbox{background:#f3f3f3; float:left;width:36px;margin-left:-100%;}
-
 div#rightpanel{background:#f3f3f3; float:left;width:140px;margin-left: -140px; font-size: 9px; position: relative; }
-
 div#wrapper{float:left;width:100%; margin-bottom: 2px; }
 div#fWorkspace{margin: 0 102px 0 38px; position: absolute;}
 div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:100%; height: 37px;  font-size: 10px;}
-
 
 
 /* Text */
@@ -62,6 +57,24 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 .fTOrange {
 	color: #FF6600;
 }
+
+
+/* Header */
+.hButton {
+	padding: 0 5px 0 0;
+}
+#hSave {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+#hSave a {
+	padding: 0px;
+	margin: 0px;
+	display: block;
+	float: left;
+}
+
 
 
 /* Panels */
@@ -170,8 +183,6 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 
 
 /* Workspace and items inside of it */
-
-
 
 .fWorkspace {
 	border: solid 1px #dFdFdF;

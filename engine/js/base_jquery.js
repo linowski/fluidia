@@ -1259,6 +1259,16 @@ var fSession = {
 }
 
 
+// -------- Server Object -----
+// used to interact with the backend
+var fServer = {
+	save : function() {
+		
+	},
+	load : function() {
+		
+	}
+}
 
 // -------- JSON Object -----
 // this section contains the JSON data objects and instances
@@ -2442,6 +2452,7 @@ var fDebugJson = {
 		setTimeout("ref.triggerPressedRecently = false",500);
 	} ,
 	displayManager : function () {
+		alert(jO.jsonToText());
 		// create the menu
 		if (this.opened == false) {
 			this.opened = true;
