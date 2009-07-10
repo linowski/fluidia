@@ -3,7 +3,7 @@ body{font-family: arial, sans-serif; margin:0; background-color: #ffffff; overfl
 input { padding: 0; margin: 0px;}
 a { outline: none; }
 
-div#header{position:relative; background: #f3f3f3; margin-bottom: 2px;}
+div#header{position:relative; background: #f3f3f3; margin-bottom: 2px; }
 div#header h1{height:40px;line-height:80px;margin:0; padding-left:10px; color: #79B30B}
 div#toolbox{background:#f3f3f3; float:left;width:36px;margin-left:-100%;}
 div#rightpanel{background:#f3f3f3; float:left;width:140px;margin-left: -140px; font-size: 9px; position: relative; }
@@ -11,11 +11,30 @@ div#wrapper{float:left;width:100%; margin-bottom: 2px; }
 div#fWorkspace{margin: 0 102px 0 38px; position: absolute;}
 div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:100%; height: 37px;  font-size: 10px;}
 
+.fWorkspaceExpanded {
+	margin: 0 102px 0 0 !important; 
+}
+
+/*header*/
+#fProjName, #fThreadName {
+	margin-top: 7px;	
+}
+#hTitle {
+	position: absolute;
+	left: 240px;
+	top: 0px;
+	height: 100%;
+	
+}
+#hTitle * {
+	float: left;
+}	
 
 /* Text */
 .fT9 {
 	font: 9px verdana;
 	color: #CCCCCC;
+	font-weight: normal;
 }
 .fT12 {
 	font: 12px verdana;
@@ -63,7 +82,13 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	font-family: verdana;
 	font-weight: bold;
 }
-
+.fLink {
+	text-decoration: none;
+}
+.fLink:hover {
+	color: #ffffff;
+	text-decoration: underline;
+}
 
 /* form elements */
 .fInput {
@@ -71,13 +96,18 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	background-color: #cccccc;
 	padding: 3px;
 	color: #2f2f2f;
-	letter-spacing: -1px;
 }
-
+.fOptional {
+	background-color: #737373;
+}
+.fOptional:focus {
+	background-color: #cccccc;
+}	
 
 /* Header */
 .hButton {
 	padding: 0 5px 0 0;
+	border: 0px;
 }
 #hSave {
 	position: absolute;
@@ -94,12 +124,14 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 
 /* Notify */
 #fNotify {
-	background: url('../images/bg_instCore.png');
+	/*background: url('../images/bg_instCore.png');*/
+	background-color: #4C4C4C;
 	position: absolute;
 	height: 30px;
 	left: 39px;
-	z-index: 10000;
+	z-index: 100002;
 	padding: 10px 10px 0 10px;
+	margin-top: 1px;
 	color: #ffffff;
 	font-size: 18px;
 	font-family: Verdana;
@@ -266,11 +298,10 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 }
 
 .fObject {
-	border: 1px solid #cfcfcf;
+	border: 1px dashed #cfcfcf;
 	background-color: #ffffff;
 	position: absolute;
 	text-align:center;
-
 	/*
 	-moz-box-sizing: border-box;
 	box-sizing: border-box !important;
@@ -285,7 +316,7 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 .p1 {}
 .p2 { background-color: #dfdfdf; }
 .p3 { background-color: #5f5f5f; }
-.p4 { background-color: #1f1f1f; }
+.p4 { background-color: #000000; }
 
 
 .fText {
@@ -310,7 +341,22 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 }
 
 
-
+.fStateLabel {
+	top: 0px;
+	right: 0px;
+	margin-right: -17px;
+	height: 10px;
+	width: 12px;
+	padding: 0 2px 0 2px;
+	background-color: #CFCFCF;
+	color: #ffffff;
+	font-size: 8px;
+	position: absolute;
+	text-transform: capitalize;
+	font-weight: bold;
+	font-family: verdana;
+	letter-spacing: -1px;
+}
 .fLabelHolder {
 	top: 50%;
 	display: inline;
@@ -336,9 +382,11 @@ div.fLabel:hover {
 	position:absolute;
 	top: 0px;
 	left: 0px;
-	outline: 6px solid #cfcfcf;
-	outline-offset: -5px;
+	outline: 3px solid #cfcfcf;
+	outline-offset: -2px;
 	text-align: left;
+	width: 100%;
+	height: 100%;
 }
 .fHmaster {
 	outline-color: #626FB5;
@@ -350,13 +398,13 @@ div.fLabel:hover {
 	position:absolute;
 	top: 0px;
 	left: 0px;
-	margin-left: -120px;
+	margin-left: -100px;
 	margin-top: 10px;
 	text-align: left;
 	z-index: 100000;
 }
 .fHARight {
-   margin-left: 10px;
+   margin-left: 5px;
    text-align: left;
    left: 0px;
 }
@@ -373,7 +421,7 @@ div.fLabel:hover {
 	background-position: top right;
 	background-repeat: no-repeat;
 	*/
-	border-color: #2f2f2f;
+	border-color: #1f1f1f;
 }
 .selected.fForm {
 	outline: 1px solid #2f2f2f;
@@ -431,7 +479,6 @@ div.resizable {
 	cursor: auto;	
 }
 
-
 .cursorCrosshair {
 	cursor: crosshair;
 }
@@ -444,7 +491,7 @@ div.resizable {
 	position: absolute;
 	float: left;
 	opacity: 1;
-	z-index: 1000000;
+	z-index: 100000;
 }
 
 
@@ -452,14 +499,14 @@ div.resizable {
 
 
 /**** Footer Items - separate states *****/
-#fObjInstHolder, #fFooterText, #fNoneSelectedHolder {
+#fFooterOI, #fFooterText, #fFooterForm, #fFooterWorkspace {
 	padding-left: 45px;
 	position: absolute;
 	bottom: 0px;
 	display: none;
 	z-index: 10003;
 }
-#fNoneSelectedHolder {
+#fFooterWorkspace {
 	display: block;
 }
 
@@ -500,7 +547,7 @@ div.resizable {
 }
 .fFTop {
 	height: 35px;
-	vertical-align: bottom;
+	bottom: 3px;
 	position: relative;
 }
 
@@ -569,8 +616,11 @@ div.resizable {
 	padding-top: 16px;
 }
 
-#fSSize,#fSPos,#fSContents,#fSEvents,#fSTone {
+#fSSize,#fSPos,#fSContents,#fSEvents,#fSTone,#fMIToggleText {
 	display: inline; float: left; padding-right: 15px;
+}
+#fMIToggleText {
+	width: 45px;
 }
 #fSTone {
 	padding-right: 0px;
@@ -581,8 +631,8 @@ div.resizable {
 }
 #fSMIToggle {
 	position: absolute;
-	left: 660px;
-	width: 110px;
+	margin-top: 8px;
+	left: 750px;
 }
 .fSCheck {
 	display: inline; float: left; padding: 0 0 0 0; margin: 4px 0 0 4px;
@@ -683,9 +733,11 @@ div.resizable {
 }
 
 
-#fCBManager,#fPManager,#fEventManager,#fStateManager,#fIdeaManager,#fFormManager {
+#fCBManager,#fPManager,#fEventManager,#fStateManager,#fIdeaManager,#fFormManager,#fExpAdd,#fExpAct {
 	z-index: 100000;
 }
+
+
 
 
 #fEventManager {
@@ -708,7 +760,7 @@ div.resizable {
 	top: 0px;
 	right: 0px;
 	width: 205px;
-	z-index: 10001;
+	z-index: 100001;
 	display: none;
 }
 .fSLCore {
@@ -727,6 +779,88 @@ div.resizable {
 	position: absolute;
 	right: 43px;
 	display: none;
+}
+
+
+/* Act */
+#fExpAct {
+	width: 390px;
+	position: absolute;
+	top: 100px;
+	margin-left: 30%;
+	display: none;
+	cursor: move;
+}
+.fActCursor {
+	cursor: url('../images/a_arrowFaded.png'), default;
+}
+.fActNone {
+	opacity: 0.5;
+}
+#fActMouseClear,#fActKeyClear {
+	display: none;
+}
+#fExpArrow {
+	position: absolute;
+	z-index: 100002;
+	background: url('../images/a_arrow.png');
+	width: 38px;
+	height: 38px;
+	display: none;
+	cursor: move;
+}
+.fArrowL {
+	background: url('../images/a_arrow_L.png') !important;
+}
+.fArrowR {
+	background: url('../images/a_arrow_R.png') !important;
+}
+.fArrowDL {
+	background: url('../images/a_arrow_DL.png') !important;
+}
+#fExpKey {
+	position: absolute;
+	background: url('../images/a_key.png') no-repeat right top;
+	padding: 2px 50px 0 0;
+	z-index: 100002;
+	height: 38px;
+	top: 95px;
+	right: 160px;
+	min-width: 100px;
+	color: #CD0000;
+	font-weight: bold;
+	font-size: 24px;
+	text-align: right;
+	display: none;
+}
+
+
+
+/* Add Thread */
+#fExpAdd {
+	width: 390px;
+	position: absolute;
+	top: 100px;
+	margin-left: 30%;
+	display: none;
+}
+.fExpAddTop {
+	height: 7px;
+	width: 100%;
+	background: url('../images/bg_TBAddTop.png');
+}
+.fExpAddCore {
+	width: 360px;
+	background: url('../images/bg_smCore.png');
+	padding: 10px 15px 10px 15px;
+	margin: 0px;
+	font-size: 1px;
+	position: relative;
+}
+.fExpAddBottom {
+	height: 7px;
+	width: 100%;
+	background: url('../images/bg_TBAddBottom.png');
 }
 
 
@@ -914,6 +1048,71 @@ div.resizable {
 	font-weight: bold;
 	font-color: #cccccc;
 }
+
+
+
+/*Experience Thread Items*/
+#fExpOverview {
+	display: none;
+	background: url('../images/bg_threadOverview.png') repeat-y;	
+	position: absolute;
+	z-index: 10000;
+	display: none;
+	margin-left: 39px;
+}
+.fThreadOverviewItem {
+	position: absolute;
+	text-decoration: none;
+	cursor: move;
+}
+.fExpHoverText {
+	padding: 3px 0 0 6px;
+}
+#fExpThreadBar {
+	position: absolute;
+	z-index: 100001;
+	height: 48px;
+	margin-left: 39px;
+	display: none;
+	background: url('../images/bg_instCore.png');
+}
+#fExpTBThread {
+	float: left;
+	padding: 10px 0 0 15px;
+}
+#fExpTBThread * {
+	float: left;
+}
+#fExpTBControls {
+	float: right;
+	padding: 10px;
+}
+#fExpTBOver {
+	width: 58px;
+	top: 48px;
+	display: none;
+	position: absolute;
+	text-align: center;
+}
+#fExpTBOver div {
+	background: url('../images/bg_threadMid.png');
+}
+#fExpTBOver div img {
+	padding: 3px 0 3px 0;
+}
+#fExpTBArrow {
+	background: url('../images/b_threadArrow_off.png') no-repeat !important; 
+	position: absolute;
+	top: -47px;
+	left: 17px;
+	width: 28px;
+	height: 10px;
+}
+
+
+
+
+
 #fTempJData {
 	width: 650px;
 	height: 550px;

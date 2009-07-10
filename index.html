@@ -16,20 +16,54 @@
 
 <body id="body">
 <div id="container">
-	<div id="header"><img src="engine/images/header.png"><img src="engine/images/views.gif"><img src="engine/images/b_design_on.png" class="hButton"><img src="engine/images/b_present_off.png" class="hButton">
+	<div id="header"><img src="engine/images/header.png"><img src="engine/images/views.gif"><a href="#" onclick="fWorkspace.changeView('design');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_design_on.png" class="hButton" id="bDesign"></a><a href="#" onclick="fWorkspace.changeView('present');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_present_off.png" class="hButton" id="bPresent"></a>
+		<div id="hTitle"><div><img src="engine/images/project.gif"></div><div id="fProjName" class="fTThick2">project</div><div id="fThreadName" class="fTThick2"></div></div>
 		<div id="hSave">
 			<a href="#" onmouseover="fSaveLoadManager.displaySave();"><img src="engine/images/b_save_off.png" class="hButton" border="0" id="bSave" title="Save"></a>
 			<a href="#" onmouseover="fSaveLoadManager.displayLoad();"><img src="engine/images/b_load_off.png" class="hButton" border="0" id="bLoad" title="Load"></a>
 		</div>
 	</div>
 
-	<div id="wrapper"><div id="fNotify"><div id="fNotifyText">text</div><div id="fNotifyRound"><img src="engine/images/bg_notifyRight.png"></div></div><div id="fWorkspace" class="fWorkspace"></div></div>
+	<div id="wrapper">
+		<div id="fNotify"><div id="fNotifyText">text</div>
+		<div id="fNotifyRound"><img src="engine/images/bg_notifyRight.png"></div></div>
+		<div id="fExpOverview">
+			
+		</div>
+		<div id="fExpThreadBar">
+			<div id="fExpTBThread">
+				<a href="#" onmouseover="fExp.TBover(this);"><img src="engine/images/b_thread_off.png" border="0" title="thread item"></a>
+				<a href="#" onmouseover="fExp.TBover(this);"><img src="engine/images/b_threadDiv_off.png" border="0" title="inbetween"></a>
+				<a href="#" onmouseover="fExp.TBover(this);"><img src="engine/images/b_thread_off.png" border="0" title="thread item"></a>
+				<a href="#" onmouseover="fExp.TBover(this);"><img src="engine/images/b_threadDiv_off.png" border="0" title="inbetween"></a>
+				<a href="#" onmouseover="fExp.TBover(this);"><img src="engine/images/b_threadAdd_off.png" border="0" title="inbetween"></a>
+			</div>
+			<div id="fExpTBControls">
+			<a href="#" onclick="fExp.delThread();" onmouseover="rollOver(this); fWorkspace.notify('Delete Thread');" onmouseout="rollOut(this);" id="fBDelT"><img src="engine/images/b_delSm_off.png" border="0" title="Delete"></a>
+			<a href="#" onclick="fExp.showThreadAdd();" onmouseover="rollOver(this); fWorkspace.notify('Add New Thread');" onmouseout="rollOut(this);"><img src="engine/images/b_addBig_off.png" border="0" title="Add"></a>
+			<a href="#" onclick="fExp.showOverview();" onmouseover="rollOver(this); fWorkspace.notify('See All Threads');" onmouseout="rollOut(this);" id="fBSeeAll"><img src="engine/images/b_seeAll_off.png" border="0" title="See All"></a>
+			<a href="#" onclick="fExp.hideThreadBar();toolSelect();" onmouseover="rollOver(this); fWorkspace.notify('Close');" onmouseout="rollOut(this);"><img src="engine/images/b_close_off.png" border="0" title="Close"></a>
+			</div>
+			<div id="fExpTBOver">
+				<div id="fExpTBArrow"></div>
+				<img src="engine/images/bg_threadTop.png">
+				<div>
+					<a href="#" onclick="fExp.insert('snap');" onmouseover="rollOver(this); fWorkspace.notify('Snapshot');" onmouseout="rollOut(this);"><img src="engine/images/b_ETSnap_off.png" border="0" title="Snapshot"></a>
+					<a href="#" onclick="fExp.showAct();" onmouseover="rollOver(this); fWorkspace.notify('Action');" onmouseout="rollOut(this);" id="fBAction"><img src="engine/images/b_ETAct_off.png" border="0" title="Action"></a><br>
+					<a href="#" onclick="fExp.delThreadP();" onmouseover="rollOver(this); fWorkspace.notify('Delete Thread Point');" onmouseout="rollOut(this);" id="fBDel"><img src="engine/images/b_delSm_off.png" border="0" title="Delete"></a>
+				</div>
+				<img src="engine/images/bg_threadBottom.png">
+			</div>
+		</div>
+		<div id="fWorkspace" class="fWorkspace"></div>
+	</div>
 
 	<div id="toolbox">
 		<a href="#" onclick="toolSelect();" onmouseover="rollOver(this); fWorkspace.notify('Select Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_arrow_off.png" border="0" id="iconSelect" title="Selection"></a><br>
 		<a href="#" onclick="toolObject();" onmouseover="rollOver(this); fWorkspace.notify('Object Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_object_off.png" border="0" id="iconObject" title="Object"></a><br>
 		<a href="#" onclick="toolText();" onmouseover="rollOver(this); fWorkspace.notify('Text Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_text_off.png" border="0" id="iconText" title="Text"></a><br>
 		<a href="#" onclick="toolForm();" onmouseover="rollOver(this); fWorkspace.notify('Form Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_form_off.png" border="0" id="iconForm" title="Form"></a><br>
+		<a href="#" onclick="toolExperience();" onmouseover="rollOver(this); fWorkspace.notify('Experience Threads Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_et_off.png" border="0" id="iconET" title="Experience Threads"></a><br>
 	</div>
 
 	<div id="rightpanel">
@@ -49,7 +83,7 @@
 		
 		<div id="footerAll" style="bottom: 0px; position: absolute; width: 100%; height: 100px;">
 		
-		<div id="fObjInstHolder">
+		<div id="fFooterOI" class="fFMode">
 			
 			<div class="fFItem">
 				<div class="fFTop fTThick">&nbsp;<span class="fTThick2">editing&nbsp;</span></div>
@@ -63,7 +97,7 @@
 			</div>
 			
 			<div class="fFItem">
-				<div class="fTThick" style="position: absolute; top 0px; right: 0px; width: 140px">as <span id="fEditMode" class="fTThick2">master</span></div>
+				<div class="fTThick" style="position: absolute; top: -3px; right: 0px; width: 140px;"">as <span id="fEditMode" class="fTThick2">master</span></div>
 				<div style="position: absolute; top 0px; right: 150px;"><img src="engine/images/holdZ.png" alt="Hold Z"></div>
 				<div class="fFTop fTThick">of <a href="#" id="fObjName" class="fTThick2">Object name</a><span class="fTThick2"> :: </span><a href="#" id="fStateName" class="fTThick2">State Name 1 of 1</a></div>
 				
@@ -71,6 +105,8 @@
 				<div class="fFCore" id="fFStates">
 				
 					<div id="fWHXYHolder">
+						<div id="fMIToggleText" class="fT11" style="padding: 3px 0 0px 0; color: #ffffff; ">Inherited from:</div>
+						
 						<div id="fSSize">
 							<div class="fSCheck" onclick="fStates.fSCheckToggle('fSSize')"></div>
 							<div class="fSTitle fT11" onclick="fStates.fSCheckToggle('fSSize')">Size</div>
@@ -106,8 +142,7 @@
 						</div>
 						
 						<div id="fSMIToggle">
-							<div id="fMIToggleText" class="fT11" style="padding: 3px 0 0px 0; color: #ffffff; ">are inherited from:</div>
-							<div class="fTDim" style="position: absolute; left: 75px; padding-top: 10px;">V</div>
+							<div class="fTDim" style="position: absolute; left: 20px; margin-top: 30px;">PRESS V</div>
 							<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="display: block; padding-top: 3px;"><img src="engine/images/b_in_off.png" border="0" id="buttonfMIToggle"></a>
 						</div>
 					</div>
@@ -129,16 +164,22 @@
 		</div> 
 		
 
-		<div id="fNoneSelectedHolder">
+		<div id="fFooterWorkspace" class="fFMode">
 			<div class="fFItem">
 				<div class="fFTop fTThick">&nbsp;<span class="fTThick2">editing</span> workspace</div>
 			</div>
 
 		</div>
 		
-		<div id="fFooterText">
+		<div id="fFooterText" class="fFMode">
 			<div class="fFItem">
 				<div class="fFTop fTThick">&nbsp;<span class="fTThick2">editing</span> text</div>
+			</div>
+		</div>
+		
+		<div id="fFooterForm" class="fFMode">
+			<div class="fFItem">
+				<div class="fFTop fTThick">&nbsp;<span class="fTThick2">editing</span> form</div>
 			</div>
 		</div>
 		
@@ -259,6 +300,57 @@
 </div>
 
 
+<div id="fExpAct">
+	<div class="fTThick">set action</div>
+	<div class="fExpAddTop"></div>
+	<div class="fExpAddCore">
+		<table cellpadding="0" cellspacing="0" border="0" width="100%">
+			<tr>
+				<td valign="top" style="padding-top: 10px;">
+					<img src="engine/images/a_arrow.png" border="0" title="Arrow" class="fExpActMouse fActNone">
+				</td>
+				<td valign="top">
+					<div class="fTsmall" style="padding-bottom: 2px;"><a href="#" onclick="fExp.actClearMouse();" class="fT11 fLink" style="float: right;" id="fActMouseClear">clear</a>Mouse: </div>
+					<select class="fInput fExpActMouse fActNone" onchange="fExp.actMouse();" id="fActMouse" style="width: 100%;">
+						<option value="none">none</option>
+						<option value="DL">dbl click</option>
+						<option value="L">left click</option>
+						<option value="R">right click</option>
+						<option value="M">move to</option>
+					</select>
+				</td>
+				<td valign="top" style="padding-left: 20px; padding-top: 9px;">
+					<img src="engine/images/a_key.png" border="0" title="Arrow" class="fExpActKey fActNone">
+				</td>
+				<td valign="top">
+					<div class="fTsmall" style="padding-bottom: 2px;"><a href="#" onclick="fExp.actClearKey();" class="fT11 fLink" style="float: right;" id="fActKeyClear">clear</a>Keyboard:</div>
+					<input type="text" class="fInput fExpActKey fActNone" id="fActKey" readonly value="">
+				</td>
+			</tr>
+		</table><br><br>
+		<a href="#" onclick="fExp.hideAct();" class="fT11 fLink" style="float: left; position: absolute; right: 30px; bottom: 15px;">Close</a>
+		<center>
+			<a href="#" onclick="fExp.insert('act');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok"></a>
+		</center>
+	</div>
+	<div class="fExpAddBottom"></div>
+</div>
+
+
+<div id="fExpAdd">
+	<div class="fTThick">+ experience thread</div>
+	<div class="fExpAddTop"></div>
+	<div class="fExpAddCore">
+		<div class="fTsmall"><div style="float: left; padding-top: 5px;">Title:</div> <input type="text" class="fInput" id="fInputTTitle" style="width: 330px; float: right;"></div>
+		<br>
+		<div class="fTsmall" style="margin: 40px 0 5px 0;">User Intent or Story: <span class="fT9 fTDim">(optional)</span></div>
+		<textarea class="fInput fOptional fT12" id="fInputStory" style="width: 100%;margin-bottom: 10px; height: 120px;" ></textarea><br>
+		<a href="#" onclick="fExp.hideThreadAdd();" class="fT11 fLink" style="float: left; position: absolute; right: 30px; bottom: 15px;">Close</a>
+		<center><a href="#" onclick="fExp.addThread();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok"></a></center>
+	</div>
+	<div class="fExpAddBottom"></div>
+</div>
+
 
 <div id="fCBManager">
 	<div class="fTThick">clipboard</div>
@@ -304,20 +396,19 @@
 	<div class="fCBTop"></div>
 	
 	<div class="fCBCorePaste">
-		
 		<a href="#" onclick="fCBManager.pasteAsMaster();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_nm_off.png" border="0" id="buttonNewMaster" title="Master"></a>
 		<a href="#" onclick="fCBManager.pasteAsInstance();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ni_off.png" border="0" id="buttonNewInstance" title="Instance"></a>
 		<div id="fCBInto" class="fT9"><span id="fCBInto1">All States of</span> <span id="fCBInto2" class="fT9 fTOrange">Instance 3</span></div>
 		<div>
 			<a href="#" onclick="fCBManager.paste();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_paste_off.png" border="0" id="buttonPaste" title="Paste"></a>
 			<div class="fT9 fTDim" style="padding-top: 3px;">or PRESS CTRL+V again</div>
-		
-		
 		</div>
-		
 	</div>
 	<div class="fCBBottom"></div>
 </div>
+
+<div id="fExpArrow"></div>
+<div id="fExpKey"></div>
 
 
 </body>

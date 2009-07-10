@@ -2,6 +2,11 @@
 //project data
 "project": [],
 
+//experience threads
+"threads" : { 
+},
+
+
 //non instance elemenets
 "elements" : { //hotspots, text, images, form elements?
 },
@@ -15,7 +20,7 @@
 
 "pages": {
 	"page1" : { 
-		"pageName" : "Page One ",
+		"pageName" : "Page 1",
 		"author" : "",
 		"contains" : {  } //TODO 0 or 1s for display or not (content manager)
 	}

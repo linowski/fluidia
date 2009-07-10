@@ -14,12 +14,14 @@ $(document).ready(function(){
 	shiftAmount = 1; //1 or 10 pixels depending of shiftPressed
 	ctrlPressed = false; // if true, then ctrl key is being pressed down
 	cPressed = false; // if true, then c key is being pressed down
+	
+	savedDate = new Date(); //used by actClick to determine double clicks
 
 	offsetToWorkspaceX = $("#fWorkspace").offset().left;
 	offsetToWorkspaceY = $("#fWorkspace").offset().top;
 
 	// init functions
-	setWorkspaceDimensions(); // set window dimensions the first time
+	fWorkspace.setDimensions(); // set window dimensions the first time
 	
 	//set minmum and maximum widths of panelpages after they have been loaded
 	fPanelPages.cssPanelWidthCon = parseInt($("#fPanelPages").css("width"));
@@ -27,7 +29,7 @@ $(document).ready(function(){
 	
 	jO.load('projects/project01.json','file'); //load JSON data + select workspace
 	
-	$("#fWorkspace").fShowMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {alert('tf');});
+	$("#fWorkspace").fShowMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {});
 
 	// make document unselectable
 	if (typeof(document.onselectstart) != "undefined") {
@@ -44,6 +46,16 @@ $(document).ready(function(){
 	$("#setheight").bind("keyup",updateHeight);
 	$("#xpos").bind("keyup",updateXpos);
 	$("#ypos").bind("keyup",updateYpos);
+
+	$("#setwidth").bind("focus",hotkeysDisable)
+	$("#setheight").bind("focus",hotkeysDisable);
+	$("#xpos").bind("focus",hotkeysDisable);
+	$("#ypos").bind("focus",hotkeysDisable);
+	
+	$("#setwidth").bind("blur",hotkeysEnable)
+	$("#setheight").bind("blur",hotkeysEnable);
+	$("#xpos").bind("blur",hotkeysEnable);
+	$("#ypos").bind("blur",hotkeysEnable);
 	$(document).bind("mousemove",fGM.capture); //global mouse with page coordinates
 
 	//first tool
@@ -53,7 +65,7 @@ $(document).ready(function(){
 	$(window).focus();
 	
 	//bind window focus event to resize
-	$(window).bind("focus",setWorkspaceDimensions);
+	$(window).bind("focus",fWorkspace.setDimensions);
 	
 	//hovers for fS footer states controler
 	$("div.fEditingInst div div.fSCheck,div.fEditingInst div div.fSTitle").live("mouseover",
@@ -84,23 +96,6 @@ $(document).ready(function(){
 
 
 // -------- General Resizing Functions -----
-function setWorkspaceDimensions() {
-	// get window height
-	windowheight = $(window).height();
-	windowwidth = $(window).width();
-
-	// adjust for toolbars
-	windowheight = windowheight - 79;
-	windowwidth = windowwidth - 182;
-
-	document.getElementById("fWorkspace").style.height = windowheight;
-	document.getElementById("fWorkspace").style.width = windowwidth;
-	document.getElementById("toolbox").style.height = windowheight + 3;
-	document.getElementById("rightpanel").style.height = windowheight;
-	
-	$(".fPanelItemsList").css("height",$("#fPanelPages").height() - 48);
-}
-
 function fFocusWindow() {
 	$(window).focus();
 	
@@ -124,6 +119,7 @@ function hotkeysEnable() {
 	$.hotkeys.add('Shift+Left', function() {fWorkspace.keyShift('left');});
 	$.hotkeys.add('Shift+Right', function() {fWorkspace.keyShift('right');});
 	$.hotkeys.add('Ctrl+C', keyCtrlC);
+	$.hotkeys.add('Ctrl+X', keyCtrlX);
 	$.hotkeys.add('Ctrl+V', keyCtrlV);
 	$(document).bind("keydown",keypressed); // detect which keys are pressed for tools, and delete and such
 	$(document).bind("keyup",keyreleased); // detect if some keys are let go (ex. shift)
@@ -139,6 +135,7 @@ function hotkeysDisable() {
 	$.hotkeys.remove('Shift+Left');
 	$.hotkeys.remove('Shift+Right');
 	$.hotkeys.remove('Ctrl+C', keyCtrlC);
+	$.hotkeys.remove('Ctrl+X', keyCtrlX);
 	$.hotkeys.remove('Ctrl+V', keyCtrlV);
 	$(document).unbind("keydown",keypressed);
 	$(document).unbind("keyup",keyreleased);
@@ -269,6 +266,11 @@ function keypressed(event) {
 	}
 	
 	
+	//
+	if (whichkey == "69") {
+		toolExperience();
+	}
+	
 	//toolbars (only run if shift / ctrl are NOT pressed)
 	if ((whichkey == "83") && (shiftPressed == false) && (ctrlPressed == false)) { toolSelect(); }
 	if ((whichkey == "79") && (shiftPressed == false) && (ctrlPressed == false)) { toolObject(); }
@@ -346,17 +348,21 @@ function keyCtrlV(event) {
 		fCBManager.paste();	
 	}
 }
-
+function keyCtrlX(event) {
+	//fCBManager.copy();
+}
 
 
 function updateWidth(event) {
 	if(fSel.sI[0] != "fWorkspace") {
 		//make sure it's an integer
 		var val = parseInt($("#setwidth").val());
-		$("#setwidth").val(val);
 		$("#" + fSel.sI[0]).width($("#setwidth").val());
 		jO.update(fSel.sI[0],{w : parseInt($("#setwidth").val())});
+		if (fSel.editAs == 1) {jO.update(fSel.nInst, {type: "instance",iSize: 0});} //force inheritance
+		if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iSize: 1});} //force inheritance
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		fFooter.redrawFooter();
 	}
 }
 
@@ -364,10 +370,12 @@ function updateHeight(event) {
 	if(fSel.sI[0] != "fWorkspace") {
 		//make sure it's an integer
 		var val = parseInt($("#setheight").val());
-		$("#setheight").val(val);
 		$("#" + fSel.sI[0]).height($("#setheight").val());
 		jO.update(fSel.sI[0],{h : parseInt($("#setheight").val())});
+		if (fSel.editAs == 1) {jO.update(fSel.nInst, {type: "instance",iSize: 0});} //force inheritance
+		if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iSize: 1});} //force inheritance
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		fFooter.redrawFooter();
 	}
 }
 
@@ -378,7 +386,10 @@ function updateXpos(event) {
 		$("#xpos").val(val);
 		$("#" + fSel.sI[0]).css("left", $("#xpos").val() + "px");
 		jO.update(fSel.sI[0],{x : parseInt($("#xpos").val())});
+		if (fSel.editAs == 1) {jO.update(fSel.nInst, {type: "instance",iPos: 0});} //force inheritance
+		if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iSize: 1});} //force inheritance
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		fFooter.redrawFooter();
 	}
 }
 
@@ -389,7 +400,10 @@ function updateYpos(event) {
 		$("#ypos").val(val);
 		$("#" + fSel.sI[0]).css("top", $("#ypos").val() + "px");
 		jO.update(fSel.sI[0],{y : parseInt($("#ypos").val())});
+		if (fSel.editAs == 1) {jO.update(fSel.nInst, {type: "instance",iPos: 0});} //force inheritance
+		if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iSize: 1});} //force inheritance
 		fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
+		fFooter.redrawFooter();
 	}
 }
 
@@ -537,7 +551,7 @@ function Draw(event){
 				
 				//force inheritance
 				//if 0 editing as Object
-				//if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iContents: 1});}
+				if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iContents: 1});}
 			}
 			else {
 				newInstanceName = jO.instantiate(ID, fSel.sI[0]);
@@ -650,10 +664,10 @@ function dragStop() {
 					y: $("#" + fSel.sI[i]).position().top,
 				});
 				
-				//jO.update(fSel.sI[i], {
-				//	type: "instance",
-				//	iPos: 1
-				//});
+				jO.update(fSel.sI[i], {
+					type: "instance",
+					iPos: 1
+				});
 			}
 			else { //else editing as Instance
 				//update JSON + Force inheritance of iPos = 0
@@ -758,12 +772,12 @@ function resizeStop() {
 				});
 				
 				//force inheritance
-				//jO.update(fSel.nInst, {
-				//	type: "instance",
-				//	xs: changeX,
-				//	ys: changeY,
-				//	iSize: 1
-				//});
+				jO.update(fSel.nInst, {
+					type: "instance",
+					xs: changeX,
+					ys: changeY,
+					iSize: 1
+				});
 			}
 			//else editing as Instance
 			else {
@@ -816,7 +830,7 @@ function resizeStop() {
 
 
 function resized(event) {
-	setWorkspaceDimensions(); // fix wrapper/workspace height
+	fWorkspace.setDimensions(); // fix wrapper/workspace height
 }
 
 
@@ -829,18 +843,6 @@ function killResizable(event) {
 		$("#"+myresize).resizable("destroy"); myresize = null;
 	}
 }
-
-
-
-// -------- Object Functions ----
-function objectSortUp() {
-	//increase zindex of first selected item // todo multiple item?
-	alert($("#" + fSel.sI[0]).css("z-index"));
-	$("#" + fSel.sI[0]).css("z-index",100);
-}
-
-
-
 
 
 
@@ -865,7 +867,8 @@ $.fn.fEditable = function() {
 
 	//attach on change
 	inputElement.bind("change blur",closeEditing);
-	$(window).bind("click",closeEditing);
+	$("#wrapper").bind("click",closeEditing);
+	inputElement.bind("keyup",function(event) {if(event.which == "13") { closeEditing(); } });
 }
 
 function closeEditing(){ // if I have "blur change" together AIR crashes
@@ -875,10 +878,12 @@ function closeEditing(){ // if I have "blur change" together AIR crashes
 	jO.jData.pages[clickedElement.attr("id")].pageName = inputElement.attr("value");
 	
 	clickedElement.show();
-	hotkeysEnable();
+	
 	inputElement.remove();
 	
-	$(window).unbind("click",closeEditing);
+	$("#wrapper").unbind("click",closeEditing);
+	
+	hotkeysEnable();
 }
 
 $.fn.fEditableLabel = function() {
@@ -960,6 +965,7 @@ function toolObject() {
 	fTools.crosshairOn();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
+	fExp.hideOverview(); //hide threadbar if active
 
 	document.getElementById("iconObject").src = "engine/images/b_object_on.png";
 
@@ -973,11 +979,13 @@ function toolForm() {
 	fTools.selected = "toolForm";
 
 	//clear all tools
+
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOff();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
+	fExp.hideOverview(); //hide threadbar if active
 
 	document.getElementById("iconForm").src = "engine/images/b_form_on.png";
 
@@ -995,11 +1003,13 @@ function toolText() {
 	fTools.selected = "toolText";
 
 	//clear all tools
+
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOn();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
+	fExp.hideOverview(); //hide threadbar if active
 
 	document.getElementById("iconText").src = "engine/images/b_text_on.png";
 
@@ -1016,8 +1026,8 @@ function toolSelect() {
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOff();
-
 	document.getElementById("iconSelect").src = "engine/images/b_arrow_on.png";
+	fExp.hideOverview(); //hide threadbar if active
 
 	$("#fWorkspace").bind("click",fSel.selectBinding);
 	
@@ -1027,6 +1037,21 @@ function toolSelect() {
 	}
 }
 
+
+function toolExperience() {
+	//fTools.selected = "toolExperience";
+
+	//clear all tools
+	//fTools.clearIcons(); // Visually
+	//fTools.clearEvents(); // Eventwise
+
+	//killDrag(); // remove all dragging behaviours
+	//killResizable(); // remove all resizable
+
+	//document.getElementById("iconET").src = "engine/images/b_et_on.png";
+	
+	fExp.showThreadBar();
+}
 
 
 function rollOver(what) {
@@ -1077,8 +1102,8 @@ $.fn.fShowMenu = function(options) {
 				countItems++;
 			}
 		});
-		//show menu only if countItems exist
-		if (countItems > 0) {
+		//show menu only if countItems exist and not recording clicks with 
+		if ((countItems > 0) && ($("#fExpAct").is(':hidden'))) {
 			$(opts.query).show().css({
 				top:e.pageY+"px",
 				left:e.pageX+"px",
@@ -1152,6 +1177,8 @@ var fSession = {
 	// .state - the remembered state of the instance //this is first prepopulated with jO.load 
 	// .editStatesAs - 0 is one, 1 is all // this is first prepopulated with jO.load 
 	// .changed = 0 or 1 
+	
+	// .sThread - contains last editable thread
 }
 
 
@@ -1211,6 +1238,7 @@ var jO = {
 		else if(type == 'form') { lookWhere = jO.jData.elements; idName = "f";}
 		else if(type == 'obj') { lookWhere = jO.jData.objects; idName = "obj";}
 		else if(type == 'page') { lookWhere = jO.jData.pages; idName = "page";}
+		else if(type == 'thread') { lookWhere = jO.jData.threads; idName = "t";}
 		
 		var availableId = 0;
 		for (i=1;i < 100000;i++) {
@@ -1293,7 +1321,7 @@ var jO = {
 		// options.xs, .ys are x,y coordinates but are summed to existing values
 		// options.t contains tone values 
 		// options can also be contents or events TODO
-
+		
 		var instRef = jO.jData.instances[jO.tr(instance)];
 		var objRef = jO.jData.objects[jO.jData.instances[jO.tr(instance)].of];
 		statesToEdit = new Array(); // this will hold all states to be edited
@@ -1378,7 +1406,7 @@ var jO = {
 	createObj : function(name,x,y,width,height) {
 		//alert('name:' + name + ', x:' + x + ', y:' + y + ', width:' + width + ', height:' + height);
 		//determine which Id to give the object
-		newObjId = jO.getAvailableId('obj');
+		var newObjId = jO.getAvailableId('obj');
 		//create it
 		jO.jData.objects[newObjId] = new Object();
 		jO.jData.objects[newObjId].name = name;
@@ -1401,7 +1429,7 @@ var jO = {
 		return (newObjId);
 	},
 	createTxt : function(txt,x,y,width,height) {
-		newTxtId = jO.getAvailableId('txt');
+		var newTxtId = jO.getAvailableId('txt');
 		
 		//create it
 		jO.jData.elements[newTxtId] = new Object();
@@ -1414,7 +1442,7 @@ var jO = {
 		return (newTxtId);
 	},
 	createForm : function(formtype,x,y,width,height) {
-		newFormId = jO.getAvailableId('form');
+		var newFormId = jO.getAvailableId('form');
 		
 		if(x == undefined) { x = 10;}
 		if(y == undefined) { y = 10;}
@@ -1429,7 +1457,65 @@ var jO = {
 		
 		return (newFormId);
 	},
+	createThread : function(title,story) {
+		var newThreadId = jO.getAvailableId('thread');
+		
+		//create it
+		jO.jData.threads[newThreadId] = new Object();
+		jO.jData.threads[newThreadId].title = title;
+		jO.jData.threads[newThreadId].story = story;
+		jO.jData.threads[newThreadId].points = new Array;
+		jO.jData.threads[newThreadId].x = Math.floor(Math.random()*(130-10)+10); //random number between 50 and 160
+		jO.jData.threads[newThreadId].y = Math.floor(Math.random()*(600-50)+50); //random number between 200 and 600
+		
+		return (newThreadId);
+	},
+	createThreadPoint : function(threadID,type,position,option,mouseType,x,y,key) {
+		var tArray = jO.jData.threads[threadID].points;
+		var tArrayIndex = null;
+		
+		if(option == "end") {
+			tArray.push(new Object());
+			tArrayIndex = tArray.length-1;
+		}
+		else if(typeof option == "string") {
+			if(option.match('after')){
+				tArray.splice(position+1,0,new Object());
+				tArrayIndex = position + 1;
+			}
+		}
+		//replace
+		else {
+			tArray.splice(position,1,new Object());
+			tArrayIndex = position;
+		}
+		
+		//snapshots
+		if(type == "snap") {
+			tArray[tArrayIndex].type = "snap";			
+			tArray[tArrayIndex].page = fPanelPages.selectedPageId;
+			tArray[tArrayIndex].states = new Object;
+			
+			// foreach div.fObject save states
+			$("div.fObject").each(function() {
+				var instName = $(this).attr("id");
+				//if(fSession[instName].state != "s1") {
+					tArray[tArrayIndex].states[instName] = fSession[instName].state;
+				//};
+			});
+		}
+		//actions
+		else if (type == "act") {
+			tArray[tArrayIndex].type = "act";	
+			tArray[tArrayIndex].mouse = mouseType;
+			tArray[tArrayIndex].x = x;
+			tArray[tArrayIndex].y = y;
+			tArray[tArrayIndex].key = key;
+		}
+		
+	},
 	instantiate : function (ID,instanceId,state,parentType) {
+		//alert(ID + ":" + instanceId);
 		//what object (or text), instatiate in which instances, in what state, and update parent object 0 or instance 1
 		//move the instanceID to its parent if workspace or instance is not selected
 		if (!(instanceId.match("fWorkspace")||instanceId.match("ins"))) {
@@ -1487,6 +1573,7 @@ var jO = {
 			fSession[newInstId].state = "s1";
 			fSession[newInstId].editAs = 1;
 			fSession[newInstId].editStatesAs = 0; //default edit OneState
+			
 			//update allInstances reference inside Object
 			jO.jData.objects[ID].allInstances[newInstId] = 1;
 		}
@@ -1521,27 +1608,86 @@ var jO = {
 		
 		return(newInstId);
 	},
-	copyInstance : function(from,to) {
+	copyInstance : function(whatInst,options) {
+		//create initial instance list to go through and reinstantiate 
+		var instantiateWhat = new Array();
+		instantiateWhat.push(whatInst);
+
+		var instantiateIntoWhere = new Array();
+		instantiateIntoWhere.push(fSel.sI[0]); //default 
+
+		var instantiateIntoState = new Array();
+		instantiateIntoState.push(fSession[fSel.nInst].state); //default 
 		
-	},
-	copyObject : function(what) {
-		//determine which Id to give the object and create it
-		newObjId = jO.getAvailableId('obj');
-		jO.jData.objects[newObjId] = new Object;
+		var firstNewInst = null;
 		
-		//copy 
-		jQuery.extend(true, jO.jData.objects[newObjId], jO.jData.objects[what]);
+		for(var i=0; i < instantiateWhat.length; i++) {
+			//new object copy
+			if (options == 'object') {
+				//determine which Id to give the object and create it
+				newObjId = jO.getAvailableId('obj');
+				jO.jData.objects[newObjId] = new Object;
+				
+				//copy 
+				jQuery.extend(true, jO.jData.objects[newObjId], jO.jData.objects[jO.jData.instances[instantiateWhat[i]].of]);
+				
+				var jRef = jO.jData.objects[newObjId];
+				for (items in jRef.allInstances) {
+					delete jRef.allInstances[items];
+				};
+				
+				for (states in jRef.states) {
+					for (contains in jRef.states[states].contains) {
+						delete jRef.states[states].contains[contains];
+					}
+				};
+				
+				newInst = jO.instantiate(newObjId, instantiateIntoWhere[i], instantiateIntoState[i]);
+			}
+			//standard copy - instantiate
+			else {
+				newInst = jO.instantiate(jO.jData.instances[instantiateWhat[i]].of, instantiateIntoWhere[i], instantiateIntoState[i]);
+			}
+			//save the first new Instance name
+			if(firstNewInst == null) {firstNewInst = newInst;}
+			
+			//go through all states			
+			for (states in jO.jData.instances[instantiateWhat[i]].states) {
+				cFrom = jO.jData.instances[instantiateWhat[i]].states;
+				cTo = jO.jData.instances[newInst].states;
+				
+				//copy instance state properties
+				jQuery.extend(true, cTo[states], cFrom[states]);
+				
+				//delete contains
+				delete cTo[states].contains;
+				cTo[states].contains = new Object;
+				
+				//copy contains items
+				for (containsItem in cFrom[states].contains) {
+					//form elements
+					if (containsItem.match("f")) {
+						newFormId = jO.createForm();
+						jQuery.extend(true, jO.jData.elements[newFormId], jO.jData.elements[containsItem]);
+						newID = jO.instantiate(newFormId, newInst, states);
+					}
+					//text elements
+					else if (containsItem.match("t")) {
+						newTextId = jO.createTxt();
+						jQuery.extend(true, jO.jData.elements[newTextId], jO.jData.elements[containsItem]);
+						newID = jO.instantiate(newTextId, newInst, states);
+					}
+					else if (containsItem.match("ins")) {
+						//add to loop
+						instantiateWhat.push(containsItem);
+						instantiateIntoWhere.push(newInst);
+						instantiateIntoState.push(states);
+					}
+				}
+			}
+		}
 		
-		for (items in jO.jData.objects[newObjId].allInstances) {
-			delete jO.jData.objects[newObjId].allInstances[items];
-		};
-		
-		return (newObjId);
-		
-		
-	},
-	copyText : function(from,to) {
-		
+		return (firstNewInst);
 	},
 	createState : function(instance) {
 		// instance, is used to figure out where to add the new state
@@ -1755,12 +1901,22 @@ var fCBManager = {
 			if(fSel.editAs == 0) { this.type = "object";}
 			else { this.type = "instance"; }
 			
+			//clear instances
+			this.instances = null;
 				
 			//copy instance names
 			this.instances = fSel.sI.slice();
-			
+
 			//set mode
-			if(this.instances[0].match("ins")) {
+			//check for instances
+			var hasInstances = false;
+			for(i = 0; i < this.instances.length; i++) {
+				if (this.instances[i].match("ins")) {
+					hasInstances = true;
+					break;
+				}
+			}
+			if(hasInstances == true) {
 				this.mode = "instance";
 				//update selected object
 				this.title = "Object: " + jO.jData.objects[fSel.nObj].name;
@@ -1794,73 +1950,71 @@ var fCBManager = {
 			fSel.selectObject($("#fWorkspace"));
 		}
 		
-		if (this.mode == "instance") {
-			for (var i = 0; i < this.instances.length; i++) {
-				if (fSel.sI[0].match("ins") || fSel.sI[0].match("fWorkspace")) {
-					//check if trying to paste an instance into its own master object (in which case do not allow)
+		//select the parent if workspace or instance is not selected
+		if (!(fSel.sI[0].match("fWorkspace")||fSel.sI[0].match("ins"))) {
+			fSel.selectObject($("#" + fSel.sI[0]).parent());
+			drawWhere = $("#" + fSel.sI[0]);
+		}
+		
+		// for each copied item, actually copy it
+		for (var i = 0; i < this.instances.length; i++) {
+			if (fSel.sI[0].match("ins") || fSel.sI[0].match("fWorkspace")) {
+				//instances
+				if (this.instances[i].match("ins")) {
 					if ((fSel.nObj == jO.jData.instances[this.instances[i]].of) && fSel.sI[0].match("ins") && (this.pasteAs == "instance")) {
 						//todo display error message - cannot paste intstance into itself
 						fWorkspace.notify("cannot paste object into itself :(");
 					}
 					else {
 						if (this.pasteAs == "instance") {
-							ID = jO.instantiate(jO.jData.instances[this.instances[i]].of, fSel.sI[0], fSession[fSel.nInst].state);
+							//copy instance
+							ID = jO.copyInstance(this.instances[i]);
 						}
 						else if (this.pasteAs == "master") {
-							newID = jO.copyObject(jO.jData.instances[this.instances[i]].of);
-							ID = jO.instantiate(newID, fSel.sI[0], fSession[fSel.nInst].state);
+							//newID = jO.copyObject(jO.jData.instances[this.instances[i]].of);
+							//ID = jO.instantiate(newID, fSel.sI[0], fSession[fSel.nInst].state);
+							ID = jO.copyInstance(this.instances[i],'object');
 						}
-						//redraw Objects
-						fWorkspace.redraw({type: 'page'});
-						
-						//reposition if overlapping
-						this.indentPosition(ID);
-						
-						//give visual feedback that paste has occured
-						this.pasteFeedback(ID);
-						
-						//select the newly pasted object
-						//fSel.selectObject(ID);
 					}
 				}
-			}
-		}
-		else if (this.mode == "text") {
-			for (var i = 0; i < this.instances.length; i++) {
-				//create new text from existing one
-				tref = jO.jData.elements[this.instances[i]];
-				newTxtId = jO.createTxt(tref.txt,tref.x,tref.y,tref.w,tref.h);
-				
-				if (fSession[fSel.nInst] != undefined) {
-					ID = jO.instantiate(newTxtId, fSel.sI[0], fSession[fSel.nInst].state);
+				//text
+				else if (this.instances[i].match("t")) {
+					//create new text from existing one
+					tref = jO.jData.elements[this.instances[i]];
+					newTxtId = jO.createTxt(tref.txt,tref.x,tref.y,tref.w,tref.h);
+					
+					if (fSession[fSel.nInst] != undefined) {
+						ID = jO.instantiate(newTxtId, fSel.sI[0], fSession[fSel.nInst].state);
+					}
+					else {
+						ID = jO.instantiate(newTxtId, fSel.sI[0]);
+					}
 				}
-				else {
-					ID = jO.instantiate(newTxtId, fSel.sI[0]);
+				//form
+				else if (this.instances[i].match("f")) {
+					//create new text from existing one
+					tref = jO.jData.elements[this.instances[i]];
+					newTxtId = jO.createForm(tref.type,tref.x,tref.y,tref.w,tref.h);
+	
+					if (fSession[fSel.nInst] != undefined) {
+						ID = jO.instantiate(newTxtId, fSel.sI[0], fSession[fSel.nInst].state);
+					}
+					else {
+						ID = jO.instantiate(newTxtId, fSel.sI[0]);
+					}
 				}
 				
+				//redraw Objects
 				fWorkspace.redraw({type: 'page'});
 				
-				//give visual feedback that paste has occured
-				this.pasteFeedback(newTxtId);
-			}
-		}
-		else if (this.mode == "form") {
-			for (var i = 0; i < this.instances.length; i++) {
-				//create new text from existing one
-				tref = jO.jData.elements[this.instances[i]];
-				newTxtId = jO.createForm(tref.type,tref.x,tref.y,tref.w,tref.h);
-
-				if (fSession[fSel.nInst] != undefined) {
-					ID = jO.instantiate(newTxtId, fSel.sI[0], fSession[fSel.nInst].state);
-				}
-				else {
-					ID = jO.instantiate(newTxtId, fSel.sI[0]);
-				}
+				//reposition if overlapping
+				this.indentPosition(ID);
 				
-				fWorkspace.redraw({type: 'page'});
-						
 				//give visual feedback that paste has occured
-				this.pasteFeedback(newTxtId);
+				this.pasteFeedback(ID);
+				
+				//select the newly pasted object
+				//fSel.selectObject(ID);
 			}
 		}
 	},
@@ -1910,7 +2064,7 @@ var fCBManager = {
 	indentPosition : function(what) {
 		var reposition = false;
 		howmuch = 0;
-		$("#" +what).siblings(".fObject").each(function(i){
+		$("#" +what).siblings().each(function(i){
 			//detect if to reposition the newly pasted object
 			// check if the ID has a position the same as any of the siblings
 			//alert($("#" +what).css("left") + ":" + $(this).css("left"));
@@ -1919,32 +2073,30 @@ var fCBManager = {
 				howmuch++;
 				
 				//turn off positional inheritance of all items on a page
-				jO.update($(this).attr("id"), {type: "instance",iPos: 0});
+				//jO.update($(this).attr("id"), {type: "instance",iPos: 0});
 			}
 		});
+
 	
 		if(reposition == true) {
-			//update workspace
+			//update item on workspace
 			$("#" + what).css({left: parseInt($("#" + what).css("left")) + (10 * howmuch)});
 			$("#" + what).css({top: parseInt($("#" + what).css("top")) + (10 * howmuch)});
 			
 			//updata jData
-			if (fCBManager.pasteAs == "master") { //if 0 editing as Object
-				//update JSON + Force inheritance of iPos = 1
-				jO.update(what, {
-					type: "object",
-					x: $("#" + what).position().left,
-					y: $("#" + what).position().top,
-					iPos: 1
-				});
-			}
-			else { //else editing as Instance
-				//update JSON + Force inheritance of iPos = 0
+			if (what.match("ins")) {
 				jO.update(what, {
 					type: "instance",
 					x: $("#" + what).position().left,
 					y: $("#" + what).position().top,
 					iPos: 0
+				});
+			}
+			
+			else if (what.match("f")) {
+				jO.updateElements(what, {
+					x: $("#" + what).position().left,
+					y: $("#" + what).position().top,
 				});
 			}
 		}
@@ -1975,6 +2127,12 @@ var fCBManager = {
 				$("#buttonNewInstance").hide();
 				//update "as" field
 				$("#fPasteMode").html("text");
+			}
+			else if (this.mode == "form") {
+				$("#buttonNewMaster").hide();
+				$("#buttonNewInstance").hide();
+				//update "as" field
+				$("#fPasteMode").html("form");
 			}
 			
 			
@@ -2295,7 +2453,7 @@ var fFormManager = {
 			killDrag(); // remove all dragging behaviours
 			killResizable(); // remove all resizable
 		
-			document.getElementById("iconForm").src = "engine/images/button_form_on.gif";
+			document.getElementById("iconForm").src = "engine/images/b_form_on.png";
 		
 			fSel.highlight();
 			
@@ -2339,6 +2497,9 @@ var fFormManager = {
 		
 		//redraw
 		fWorkspace.redraw({type: 'page'});
+		
+		//indent
+		fCBManager.indentPosition(newInstanceName);
 	}
 }
 
@@ -2394,6 +2555,7 @@ var fTools = {
 		document.getElementById("iconSelect").src = "engine/images/b_arrow_off.png";
 		document.getElementById("iconText").src = "engine/images/b_text_off.png";
 		document.getElementById("iconForm").src = "engine/images/b_form_off.png";
+		document.getElementById("iconET").src = "engine/images/b_et_off.png";
 	},
 	clearEvents : function() {
 		$("#fWorkspace").unbind("click",fSel.selectBinding);
@@ -2418,6 +2580,7 @@ var fTools = {
 
 // -------- fWorkspace Object -----
 var fWorkspace = {
+	view : 'design', //design or present views
 	editingText : false, //if set to true, a resize does not cause a redraw
 	allowSaveLabel : false,
 	editingLabelInstance : null,
@@ -2433,6 +2596,8 @@ var fWorkspace = {
 		$("#fEditMasterOverlay").hide(); 
 		//reset z-index TODO (reset to proper value in the future)
 		$("#" + fSel.sI[0]).css("z-index","");
+		
+		$("#fWorkspace").removeClass("selectedWorkspace parent");
 		
 		//alert('clearing Styles');
 		for (var i = 0; i < fSel.sI.length; i++) {
@@ -2537,16 +2702,39 @@ var fWorkspace = {
 					});
 					
 					//adjust tone
-					$("#" + item).addClass("p" + t);
-
+					if (t != undefined) {
+						$("#" + item).addClass("p" + t);
+					}
 					
+					
+					//display state number if more than 1
+					if (parseInt(state.replace("s","")) > 1) {
+						$("#" + item).append('<div class="fStateLabel">' + state +'</div>');
+					}
 					
 					
 					// CONTAINS 
 					// if editing as object just load master object's
 					var contains = false; // does the current instance have anything inside? used to determine label display 
 					if(fSession[jO.tr(item)].editAs == 0){
-							if (objRefState.hasOwnProperty("contains")) {
+						if (instRefState.hasOwnProperty("contains")) {
+							//load contents from instance 
+							var count = 0;
+							for (k in instRefState.contains) 
+								if (instRefState.contains.hasOwnProperty(k)) 
+									count++;
+							//if they have anything inside
+							if (count > 0) {
+								//add references to instances to the array if instances are found
+								attachWhatArray.push(instRefState.contains);
+								//and remember in the parent instances, in order to attach to later
+								attachWhereArray.push(item);
+								contains = true;
+								attachInsideArray.push(1);
+							}
+						}
+						
+						if (objRefState.hasOwnProperty("contains")) {
 							//load contents from object
 							count = 0;
 							for (k in objRefState.contains) 
@@ -2823,6 +3011,28 @@ var fWorkspace = {
 		
 		return[setx,sety];
 	},
+	setDimensions : function () {
+		// adjust for toolbars
+		if (fWorkspace.view == "design") {
+			windowheight = $(window).height() - 79;
+			windowwidth = $(window).width() - 182;
+		}
+		else if (fWorkspace.view == "present") {
+			windowheight = $(window).height() - 41;
+			windowwidth = $(window).width() - 144;
+		}
+	
+		document.getElementById("fWorkspace").style.height = windowheight;
+		document.getElementById("fWorkspace").style.width = windowwidth;
+		document.getElementById("toolbox").style.height = windowheight + 3;
+		document.getElementById("rightpanel").style.height = windowheight;
+		
+		$(".fPanelItemsList").css("height",$("#fPanelPages").height() - 48);
+		$("#fExpThreadBar").width($("#fWorkspace").width());
+		
+		$("#fExpOverview").width($("#fWorkspace").width());
+		$("#fExpOverview").height($("#fWorkspace").height());
+	},
 	saveLabel : function(event) {
 		if (fWorkspace.allowSaveLabel == true) {
 			//if the user clicks on the input box, do not run the rest of the code (to allow clicking on the input box / selecting text)
@@ -2894,7 +3104,11 @@ var fWorkspace = {
 		$("#fNotifyText").html(text);
 		$("#fNotify").show().animate({opacity: "1"}, 200).animate({opacity: "1"}, 2000).animate({opacity: "0"}, 500, function(){$("#fNotify").hide()});;
 		//hide highlight
-		$(".fHighlightArrow").stop(true).animate({opacity: "0"}, 200)
+		$(".fHighlightArrow").stop(true).animate({opacity: "0"}, 200);
+		
+		//bind hover hide
+		$("#fNotify").bind("mouseenter",fWorkspace.notifyHide);
+		
 	},
 	notifyHide : function() {
 		$("#fNotify").hide().css("opacity","0");
@@ -2940,6 +3154,577 @@ var fWorkspace = {
 			fWorkspace.redraw({type: 'page'}); 
 			fFooter.redrawFooter();
 		}
+	},
+	changeView : function(view) {
+		if (view == 'design') {
+			this.view = view;
+			$("#toolbox").show();
+			$("#footer").show();
+			$("#hSave").show();
+			$(".panelIcons").children().show();
+			
+			//buttons
+			$("#bDesign").attr("src",$("#bDesign").attr("src").replace("_over","_on"));
+			$("#bPresent").attr("src",$("#bPresent").attr("src").replace("_on","_off"));
+			
+			//select page
+			fPanelPages.setSelectedPage(fPanelPages.selectedPageId);
+			
+			//contract workspace
+			$("#fWorkspace").removeClass("fWorkspaceExpanded");
+			$("#fExpOverview").removeClass("fWorkspaceExpanded");
+			$("#fExpThreadBar").removeClass("fWorkspaceExpanded");
+			
+			//readjust
+			this.setDimensions();
+			
+			//hide threadbar
+			fExp.hideThreadBar();
+		}
+		else if (view == 'present') {
+			this.view = view;
+			$("#toolbox").hide();
+			$("#footer").hide();
+			$("#hSave").hide();
+			$(".panelIcons").children().hide();
+			
+			//buttons
+			$("#bDesign").attr("src",$("#bDesign").attr("src").replace("_on","_off"));
+			$("#bPresent").attr("src",$("#bPresent").attr("src").replace("_over","_on"));
+			
+			//expand workspace
+			$("#fWorkspace").addClass("fWorkspaceExpanded");
+			$("#fExpOverview").addClass("fWorkspaceExpanded");
+			$("#fExpThreadBar").addClass("fWorkspaceExpanded");
+			
+			//readjust
+			this.setDimensions();
+			
+			//select overview if there are threads
+			var tLength = 0;
+			for(items in jO.jData.threads) {
+				tLength++;	
+				break;			
+			}
+			if (tLength > 0) {
+				fExp.showOverview();
+			}
+		}
+	}
+}
+
+
+// -------- fExp Object -----
+// Experience Thread function
+var fExp = {
+	rememberOver : null,
+	positionOver : null, //contains a numeral or string (1after or end) to indicate where to insert a thread point
+	keyPressed : null, //saves the key that was pressed
+	showOverview : function() {
+		//clear workspace & panelpages
+		fWorkspace.clear();
+		fWorkspace.clearStyles();
+		//revert old
+		$("#" + fPanelPages.rememberPageSelectedId).removeClass("panelItemSelected");
+		
+		//show overview
+		$("#fExpOverview").children().remove();
+		$("#fExpOverview").show();
+		
+		//showthread bar
+		fExp.showThreadBar();
+		
+		//hide mosue and action
+		fExp.actClearMouse();
+		fExp.actClearKey();
+		
+		//display threads
+		for(items in jO.jData.threads) {
+			tArray = jO.jData.threads[items];
+			$("#fExpOverview").append('<a href="#" onclick="fExp.selectThread(\'' + items + '\');" onmouseover="rollOver(this); fExp.threadOver(\'' + items + '\',\'' + tArray.title +'\')" onmouseout="rollOut(this); fExp.threadOut(\'' + items + '\')" id="' + items + '" class="fThreadOverviewItem"><img src="engine/images/b_threadO_off.png" border="0" title="thread"></a>');
+			$("#" + items).css("left",tArray.x);
+			$("#" + items).css("top",tArray.y);
+			$("#" + items).draggable({start: null, stop: fExp.updateOverviewPos});
+			
+			//bind click
+			$("#" + items).bind("mouseup",function() {fExp.selectThread(items)});
+		}
+	},
+	threadOver : function(which,text) {
+		$("#" + which).append('<div class="fT11 fTDim fExpHoverText">' + text + '</div>');
+	},
+	threadOut : function(which) {
+		$("#" + which + " > div").remove();
+	},
+	hideOverview : function() {
+		if ($("#fExpOverview").is(':visible')) {
+			//unbind all events
+			$(".fThreadOverviewItem").unbind();
+			
+			//reselect current page which will also clear everything
+			fPanelPages.setSelectedPage(fPanelPages.selectedPageId);
+		}
+	},
+	updateOverviewPos : function() {
+		var which = $(this).attr("id");
+		jO.jData.threads[which].x = parseInt($("#" +which).css("left"));
+		jO.jData.threads[which].y = parseInt($("#" +which).css("top"));
+	},
+	showThreadBar : function() {
+		//show overview & set its dimensions
+		$("#fExpThreadBar").show();
+		fWorkspace.setDimensions();
+		
+		//bind events
+		$("#fExpTBOver, #fExpThreadBar").hover(function() {}, function() {$("#fExpTBOver").hide(); if(fExp.rememberOver != null) { rollOut(fExp.rememberOver);} fWorkspace.notifyHide();});
+		
+		//populate it, otherwise display blank
+		this.redrawThreadBar();
+	},
+	redrawThreadBar : function() {
+		//clear threadbar
+		$("#fExpTBThread").children().remove();
+		
+		if(fSession.sThread != null) {
+			//update top header
+			$("#fThreadName").html("&nbsp;:: " + jO.jData.threads[fSession.sThread].title);
+			
+			//foreach item draw box and line
+			var tArray = jO.jData.threads[fSession.sThread].points;
+			for(i=0;i < tArray.length; i++) {
+				var threadType = null;
+				if(tArray[i].type == "snap") { 
+					$("#fExpTBThread").append('<a href="#" onclick="fPanelPages.setSelectedPage(\'' + tArray[i].page + '\'); fExp.loadStates(\''+ i +'\');" onmouseover="fExp.TBover(this,'+i+');"><img src="engine/images/b_ETSnap_off.png" border="0" title="thread point"></a>');
+				}
+				if(tArray[i].type == "act") { 
+				fPanelPages.selectedPageId
+					tIndex = i;
+					if (i >0)  {tIndex--;}
+					$("#fExpTBThread").append('<a href="#" onclick="fExp.showAction(' + i + ');" onmouseover="fExp.TBover(this,'+i+');"><img src="engine/images/b_ETAct_off.png" border="0" title="thread point"></a>');
+				}
+				$("#fExpTBThread").append('<a href="#" onmouseover="fExp.TBover(this,\''+i+'after\');"><img src="engine/images/b_threadDiv_off.png" border="0" title="inbetween"></a>');
+			}
+			
+			// draw final add box
+			$("#fExpTBThread").append('<a href="#" onmouseover="fExp.TBover(this,\'end\');" id="fBEnd"><img src="engine/images/b_threadAdd_off.png" border="0" title="inbetween"></a>');
+		}
+		else {
+			$("#fThreadName").html("");
+		}
+		
+		//lower opacity of see all
+		var i = 0;
+		for (items in jO.jData.threads) { i++;}
+		if(i == 0) { $("#fBSeeAll").fadeTo(0, 0.33); $("#fBDelT").hide();}
+		else { $("#fBSeeAll").fadeTo(0, 1); $("#fBDelT").show();}
+	},
+	showAction : function(what) {
+		var tArray = jO.jData.threads[fSession.sThread].points; 
+		
+		//select the closest snapshot and load it
+		closestSnap = null;
+		for(i=0; i < tArray.length; i++) {
+			if (tArray[i].type == "snap") {
+				closestSnap = i;
+			}
+			//if reaching the point where the action is; stop searching
+			if (i == what) {
+				break;
+			}
+		}
+		
+		fPanelPages.setSelectedPage(tArray[closestSnap].page);
+		fExp.loadStates(closestSnap);
+
+		//show mouse
+		if (tArray[what].x != "none") {
+			$("#fActMouseClear").show();
+			//position mouse
+			fExp.actMousePosition(tArray[what].x,tArray[what].y);	
+		}
+		
+		//show key
+		if (tArray[what].key != null) {
+			$("#fActMouseClear").show();
+			
+			//position mouse
+			fExp.actKeyPosition(fExp.toChar(tArray[what].key));
+		}
+		
+	},
+	showAct : function () {
+		$("#fExpAct").show();
+		
+		//make draggable
+		$("#fExpAct").draggable();
+		
+		//turn cursor arrow on top of workspace
+		$("#fWorkspace").addClass("fActCursor");
+		
+		//disable listening to keys
+		hotkeysDisable();
+		
+		//clear & reset the menu
+		fExp.actClearMouse(); 
+		fExp.actClearKey();
+				
+		//listen to clicks and keypresses
+		$("#wrapper").bind("mousedown",fExp.actClick);
+		$(document).bind("keydown",fExp.actKey);
+	},
+	hideAct : function () {
+		$("#fExpAct").hide();
+		
+		//remove cursor
+		$("#fWorkspace").removeClass("fActCursor");
+		
+		//listen to keys
+		hotkeysEnable();
+		
+		//hide arrow & key
+		$("#fExpArrow").hide();
+		$("#fExpKey").hide();
+		
+		//unbind
+		$("#wrapper").unbind("mousedown",fExp.actClick);
+		$(document).unbind("keydown",fExp.actKey);
+	},
+	actClearMouse : function() {
+		$("#fActMouse").val("none");
+		$("#fActMouse").trigger("change");
+	},
+	actClearKey : function() {
+		fExp.keyPressed = null;
+		$("#fActKey").val("");
+		$(".fExpActKey").addClass("fActNone");
+		$("#fActKeyClear").hide();
+		$("#fExpKey").hide();
+	},
+	actClick : function(event) {
+		//check date for double click comparison
+		var currentDate = new Date()
+		
+		//select proper mouse action
+		//left click
+		if(event.button == 0) {
+			$("#fActMouse").val("L");
+			//double click if clicked again in less than 0.4 seconds
+			if ((currentDate.valueOf() - savedDate.valueOf()) < 400) {
+				$("#fActMouse").val("DL");
+			}
+			//save date
+			savedDate = new Date();
+		}
+		//right click
+		else if (event.button == 2) {
+			$("#fActMouse").val("R");
+			//stop contextmenu
+			
+			//additional repeated code before the return false (which stops the menu from opening)
+			$("#fActMouse").trigger("change"); //calls actMouse
+			return false;
+		}
+		
+		$("#fActMouse").trigger("change"); //calls actMouse
+		
+		//position mouse
+		fExp.actMousePosition(event.pageX,event.pageY);
+	},
+	actKey : function(event) {
+		fExp.keyPressed = event.which; //save the keypressed for later
+		$("#fActKey").val(fExp.toChar(event.which));
+		$(".fExpActKey").removeClass("fActNone");
+		$("#fActKeyClear").show();
+		fExp.actKeyPosition(fExp.toChar(event.which));
+	},
+	actMouse : function() {
+		//disable
+		if ($("#fActMouse").val() == "none") {
+			$(".fExpActMouse").addClass("fActNone");
+			$("#fActMouseClear").hide();
+			$("#fExpArrow").hide();
+		}
+		//else enable 
+		else {
+			$(".fExpActMouse").removeClass("fActNone");
+			$("#fActMouseClear").show();
+			
+			//position mouse
+			fExp.actMousePosition();
+			$("#fExpArrow").draggable();	
+			$("#fExpArrow").bind("click",fExp.actClick); //attach a click to the arrow as well to test for double clicks
+		}
+		
+	},
+	actKeyPosition : function(key) {
+		//first time around, display anywhere
+		$("#fExpKey").show();
+		$("#fExpKey").html(key);
+	},
+	actMousePosition : function(x,y) {
+		//reposition if x, y passed
+		if (x,y) {
+			$("#fExpArrow").css("left",x);
+			$("#fExpArrow").css("top",y);
+		}
+		else {
+			//display anywhere
+			if ($("#fExpArrow").css("display") == 'none') {
+				$("#fExpArrow").css("left","200");
+				$("#fExpArrow").css("top","200");
+			}	
+		}
+		$("#fExpArrow").show();
+		
+		
+		//clear types
+		$("#fExpArrow").removeClass();
+		
+		//set types
+		if ($("#fActMouse").val() == "L") {
+			$("#fExpArrow").addClass("fArrowL");
+		}
+		else if ($("#fActMouse").val() == "R") {
+			$("#fExpArrow").addClass("fArrowR");
+		}
+		else if ($("#fActMouse").val() == "DL") {
+			$("#fExpArrow").addClass("fArrowDL");
+		}
+		
+	},
+	TBover : function(overWhat,position) {
+		//show overview & set its dimensions
+		$("#fExpTBOver").show();
+		
+		//adjust fExpOver
+		var pos = $(overWhat).offset();
+		var width = $(overWhat).width();
+		$("#fExpTBOver").css("left",pos.left + width/2 - 29 - 39);
+		
+		//hide remembered overstate
+		if(this.rememberOver != null) { rollOut(this.rememberOver);}
+
+		//remember and show overstate
+		rollOver(overWhat);
+		this.rememberOver = overWhat;
+		this.positionOver = position;
+		
+		//hide or show action button for first item (or and end item with on its own)
+		if((position == 0) || (position == "end" && $("#fExpTBThread").children().length == 1)) { $("#fBAction").hide(); }
+		else { $("#fBAction").show(); }
+		
+		//hide delete if inbetween or at end
+		if(typeof position == "string") { if (position.match("after||end")) {	$("#fBDel").hide();	}}
+		else { $("#fBDel").show(); }
+	},
+	delThreadP : function() {
+		//delete thread point
+		jO.jData.threads[fSession.sThread].points.splice(fExp.positionOver,1);
+		//redraw ThreadBar
+		this.redrawThreadBar();
+		//hide notify
+		fWorkspace.notifyHide();
+	},
+	delThread : function() {
+		//delete thread 
+		delete jO.jData.threads[fSession.sThread];
+		
+		//find another one to select if exists
+		var toSelect = null;
+		for (items in jO.jData.threads) { 
+			if (items != null) {
+				toSelect = items; break;
+			}
+		}
+		//hide notify
+		fWorkspace.notifyHide();
+		
+		//reselect previous if exist
+		fExp.selectThread(toSelect);
+	},
+	hideThreadBar : function() {
+		if ($("#fExpThreadBar").is(':visible')) {
+			$("#fExpThreadBar").hide();
+			//update top header
+			$("#fThreadName").html("");
+			
+			//reselect current page which will also clear everything
+			fPanelPages.setSelectedPage(fPanelPages.selectedPageId);
+		}
+	},
+	selectThread : function(id) {
+		//store last Thread
+		fSession.sThread = id;
+		
+		//redraw ThreadBar
+		this.redrawThreadBar();
+	},
+	showThreadAdd : function() {
+		//disable listening to keys
+		hotkeysDisable();
+		
+		//show 
+		$("#fExpAdd").show();
+		
+		//clear title
+		$("#fInputTTitle").val("");
+		
+		//focus input
+		$("#fInputTTitle").focus();
+
+		//assign click anywhere to hide
+		$("#wrapper").bind("mousedown",fExp.hideThreadAdd)
+		
+		//assign press enter to submit on title
+		$("#fInputTTitle").bind("keydown",function(event) {if(event.which == "13") { fExp.addThread();} });
+		
+	},
+	hideThreadAdd : function() {
+		//listening to keys
+		hotkeysEnable();
+		
+		//show
+		$("#fExpAdd").hide();
+
+		//unbind
+		$("#wrapper").unbind("mousedown",fExp.hideThreadAdd);
+		$("#fInputTTitle").unbind("keydown");
+		
+	},
+	addThread : function() {
+		if($("#fInputTTitle").val() == "") {
+			fWorkspace.notify("Please specify a thread title");
+		}
+		else {
+			//hide
+			fExp.hideThreadAdd();
+			
+			//save in JSON
+			var newThreadId = jO.createThread($("#fInputTTitle").val(),$("#fInputStory").val());
+			
+			//clear fields
+			$("#fInputTTitle").val("")
+			$("#fInputStory").val("");
+			
+			//select thread
+			fExp.selectThread(newThreadId);
+			
+			//draw attention to it
+			$("#fBEnd").animate({opacity: "0.3"}, 300).animate({opacity: "1"}, 300).animate({opacity: "0.3"}, 300).animate({opacity: "1"}, 300).animate({opacity: "0.3"}, 300).animate({opacity: "1"}, 300);
+			
+			//if fOverview is open, call it again to update
+			if ($("#fExpOverview").is(':visible')) {
+				fExp.showOverview();
+			}
+		}
+	},
+	insert : function(type) {
+		//SNAP
+		if(type == "snap") {
+			if(typeof fExp.positionOver == "string") {
+				//ad to end
+				if(fExp.positionOver.match("end")) {
+					jO.createThreadPoint(fSession.sThread,type,fExp.positionOver,'end');
+				}
+				//ad in between
+				else if(fExp.positionOver.match("after")) {
+					//alert(parseInt(fExp.positionOver));
+					jO.createThreadPoint(fSession.sThread,type,parseInt(fExp.positionOver),'after');
+				}
+			}
+			// or replace
+			else {
+				//alert(parseInt(fExp.positionOver));
+				jO.createThreadPoint(fSession.sThread,type,parseInt(fExp.positionOver));
+			}
+			$("#fExpTBOver").hide();
+		}
+		
+		//ACT
+		if(type == "act") {
+			var mouseType = $("#fActMouse").val();
+			var x = parseInt($("#fExpArrow").css("left"));
+			var y = parseInt($("#fExpArrow").css("top"));
+			var key = fExp.keyPressed;
+			
+			
+			if((mouseType == "none") && (key == null)) {
+				//notify
+				fWorkspace.notify("Please specify an action first");
+			}
+			else {
+				if(typeof fExp.positionOver == "string") {
+					//ad to end
+					if(fExp.positionOver.match("end")) {
+						jO.createThreadPoint(fSession.sThread,type,fExp.positionOver,'end',mouseType,x,y,key);
+					}
+					//ad in between
+					else if(fExp.positionOver.match("after")) {
+						//alert(parseInt(fExp.positionOver));
+						jO.createThreadPoint(fSession.sThread,type,parseInt(fExp.positionOver),'after',mouseType,x,y,key);
+					}
+				}
+				// or replace
+				else {
+					//alert(parseInt(fExp.positionOver));
+					jO.createThreadPoint(fSession.sThread,type,parseInt(fExp.positionOver),null,mouseType,x,y,key);
+				}
+				//hide
+				fExp.hideAct();
+			}
+		}
+		
+		//redraw ThreadBar
+		this.redrawThreadBar();
+
+		//hide notify & over
+		//$("#fExpTBOver").hide(); if(fExp.rememberOver != null) { rollOut(fExp.rememberOver);} fWorkspace.notifyHide();
+	},
+	toChar : function(code) {
+		var c = String.fromCharCode(code);
+		
+		//force transform others
+		if(code == "17") {c = "CTRL";}
+		else if(code == "8") {c = "BACKSPACE";}
+		else if(code == "16") {c = "SHIFT";}
+		else if(code == "18") {c = "ALT";}
+		else if(code == "13") {c = "ENTER";}
+		else if(code == "9") {c = "TAB";}
+		else if(code == "27") {c = "ESC";}
+		else if(code == "32") {c = "SPACE";}
+		else if(code == "222") {c = ",";}
+		else if(code == "219") {c = "[";}
+		else if(code == "220") {c = "\\";}
+		else if(code == "221") {c = "]";}
+		else if(code == "109") {c = "-";}
+		else if(code == "107") {c = "+";}
+		else if(code == "191") {c = "/";}
+		else if(code == "192") {c = "`";}
+		else if(code == "188") {c = ",";}
+		else if(code == "190") {c = ".";}
+		else if(code == "45") {c = "INS";}
+		else if(code == "46") {c = "DEL";}
+		else if(code == "33") {c = "PGUP";}
+		else if(code == "34") {c = "PGDN";}
+		else if(code == "36") {c = "HOME";}
+		else if(code == "35") {c = "END";}
+		else if(code == "37") {c = "ARROW LEFT";}
+		else if(code == "38") {c = "ARROW UP";}
+		else if(code == "39") {c = "ARROW RIGHT";}
+		else if(code == "40") {c = "ARROW DOWN";}
+		//return (code + ":" + c);
+		return (c);
+	},
+	loadStates : function(whichPoint) {
+		var tArray = jO.jData.threads[fSession.sThread].points;
+		
+		//change states
+		for(instance in tArray[whichPoint].states) {
+			fSession[instance].state = tArray[whichPoint].states[instance];
+		}
+		
+		//redraw
+		fWorkspace.redraw();
 	}
 }
 
@@ -2989,6 +3774,7 @@ var fSel = {
 		}
 	},
 	selectObject : function(what) {
+		
 		// can access an index number to a DOM element, a DOM reference or an instance name
 		// what is converted to a jQuery object
 		//alert(what + ":" + $(what).attr("id"));
@@ -3000,8 +3786,8 @@ var fSel = {
 			instLoop = what;
 			//check if the instance is on the page, otherwise get the proper page and switch to it
 			if ( $("#" + what).length == 0 ) {
-				var foundPage = null;
 				
+				var foundPage = null;
 				while (foundPage == null)
 				{
 					// do the check to find the page number
@@ -3016,7 +3802,6 @@ var fSel = {
 						instLoop = jO.jData.instances[instLoop].p;
 					}
 				}
-				
 				//switchtopage
 				fPanelPages.setSelectedPage(foundPage);
 			}
@@ -3063,7 +3848,7 @@ var fSel = {
 		for (var i = 0; i < fSel.sI.length; i++) {
 			// children Ids collection
 			// make a full list of children Ids to be deleted in case of a match
-			childrenrarray = $("#" + fSel.sI[i]).find("div"); // matches any children of a selected element except using the workspace
+			childrenrarray = $("#" + fSel.sI[i]).children(); // matches any children of a selected element except using the workspace
 			for (var j=0, len=childrenrarray.length; j<len; j++ ){
 				childIds[$(childrenrarray[j]).attr("id")] = true;
 			}
@@ -3099,15 +3884,13 @@ var fSel = {
 		//WORKSPACE selected
 		if (fSel.sI[0] == "fWorkspace") {
 			//enable Footer
-			$("#fObjInstHolder").hide();
-			$("#fNoneSelectedHolder").show();
-			$("#fFooterText").hide();
+			$(".fFMode").hide();
+			$("#fFooterWorkspace").show();
 		}
 		//TEXT elements
 		else if (fSel.sI[0].match("t")) {
 			//enable Footer
-			$("#fObjInstHolder").hide();
-			$("#fNoneSelectedHolder").hide();
+			$(".fFMode").hide();
 			$("#fFooterText").show();
 			//record lastText
 			this.lastText = fSel.sI[0];
@@ -3115,9 +3898,8 @@ var fSel = {
 		//FORM elements
 		else if (fSel.sI[0].match("f")) {
 			//enable Footer
-			$("#fObjInstHolder").hide();
-			$("#fNoneSelectedHolder").hide();
-			$("#fFooterText").show();
+			$(".fFMode").hide();
+			$("#fFooterForm").show();
 		}
 		//REAL OBJECTS / INSTANCES selected
 		else 
@@ -3129,9 +3911,8 @@ var fSel = {
 				fSel.nInst = jO.tr(fSel.sI[0]);
 				
 				//enable footer
-				$("#fNoneSelectedHolder").hide();
-				$("#fObjInstHolder").show();
-				$("#fFooterText").hide();
+				$(".fFMode").hide();
+				$("#fFooterOI").show();
 				
 				//update instance
 				$("#fInstName").html("Instance 1 of 2"); //todo make this display "Instance 1 of 8".
@@ -3189,6 +3970,9 @@ var fSel = {
 			}
 		}
 		
+		//highlight
+		fSel.highlight();
+		
 	},
 	makeDraggable : function(what) {
 		// create new draggable & store it
@@ -3214,7 +3998,7 @@ var fSel = {
 	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
 	},
 	highlight : function() {
-		if ((fSel.sI[0] != null) && ($("#" + fSel.sI[0] + " div.fHighlight").length == 0)) {
+		if ((fSel.sI[0] != null) && ($("#" + fSel.sI[0] + " > div.fHighlight").length == 0)) {
 			if ((fSel.sI[0].match("ins")) || (fSel.sI[0].match("fWorkspace"))) {
 				highLightWhat = fSel.sI[0];
 			}
@@ -3224,6 +4008,10 @@ var fSel = {
 			}
 			//killnotify if exists
 			fWorkspace.notifyHide();
+			//alert(highLightWhat);
+			//kill previous highlight
+			$(".fHighlight").remove();
+			$(".fHighlightArrow").remove();
 			
 			//determine what color to show depending on editmode (if instance)
 			highlightClass = "";
@@ -3238,21 +4026,23 @@ var fSel = {
 					highlightA = "I";
 				}
 			}
-			
+
 			//animate border to indicate where you are drawing (for instances)
 			$("#" + highLightWhat).prepend('<div class="fHighlight' + highlightClass + '"></div>');
 			//determine if to put the arrow on the left or on the right of the selected box
-			//alert($("#" + fSel.sI[0]).offset().left);
 			if($("#" + highLightWhat).offset().left < 175) {
 				$("#" + highLightWhat).prepend('<div class="fHighlightArrow fHARight"><img src="engine/images/drawingInside' + highlightA + 'Right.png"></div>');					
 			}
 			else {
 				$("#" + highLightWhat).prepend('<div class="fHighlightArrow"><img src="engine/images/drawingInside' + highlightA + 'Left.png"></div>');	
 			}
-			$("#" + highLightWhat + " .fHighlight").width($("#" + highLightWhat).width());
-			$("#" + highLightWhat + " .fHighlight").height($("#" + highLightWhat).height());
-			$("#" + highLightWhat + " .fHighlight").animate({opacity: "1"}, 200).animate({opacity: "0",outlineOffset: "10"}, 1000, function(){$(this).remove();});
+			$("#" + highLightWhat + " .fHighlight").animate({opacity: "1"}, 200).animate({opacity: "0",outlineOffset: "10"}, 500, function(){$(this).remove();});
 			$("#" + highLightWhat + " .fHighlightArrow").animate({opacity: "1"}, 1000).animate({opacity: "0"}, 3000, function(){$(this).remove();});
+			//$("#" + highLightWhat + " .fHighlight").animate({opacity: "1"}, 200).animate({opacity: "0.2",outlineOffset: "10"}, 500).animate({opacity: "1",outlineOffset: "-2"}, 500);
+			//$("#" + highLightWhat + " .fHighlightArrow").animate({opacity: "1"}, 1000).animate({opacity: "0"}, 3000);
+			
+			//kill arrow on mouse over
+			//$(".fHighlight").live("mousedown",function(event) {$(this).parent().trigger("click"); $(this).remove(); })
 		}
 	}
 }
@@ -3280,7 +4070,7 @@ var fSaveLoadManager = {
 		$("#fSLLoad").show();
 	},
 	hide : function () {
-		$("#fSaveLoadManager").fadeOut(1000);
+		$("#fSaveLoadManager").fadeOut(600);
 		$("#fSaveAsUrlName").blur();
 		$(window).focus();
 	},
@@ -3313,6 +4103,9 @@ var fStates = {
 			
 			//redraw	
 			fWorkspace.redraw({type : 'instance', item : fSel.nInst});
+			
+			//redraw footer
+			fFooter.redrawFooter();
 		}
 	},
 	fSCheckSetDisplay: function(what, checkedState){
@@ -3431,9 +4224,10 @@ var fFooter = {
 				$("#buttonfMIToggle").click(function(){
 					fFooter.editInstance();
 					fWorkspace.redraw();
+					fFooter.redrawFooter();
 				});
 				
-				$("#fMIToggleText").html("return to:");
+				$("#fMIToggleText").html("");
 				
 				$("#fWHXYHolder").removeClass("fEditingInst");
 				$("#fWHXYHolder").addClass("fEditingObj");
@@ -3460,9 +4254,10 @@ var fFooter = {
 				$("#buttonfMIToggle").click(function(){
 					fFooter.editObject();
 					fWorkspace.redraw();
+					fFooter.redrawFooter();
 				});
 				
-				$("#fMIToggleText").html("are inherited from:");
+				$("#fMIToggleText").html("Inheriting:");
 				
 				$("#fWHXYHolder").removeClass("fEditingObj");
 				$("#fWHXYHolder").addClass("fEditingInst");
@@ -3576,7 +4371,7 @@ var fPanelPages = {
 		jO.jData.pages[pageId].contains = new Object;
 		
 		//trigger a click just in case elements are being edited. in order to run click bound save functions 
-		$("#fPanelPages").click();
+		$("#fWorkspace").click();
 		
 		//select the last page in line
 		this.selectedPageId = pageId;
@@ -3623,11 +4418,19 @@ var fPanelPages = {
 		killDrag();
 		killResizable();
 		
+		//get rid of Exp Arrows and Keys
+		$("#fExpArrow").hide();
+		$("#fExpKey").hide();
+		
+		//get rid of Experience overlays
+		$("#fExpOverview").hide();
+		if(fTools.selected == "toolExperience") {toolSelect();}
+		
 		//revert old
-		$("#" + this.rememberPageSelectedId).removeClass("panelItemSelected")
+		$("#" + this.rememberPageSelectedId).removeClass("panelItemSelected");
 
 		//change new
-		$("#" + selectWhat).addClass("panelItemSelected")
+		$("#" + selectWhat).addClass("panelItemSelected");
 		
 		this.selectedPageId = selectWhat;
 
