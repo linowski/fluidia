@@ -3103,8 +3103,6 @@ var fWorkspace = {
 		this.notifyHide();
 		$("#fNotifyText").html(text);
 		$("#fNotify").show().animate({opacity: "1"}, 200).animate({opacity: "1"}, 2000).animate({opacity: "0"}, 500, function(){$("#fNotify").hide()});;
-		//hide highlight
-		$(".fHighlightArrow").stop(true).animate({opacity: "0"}, 200);
 		
 		//bind hover hide
 		$("#fNotify").bind("mouseenter",fWorkspace.notifyHide);
@@ -4011,38 +4009,10 @@ var fSel = {
 			//alert(highLightWhat);
 			//kill previous highlight
 			$(".fHighlight").remove();
-			$(".fHighlightArrow").remove();
-			
-			//determine what color to show depending on editmode (if instance)
-			highlightClass = "";
-			highlightA = "";
-			if ((highLightWhat.match("ins"))) {
-				if(fSession[jO.tr(highLightWhat)].editAs == 0) {
-					highlightClass = " fHmaster";
-					highlightA = "M";
-				}
-				else if(fSession[jO.tr(highLightWhat)].editAs == 1) {
-					highlightClass = " fHinstance";
-					highlightA = "I";
-				}
-			}
 
 			//animate border to indicate where you are drawing (for instances)
-			$("#" + highLightWhat).prepend('<div class="fHighlight' + highlightClass + '"></div>');
-			//determine if to put the arrow on the left or on the right of the selected box
-			if($("#" + highLightWhat).offset().left < 175) {
-				$("#" + highLightWhat).prepend('<div class="fHighlightArrow fHARight"><img src="engine/images/drawingInside' + highlightA + 'Right.png"></div>');					
-			}
-			else {
-				$("#" + highLightWhat).prepend('<div class="fHighlightArrow"><img src="engine/images/drawingInside' + highlightA + 'Left.png"></div>');	
-			}
-			$("#" + highLightWhat + " .fHighlight").animate({opacity: "1"}, 200).animate({opacity: "0",outlineOffset: "10"}, 500, function(){$(this).remove();});
-			$("#" + highLightWhat + " .fHighlightArrow").animate({opacity: "1"}, 1000).animate({opacity: "0"}, 3000, function(){$(this).remove();});
-			//$("#" + highLightWhat + " .fHighlight").animate({opacity: "1"}, 200).animate({opacity: "0.2",outlineOffset: "10"}, 500).animate({opacity: "1",outlineOffset: "-2"}, 500);
-			//$("#" + highLightWhat + " .fHighlightArrow").animate({opacity: "1"}, 1000).animate({opacity: "0"}, 3000);
-			
-			//kill arrow on mouse over
-			//$(".fHighlight").live("mousedown",function(event) {$(this).parent().trigger("click"); $(this).remove(); })
+			$("#" + highLightWhat).prepend('<div class="fHighlight"></div>');
+			$("#" + highLightWhat + " .fHighlight").animate({outlineOffset: "10"}, 300).animate({opacity: "0",outlineOffset: "0"}, 300, function(){$(this).remove();});
 		}
 	}
 }
@@ -4210,6 +4180,8 @@ var fFooter = {
 				
 				//update "as" field
 				$("#fEditMode").html("master");
+				$("#fEditMode").removeClass("fTOrange");
+				$("#fEditMode").addClass("fTBlue");
 				
 				//change look of selected class
 				//$("#" + fSel.sI[0]).removeClass("selectedInst");
@@ -4241,6 +4213,9 @@ var fFooter = {
 				
 				//update "as" field
 				$("#fEditMode").html("instance");
+				$("#fEditMode").removeClass("fTBlue");
+				$("#fEditMode").addClass("fTOrange");
+				
 				
 				//change look of selected class
 				//$("#" + fSel.sI[0]).addClass("selectedInst");
