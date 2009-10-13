@@ -15,7 +15,10 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	margin: 0 102px 0 0 !important; 
 }
 
-/*header*/
+
+
+
+/* Header */
 #fProjName, #fThreadName {
 	margin-top: 7px;	
 }
@@ -29,6 +32,29 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 #hTitle * {
 	float: left;
 }	
+.hButton {
+	padding: 0 5px 0 0;
+	border: 0px;
+}
+#hSave {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+#hSave div, #hSave a {
+	padding: 0px;
+	margin: 0px;
+	float: left;
+}
+#hLoggedOut {
+}
+#hLoggedIn {
+	width: 120px;
+	height: 15px;
+	display: none;
+}
+
+
 
 /* Text */
 .fT9 {
@@ -104,22 +130,7 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	background-color: #cccccc;
 }	
 
-/* Header */
-.hButton {
-	padding: 0 5px 0 0;
-	border: 0px;
-}
-#hSave {
-	position: absolute;
-	right: 0;
-	top: 0;
-}
-#hSave a {
-	padding: 0px;
-	margin: 0px;
-	display: block;
-	float: left;
-}
+
 
 
 /* Notify */
@@ -755,7 +766,7 @@ div.resizable {
 	background: url('../images/bg_SL.png') no-repeat bottom left;
 	height: 7px;
 }
-#fSLSave, #fSLLoad {
+#fSLSave, #fSLLoad, #fSLLogin {
 	display: none;
 }
 #fTaken {

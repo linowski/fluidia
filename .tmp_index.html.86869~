@@ -18,12 +18,18 @@
 <div id="container">
 	<div id="header"><img src="engine/images/header.png"><img src="engine/images/views.gif"><a href="#" onclick="fWorkspace.changeView('design');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_design_on.png" class="hButton" id="bDesign"></a><a href="#" onclick="fWorkspace.changeView('present');" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_present_off.png" class="hButton" id="bPresent"></a>
 		<div id="hTitle"><div><img src="engine/images/project.gif"></div><div id="fProjName" class="fTThick2">project</div><div id="fThreadName" class="fTThick2"></div></div>
-
-		<div id="hSave">
+		<div id="hLogin">
 			<div id="hLoggedOut">
-				<a href="#" id="fLogin" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_login_off.png" class="hButton" border="0" id="bLogin" title="Login"></a>
+				<span class="fTThick2">login</span><br>
+				<div id="hLoggedOutCore">
+					<input type="text" name="login" class="fT9 fInput" style="width: 95px;" value="email"><br>
+					<input type="text" name="password" class="fT9 fInput" style="width: 95px;" value="password"><br>
+					<a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display:inline; vertical-align: bottom;"></a>
+				</div>
 			</div>
-			<div id="hLoggedIn">Logged In</div>
+			<div id="hLoggedIn"></div>
+		</div>
+		<div id="hSave">
 			<a href="#" id="fSave" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_save_off.png" class="hButton" border="0" id="bSave" title="Save"></a>
 			<a href="#" id="fLoad" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_load_off.png" class="hButton" border="0" id="bLoad" title="Load"></a>
 		</div>
@@ -283,19 +289,6 @@
 			<br>
 			<span class="fT11">or from a local file:</span><br>
 			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="display: block; margin: 3px 0 0 -2px;"><img src="engine/images/b_loadFile_off.png" border="0" title="Ok"></a>
-		</div>
-	</div>
-	<div class="fSLCore" id="fSLLogin">
-		<div style="position: absolute; top:0px; right: 0px;">
-		<a href="#" style="opacity: 0.1;"><img src="engine/images/b_login_off.png" class="hButton" border="0" style="padding-right: 95px;" title="Login"></a>
-		</div>
-		<div>
-			<span class="fTThick2">login</span><br>
-			<input type="text" name="login" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="email"><br>
-			<input type="text" name="password" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="password"><br>
-			<a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display: block; margin: 3px 0 0 -2px;"></a>
-			<br>
-			<span class="fT11">or <a href="" class="fFooterLink">register</a></span><br>
 		</div>
 	</div>
 	<div class="fSLBottom"></div>

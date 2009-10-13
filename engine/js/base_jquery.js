@@ -266,10 +266,10 @@ function keypressed(event) {
 	}
 	
 	
-	//
-	if (whichkey == "69") {
-		toolExperience();
-	}
+	//E
+	//if (whichkey == "69") {
+	//	toolExperience();
+	//}
 	
 	//toolbars (only run if shift / ctrl are NOT pressed)
 	if ((whichkey == "83") && (shiftPressed == false) && (ctrlPressed == false)) { toolSelect(); }
@@ -2551,11 +2551,9 @@ var fTools = {
 		
 	},
 	clearIcons : function() {
-		document.getElementById("iconObject").src = "engine/images/b_object_off.png";
-		document.getElementById("iconSelect").src = "engine/images/b_arrow_off.png";
-		document.getElementById("iconText").src = "engine/images/b_text_off.png";
-		document.getElementById("iconForm").src = "engine/images/b_form_off.png";
-		document.getElementById("iconET").src = "engine/images/b_et_off.png";
+		$("#toolbox > a > img").each(function() {
+			$(this).attr("src",$(this).attr("src").replace("_on","_off"));
+		});
 	},
 	clearEvents : function() {
 		$("#fWorkspace").unbind("click",fSel.selectBinding);
@@ -4023,25 +4021,46 @@ var fSel = {
 var fSaveLoadManager = {
 	init : function() {
 		//attach onleave fade effects
+		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoadManager.show);
 		$("#fSaveLoadManager").bind("mouseleave",fSaveLoadManager.hide);
 		$("#fSaveLoadManager").bind("mouseenter",function() {$("#fSaveLoadManager").stop(true).fadeTo("",1);});
 		$("#fSaveAsUrlName").bind("focus",hotkeysDisable);
 		$("#fSaveAsUrlName").bind("blur",hotkeysEnable);
 		$("#fSaveAsUrlName").bind("keypress",fSaveLoadManager.taken);
 	},
-	displaySave : function() {
+	show : function(event) {
+		var clickedOn = $(event.target).attr("id");
 		$("#fSaveLoadManager").show();
-		$("#fSLLoad").hide();
+		$("#fSave").bind("mouseenter",fSaveLoadManager.displaySave);
+		$("#fLoad").bind("mouseenter",fSaveLoadManager.displayLoad);
+		//display load or save
+		if(clickedOn == "bSave") {
+			fSaveLoadManager.displaySave();
+		}
+		else if(clickedOn == "bLoad") {
+			fSaveLoadManager.displayLoad();
+		}
+		else if(clickedOn == "bLogin") {
+			fSaveLoadManager.displayLogin();
+		}
+	},
+	displaySave : function() {
+		$(".fSLCore").hide();
 		$("#fSLSave").show();
 	},
 	displayLoad : function() {
-		$("#fSaveLoadManager").show();
-		$("#fSLSave").hide();
+		$(".fSLCore").hide();
 		$("#fSLLoad").show();
 	},
+	displayLogin : function() {
+		$(".fSLCore").hide();
+		$("#fSLLogin").show();
+	},
 	hide : function () {
-		$("#fSaveLoadManager").fadeOut(600);
+		$("#fSaveLoadManager").fadeOut(400);
 		$("#fSaveAsUrlName").blur();
+		$("#fSave").unbind("mouseenter,mouseleave");
+		$("#fLoad").unbind("mouseenter,mouseleave");
 		$(window).focus();
 	},
 	taken : function () {
