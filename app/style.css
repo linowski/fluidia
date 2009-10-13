@@ -1,0 +1,178 @@
+@media screen
+{
+	* html {
+		overflow-y: hidden;
+	}
+	
+	* html body
+	{
+		height: 100%;
+		overflow: auto;
+	}
+}
+
+body {
+	font-family: "Trebuchet MS", serif;
+	font-size: 100%;
+	color: #fff;
+    background-color: #333;
+	line-height: 1.4em;
+	margin: 0;
+}
+
+div#page {
+	background-color: #fff;
+	color: #000;
+	padding: 1px;
+	width: 90%;
+	margin: 0 auto;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	font-family: Verdana, Arial, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, p, ul, ol, table, div, img {
+	margin: 1em 20px;
+}
+
+ul.menu {
+	list-style: none;
+	padding: 0;
+	margin: 0 20px;
+}
+
+h1 {
+	border-bottom: 0.1em solid purple;
+	padding-bottom: 0.2em;
+}
+
+h3 {
+	border-bottom: 1px solid #000;
+}
+
+table {
+	border-collapse: collapse;
+	font-size: 80%;
+}
+
+th,
+td,
+div.listing pre {
+	border: 1px solid purple;
+	padding: 2px 5px;
+}
+
+td {
+	font-size: 80%;
+	font-family: monospace;
+	white-space: nowrap;
+}
+
+th,
+div.listing pre {
+	background-color: #ffb;
+}
+
+div.listing pre {
+	margin-bottom: 0;
+	font-size: 80%;
+	font-family: monospace;
+	overflow: auto;
+	_width: 100%;
+}
+
+div.listing p {
+	margin: 0 0 1em;
+	background-color: purple;
+	color: #fff;
+	padding: 2px 5px;
+	font-size: 80%;
+}
+
+a img {
+	border: none;
+}
+
+/* REST browser */
+
+#toggleBrowserButton,
+div#browser span#restBrowserWidthToggle {
+	margin: 1em 20px;
+	color: blue;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+div#page.withBrowser {
+	width: 50%;
+	margin: 0 1em;
+}
+
+div#browser {
+	position: fixed;
+	_position: absolute;
+	top: 0;
+	left: 55%;
+	width: 40%;
+	height: 100%;
+	margin: 0 1em;
+	padding: 1px;
+	background-color: #fff;
+	color: #000;
+}
+
+div#browser.fullWidth {
+	left: 0;
+	width: 95%;
+}
+
+div#browser div.field,
+div#browser input,
+div#browser textarea {
+	margin: 10px 20px;
+}
+
+div#browser div.field {
+	display: block;
+}
+
+div#browser div.field span {
+	text-align: right;
+	width: 40%;
+}
+
+div#browser div.field input {
+	margin: 0;
+	width: 70%;
+}
+
+div#browser textarea,
+div#browser div#restBrowserResponse {
+	width: 90%;
+	height: 150px;
+}
+
+div#browser div#restBrowserResponse {
+	border: 1px solid #999;
+	font-size: 80%;
+	font-family: monospace;
+	overflow: scroll;
+	white-space: nowrap;
+	line-height: 1.4em;
+}
+
+div#browser div#restBrowserResponse.tall {
+	height: 300px;
+}
+
+div#browser input#restBrowserSubmit,
+div#browser span#restBrowserWidthToggle {
+	display: inline;
+	font-size: 80%;
+	margin: 0 20px;
+}
+
+div#browser input#restBrowserSubmit {
+	width: 6em;
+}

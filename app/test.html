@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+
+<html>
+<head>
+	<title>REST Browser</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<script type="text/javascript" src="http://jqueryjs.googlecode.com/files/jquery-1.3.2.min.js"></script>
+	
+	<script type="text/javascript" src="restbrowser.js"></script>
+	<script type="text/javascript">
+		$(document).ready(function () {
+			RESTBrowser.show($("#browser"), "../app");
+			$(".rest").click(RESTBrowser.updateUrl);
+
+		});
+	</script>
+</head>
+
+<body>
+	
+	<div id="page">
+		<div id="content">
+		<h2>Rest Browser</h2>
+		<p>The following is a javascript REST client for basic testing</p>
+		<h3>Tables</h3>
+		<ul>
+		   <li>
+			<a class="rest" href="../app/users">users</a>
+			<a class="rest" href="../app/users.html">.html</a>
+			<a class="rest" href="../app/users.xml">.xml</a>
+			<a class="rest" href="../app/users.json">.json</a>
+		   </li>
+		   <li>
+			<a class="rest" href="../app/users_has_projects">users_has_projects</a>
+			<a class="rest" href="../app/users_has_projects.html">.html</a>
+			<a class="rest" href="../app/users_has_projects.xml">.xml</a>
+			<a class="rest" href="../app/users_has_projects.json">.json</a>
+		   </li>
+		   <li>
+			<a class="rest" href="../app/projects">projects</a>
+			<a class="rest" href="../app/projects.html">.html</a>
+			<a class="rest" href="../app/projects.xml">.xml</a>
+			<a class="rest" href="../app/projects.json">.json</a>
+		   </li>
+		   <li>
+			<a class="rest" href="../app/revisions">revisions</a>
+			<a class="rest" href="../app/revisions.html">.html</a>
+			<a class="rest" href="../app/revisions.xml">.xml</a>
+			<a class="rest" href="../app/revisions.json">.json</a>
+		   </li>
+		   <li>
+			<a class="rest" href="../app/sessions">sessions</a>
+			<a class="rest" href="../app/sessions.html">.html</a>
+			<a class="rest" href="../app/sessions.xml">.xml</a>
+			<a class="rest" href="../app/sessions.json">.json</a>
+		   </li>
+		</ul>
+		</div>		
+	</div>
+
+	<div id="browser"></div>	
+</body>
+</html>
