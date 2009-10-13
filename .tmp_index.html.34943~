@@ -291,8 +291,8 @@
 		</div>
 		<div>
 			<span class="fTThick2">login</span><br>
-			<input type="text" name="login" id="fInLogin" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="email"><br>
-			<input type="text" name="password" id="fInPassword" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="password"><br>
+			<input type="text" name="login" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="email"><br>
+			<input type="text" name="password" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="password"><br>
 			<a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display: block; margin: 3px 0 0 -2px;"></a>
 			<br>
 			<span class="fT11">or <a href="" class="fFooterLink">register</a></span><br>

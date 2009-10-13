@@ -4027,6 +4027,9 @@ var fSaveLoadManager = {
 		$("#fSaveAsUrlName").bind("focus",hotkeysDisable);
 		$("#fSaveAsUrlName").bind("blur",hotkeysEnable);
 		$("#fSaveAsUrlName").bind("keypress",fSaveLoadManager.taken);
+		
+		//bind clears
+		$("#fInLogin, #fInPassword").bind("mousedown",fSaveLoadManager.clearField);
 	},
 	show : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4055,6 +4058,16 @@ var fSaveLoadManager = {
 	displayLogin : function() {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
+	},
+	clearField : function(event) {
+		var clickedOn = $(event.target).attr("id");
+		if ((clickedOn == "fInLogin") && ($("#" + clickedOn).val() == "email")) {
+			$("#" + clickedOn).val("");
+		}
+		if ((clickedOn == "fInPassword") && ($("#" + clickedOn).val() == "password")) {
+			$("#" + clickedOn).val("");
+		}
+		
 	},
 	hide : function () {
 		$("#fSaveLoadManager").fadeOut(400);
