@@ -246,7 +246,7 @@ class restapi {
     }
 
     function home_index(){
-	echo "home index";
+	include('test.php');
 	return false;
     }
 
