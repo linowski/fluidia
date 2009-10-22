@@ -67,7 +67,7 @@ class restapi {
     var $user = array('userid' => false, 'role' => 0, 'active' => 0);
 
     /**
-     * The internal functions
+     * The internal function
      * @var str
      */
     var $controller_function = NULL;
@@ -76,7 +76,7 @@ class restapi {
      * The internal functions
      * @var str[]
      */
-    var $internal_methods = array('users','users_has_projects','revisions');
+    var $internal_methods = array('users','users_has_projects','projects','revisions','sessions');
 
     /**
      * The publically available functions
@@ -185,17 +185,27 @@ class restapi {
 
         //var_dump($this->table);
 
+	$this->output['log'] = "#----Exec Start----.\n";
         if($this->table == ''){
+	    $this->output['log'] .= "No Parameters.\n";
             $this->controller_function = 'home_index';
 	    $this->go();
             exit;
+        } elseif(in_array($this->table,$this->public_methods)){
+	    $this->output['log'] .= "Public Method Called:".$this->table.".\n";
+            $this->controller_function = $this->table;
+            $this->connect();
+	    $this->go();
         } elseif(in_array($this->table,$this->internal_methods)){
 	    // Time to check basic permissions
+	    // Currently everything that gets here requires login
+	    $this->output['log'] .= "Authentication Required.\n";
+            $this->connect();
 	    $this->require_login();
 	};
 	//
         
-        $this->connect();
+        //$this->connect();
         
         switch ($this->method) {
             case 'GET':
@@ -232,22 +242,55 @@ class restapi {
 
     function require_login(){
 	if($this->is_logged_in()){
-	   $this->output[] = "You are logged in.";
+	   $this->output['log'] .= "You are logged in as user:".$_SESSION['user']['username'];
         } else {
 	   // Not logged in
-	   $this->output[] = "You are not logged in.";
+	   $this->unauthorized();
+	   $this->login();
+	   if($this->is_logged_in()){
+	      $this->redirect($this->table);
+	   } else {
+	      echo "You are not logged in.";
+	      exit;
+	   }
         }
     }
 
     function login(){
+	if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) return false;
+	if($_SERVER['PHP_AUTH_USER'] == NULL || $_SERVER['PHP_AUTH_PW'] == NULL) return false;
 	// if user is all good then load the user session
-        $this->user = array('userid' => 'abarger', 'role' => 1, 'active' => 1);
+	$where = " `username` = '".$_SERVER['PHP_AUTH_USER']."'";
+	$where .= " AND `password` = '".$_SERVER['PHP_AUTH_PW']."'";
+	$where .= ' LIMIT 1 ';
+	$resource = $this->db->getRow('users', $where);
+
+	if(is_resource($resource)){
+           $row = $this->db->row($resource);
+           $this->user = array('userid' => $row['username'], 'role' => $row['role'], 'active' => $row['active']);
+	   $_SESSION['user'] = $this->user;
+	} else {
+           $this->user = array('userid' => NULL, 'role' => 0, 'active' => 0);
+	   $_SESSION['user'] = $this->user;
+	}
+    }
+
+    function logout(){
+    	$this->user = array('userid' => false, 'role' => 0, 'active' => 0);
 	$_SESSION['user'] = $this->user;
+	$this->unauthorized();
+	echo "You are not logged in.";
+	exit;
     }
 
     function home_index(){
 	include('test.php');
 	return false;
+    }
+
+    function save_session(){
+	echo 'Running Save Session';
+	exit;
     }
 
     /**
@@ -605,6 +648,15 @@ class restapi {
      */
     function noContent() {
         header('HTTP/1.0 204 No Content');
+    }
+
+    /**
+     * Send a HTTP 301 response header.
+     */
+    function redirect($url = FALSE) {
+        if ($url) {
+            header('Location: '.$url);   
+        }
     }
     
     /**

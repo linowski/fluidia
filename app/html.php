@@ -49,6 +49,7 @@ class PHPRestSQLRenderer {
             }
             echo '</ul>'."\n";
         }
+        echo '<pre>'.$this->PHPRestSQL->output['log']."</pre>\n";
         echo '</body>'."\n";
         echo '</html>'."\n";
     }
@@ -72,6 +73,7 @@ class PHPRestSQLRenderer {
             }
             echo '</ul>'."\n";
         }
+        echo '<pre>'.$this->PHPRestSQL->output['log']."</pre>\n";
         echo '</body>'."\n";
         echo '</html>'."\n";
     }
@@ -104,6 +106,7 @@ class PHPRestSQLRenderer {
             }
             echo '</table>'."\n";
         }
+        echo '<pre>'.$this->PHPRestSQL->output['log']."</pre>\n";
         echo '</body>'."\n";
         echo '</html>'."\n";
     }

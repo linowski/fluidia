@@ -58,6 +58,18 @@ $config = parse_ini_file('restapi.ini', TRUE);
 			<a class="rest" href="<?php echo $config['settings']['baseURL'] ?>/sessions.json">.json</a>
 		   </li>
 		</ul>
+		<h3>Methods</h3>
+		<ul>
+		   <li>
+			<a class="rest" href="<?php echo $config['settings']['baseURL'] ?>/login">login</a>
+		   </li>
+		   <li>
+			<a class="rest" href="<?php echo $config['settings']['baseURL'] ?>/logout">logout</a>
+		   </li>
+		   <li>
+			<a class="rest" href="<?php echo $config['settings']['baseURL'] ?>/save_session">save_session</a>
+		   </li>
+		</ul>
 		</div>		
 	</div>
 
