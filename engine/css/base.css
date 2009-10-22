@@ -41,15 +41,16 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 	right: 0;
 	top: 0;
 }
-#hSave div, #hSave a {
-	padding: 0px;
-	margin: 0px;
+#hSave > div, #hSave > a {
 	float: left;
 }
 #hLoggedOut {
+	
 }
 #hLoggedIn {
-	width: 120px;
+	text-align: right;
+	padding: 5px 10px 0 0;
+	width: 160px;
 	height: 15px;
 	display: none;
 }
@@ -78,6 +79,10 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 .fTI {
 	font-style: italic;
 }
+.fTB {
+	font-weight: bold;
+}
+
 
 .fTDim {
 	color: #999999;

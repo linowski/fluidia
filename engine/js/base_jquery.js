@@ -41,21 +41,17 @@ $(document).ready(function(){
 
 	//init listeners
 	$(window).bind("resize",resized); // window resizing listener
-	hotkeysEnable(); //enable hotkey listening
+	
+	//enable hotkey listening
+	hotkeysEnable(); 
 	$("#setwidth").bind("keyup",updateWidth);
 	$("#setheight").bind("keyup",updateHeight);
 	$("#xpos").bind("keyup",updateXpos);
 	$("#ypos").bind("keyup",updateYpos);
-
-	$("#setwidth").bind("focus",hotkeysDisable)
-	$("#setheight").bind("focus",hotkeysDisable);
-	$("#xpos").bind("focus",hotkeysDisable);
-	$("#ypos").bind("focus",hotkeysDisable);
 	
-	$("#setwidth").bind("blur",hotkeysEnable)
-	$("#setheight").bind("blur",hotkeysEnable);
-	$("#xpos").bind("blur",hotkeysEnable);
-	$("#ypos").bind("blur",hotkeysEnable);
+	$(".fNoHotKey").bind("focus",hotkeysDisable);
+	$(".fNoHotKey").bind("blur",hotkeysEnable);
+	
 	$(document).bind("mousemove",fGM.capture); //global mouse with page coordinates
 
 	//first tool
@@ -4024,12 +4020,14 @@ var fSaveLoadManager = {
 		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoadManager.show);
 		$("#fSaveLoadManager").bind("mouseleave",fSaveLoadManager.hide);
 		$("#fSaveLoadManager").bind("mouseenter",function() {$("#fSaveLoadManager").stop(true).fadeTo("",1);});
-		$("#fSaveAsUrlName").bind("focus",hotkeysDisable);
-		$("#fSaveAsUrlName").bind("blur",hotkeysEnable);
 		$("#fSaveAsUrlName").bind("keypress",fSaveLoadManager.taken);
 		
 		//bind clears
 		$("#fInLogin, #fInPassword").bind("mousedown",fSaveLoadManager.clearField);
+		
+		//bind buttons
+		$("#fBLogin").bind("click",fSaveLoadManager.login);
+		$("#fBLogout").bind("click",fSaveLoadManager.logout);
 	},
 	show : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4079,6 +4077,18 @@ var fSaveLoadManager = {
 	taken : function () {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
+	},
+	login : function () {
+		$("#hLoggedOut").hide();
+		$("#hLoggedIn").show();
+		fSaveLoadManager.hide();
+		
+		//set username
+		$(".fUsername").html($("#fInLogin").val());
+	},
+	logout : function () {
+		$("#hLoggedIn").hide();
+		$("#hLoggedOut").show();
 	}
 }
 

@@ -23,9 +23,7 @@
 			<div id="hLoggedOut">
 				<a href="#" id="fLogin" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_login_off.png" class="hButton" border="0" id="bLogin" title="Login"></a>
 			</div>
-			<div id="hLoggedIn" class="fT9 fTDim">Logged In: <span class="fTB fUsername"></span><br>
-				<a href="#" id="fBLogout">Logout</a>
-			</div>
+			<div id="hLoggedIn">Logged In</div>
 			<a href="#" id="fSave" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_save_off.png" class="hButton" border="0" id="bSave" title="Save"></a>
 			<a href="#" id="fLoad" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_load_off.png" class="hButton" border="0" id="bLoad" title="Load"></a>
 		</div>
@@ -118,18 +116,18 @@
 							<div class="fSCheck" onclick="fStates.fSCheckToggle('fSSize')"></div>
 							<div class="fSTitle fT11" onclick="fStates.fSCheckToggle('fSSize')">Size</div>
 							<div class="fSInputLetter fT9" align="right">W:</div>
-							<div class="fSInput"><input type="textbox" class="fNoHotKey" id="setwidth" value="0" size="5"></div>
+							<div class="fSInput"><input type="textbox" id="setwidth" value="0" size="5"></div>
 							<div class="fSInputLetter fT9" align="right">H:</div>
-							<div class="fSInput"><input type="textbox" class="fNoHotKey" id="setheight" value="0" size="5"></div>
+							<div class="fSInput"><input type="textbox" id="setheight" value="0" size="5"></div>
 						</div>
 						
 						<div id="fSPos" class="fSOff">
 							<div class="fSCheck" onclick="fStates.fSCheckToggle('fSPos')"></div>
 							<div class="fSTitle fT11"  onclick="fStates.fSCheckToggle('fSPos')">Position</div>
 							<div class="fSInputLetter fT9" align="right">X:</div>
-							<div class="fSInput"><input type="textbox" class="fNoHotKey" id="xpos" value="0" size="5"></div>
+							<div class="fSInput"><input type="textbox" id="xpos" value="0" size="5"></div>
 							<div class="fSInputLetter fT9" align="right">Y:</div>
-							<div class="fSInput"><input type="textbox" class="fNoHotKey" id="ypos" value="0" size="5"></div>
+							<div class="fSInput"><input type="textbox" id="ypos" value="0" size="5"></div>
 						</div>
 						
 						<div id="fSContents">
@@ -263,7 +261,7 @@
 			<span class="fT11">a web link:</span><br>
 			<div style="margin: 3px 0 6px 0;">
 				<a href="#" onclick="fSaveLoadManager.taken();" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="float: right; margin: -3px 6px 0 0px;"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display:inline; vertical-align: bottom;"></a>
-				<span class="fT9 fTDim">fluidia.org/ </span><input type="text" name="urlname" class="fT9 fInput fNoHotKey" id="fSaveAsUrlName" style="width: 95px;">
+				<span class="fT9 fTDim">fluidia.org/ </span><input type="text" name="urlname" class="fT9 fInput" id="fSaveAsUrlName" style="width: 95px;">
 				<div class="fTThick2" id="fTaken">taken:(</div>
 			</div>
 			<br>
@@ -293,9 +291,9 @@
 		</div>
 		<div>
 			<span class="fTThick2">login</span><br>
-			<input type="text" name="login" id="fInLogin" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="email"><br>
-			<input type="text" name="password" id="fInPassword" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="password"><br>
-			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" id="fBLogin"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display: block; margin: 3px 0 0 -2px;"></a>
+			<input type="text" name="login" id="fInLogin" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="email"><br>
+			<input type="text" name="password" id="fInPassword" class="fT9 fInput" style="width: 95px; margin-top: 3px;" value="password"><br>
+			<a href="#" onclick="" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display: block; margin: 3px 0 0 -2px;"></a>
 			<br>
 			<span class="fT11">or <a href="" class="fFooterLink">register</a></span><br>
 		</div>
