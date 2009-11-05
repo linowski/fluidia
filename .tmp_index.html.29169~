@@ -11,9 +11,6 @@
 <script src="engine/js/jquery.mousewheel.min.js" type="text/javascript"></script>
 <script src="engine/js/jquery.scrollTo-min.js" type="text/javascript"></script>
 <script src="engine/js/base_jquery.js" content="text/javascript"></script>
-<script src="engine/js/webtoolkit.base64.js" content="text/javascript"></script>
-</head>
-
 <link rel="shortcut icon" type="image/ico" href="/engine/images/favicon4.ico" />
 </head>
 

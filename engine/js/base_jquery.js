@@ -63,6 +63,11 @@ $(document).ready(function(){
 	//bind window focus event to resize
 	$(window).bind("focus",fWorkspace.setDimensions);
 	
+	//editables
+	$("#fProjName").bind("dblclick", function() {$(this).fEditable();});
+	$("#fObjName").bind("dblclick", function() {$(this).fEditable();});
+	
+	
 	//hovers for fS footer states controler
 	$("div.fEditingInst div div.fSCheck,div.fEditingInst div div.fSTitle").live("mouseover",
       function () {
@@ -851,9 +856,22 @@ $.fn.fEditable = function() {
 	//overlay an input box on top of the double clicked div
 	clickedElement.after('<input class="fEditable" id="fEditing" type="box" value="' + clickedElement.html() + '"></input>');
 
+	//inherit the previous elements width and height, margin and padding
+	$("#fEditing").css("height",clickedElement.css("height") + 2);
+	$("#fEditing").css("font-size",clickedElement.css("font-size"));
+	
 	//get the newly created element
 	inputElement = this.next();
-
+	
+	//ID specific
+	if(clickedElement.attr("class").match("panelItem")) {
+		$("#fEditing").css("width","100%");
+	}
+	else if(clickedElement.attr("id").match("fObjName")) {
+		$("#fEditing").css("width","150px");
+	}
+	
+	
 	//hide the clicked element
 	clickedElement.hide();
 
@@ -863,20 +881,29 @@ $.fn.fEditable = function() {
 
 	//attach on change
 	inputElement.bind("change blur",closeEditing);
-	$("#wrapper").bind("click",closeEditing);
+	$("#container").bind("click",closeEditing);
 	inputElement.bind("keyup",function(event) {if(event.which == "13") { closeEditing(); } });
 }
 
 function closeEditing(){ // if I have "blur change" together AIR crashes
 	// update the DOM
 	clickedElement.html(inputElement.attr("value"));
-	//update jData
-	jO.jData.pages[clickedElement.attr("id")].pageName = inputElement.attr("value");
+	
+	//ID specific updates
+	if(clickedElement.attr("class").match("panelItem")) {
+		jO.jData.pages[clickedElement.attr("id")].pageName = inputElement.attr("value");	
+	}
+	else if(clickedElement.attr("id").match("fProjName")) {
+		jO.jData.project.projectName = inputElement.attr("value");	
+	}
+	else if(clickedElement.attr("id").match("fObjName")) {
+		jO.jData.objects[fSel.nObj].name = inputElement.attr("value");
+		fWorkspace.redraw();
+	}
+	
 	
 	clickedElement.show();
-	
 	inputElement.remove();
-	
 	$("#wrapper").unbind("click",closeEditing);
 	
 	hotkeysEnable();
@@ -922,7 +949,6 @@ $.fn.fEditableText = function() {
 
 	txtref = jO.jData.elements[jO.tr($(clickedElement).attr("id"))];
 	
-	//objref = jO.jData.objects[jO.jData.instances[$(clickedElement).attr("id")].of];
 	clickedElement = $("#" + clickedElement.attr("id"));
 	
 	//save clickedElement for future reference
@@ -4078,11 +4104,37 @@ var fSaveLoadManager = {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
 	},
+	login_auth : function (user, password) {
+		var tok = user + ':' + password;
+  		var hash = Base64.encode(tok);
+  		return "Basic " + hash;
+	},
 	login : function () {
+		// Attempt login
+		 var username = $(".fUsername").val();
+		 var password = $(".fPassword").val();
+		
+		 var auth = fSaveLoadManager.login_auth(username, password);
+		 var url = 'http://dev.fluidia.org/app/login';
+		
+		 // jQuery
+		 $.ajax({
+		    url : url,
+		    method : 'GET',
+		    beforeSend : function(req) {
+		        req.setRequestHeader('Authorization', auth);
+		    }
+		 });
+
+		// Check login
+		
+		// If not logged in
+		
+		
+		// If logged in
 		$("#hLoggedOut").hide();
 		$("#hLoggedIn").show();
 		fSaveLoadManager.hide();
-		
 		//set username
 		$(".fUsername").html($("#fInLogin").val());
 	},
