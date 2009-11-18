@@ -903,8 +903,9 @@ function closeEditing(){ // if I have "blur change" together AIR crashes
 	
 	
 	clickedElement.show();
+	inputElement.unbind();
 	inputElement.remove();
-	$("#wrapper").unbind("click",closeEditing);
+	$("#container").unbind("click",closeEditing);
 	
 	hotkeysEnable();
 }
@@ -4048,6 +4049,7 @@ var fSaveLoadManager = {
 		$("#fSaveLoadManager").bind("mouseenter",function() {$("#fSaveLoadManager").stop(true).fadeTo("",1);});
 		$("#fSaveAsUrlName").bind("keypress",fSaveLoadManager.taken);
 		
+		
 		//bind clears
 		$("#fInLogin, #fInPassword").bind("mousedown",fSaveLoadManager.clearField);
 		
@@ -4060,6 +4062,7 @@ var fSaveLoadManager = {
 		$("#fSaveLoadManager").show();
 		$("#fSave").bind("mouseenter",fSaveLoadManager.displaySave);
 		$("#fLoad").bind("mouseenter",fSaveLoadManager.displayLoad);
+
 		//display load or save
 		if(clickedOn == "bSave") {
 			fSaveLoadManager.displaySave();
@@ -4082,6 +4085,7 @@ var fSaveLoadManager = {
 	displayLogin : function() {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
+		$("#fInLogin").bind("keypress",fSaveLoadManager.register);
 	},
 	clearField : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4103,6 +4107,11 @@ var fSaveLoadManager = {
 	taken : function () {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
+	},
+	register : function() {
+		//change login to register
+		alert('d');
+		//$("#fLoginHeader").html("register");
 	},
 	login_auth : function (user, password) {
 		var tok = user + ':' + password;
@@ -4137,6 +4146,9 @@ var fSaveLoadManager = {
 		fSaveLoadManager.hide();
 		//set username
 		$(".fUsername").html($("#fInLogin").val());
+	},
+	register : function () {
+		
 	},
 	logout : function () {
 		$("#hLoggedIn").hide();
