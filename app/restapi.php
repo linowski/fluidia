@@ -82,7 +82,7 @@ class restapi {
      * The publically available functions
      * @var str[]
      */
-    var $public_methods = array('login','logout','save_session');
+    var $public_methods = array('login','logged_in','logout','email_exists','register','save_session');
 
     /**
      * The primary key of the database row to query.
@@ -240,6 +240,20 @@ class restapi {
 	return false;
     }
 
+    function logged_in(){
+	$this->output['struct']['result_type'] = 'bool';
+	$this->output['struct']['result'] = '';
+	$this->output['struct']['error'] = '';
+        if($this->is_logged_in()){
+	   $this->output['struct']['result'] = 'true';
+	} else {
+	   $this->output['struct']['result'] = 'false';
+	}
+	$this->output['struct']['SESSION'] = $_SESSION;
+	$this->display = 'struct';
+	$this->simpleResponse();
+    }
+
     function require_login(){
 	if($this->is_logged_in()){
 	   $this->output['log'] .= "You are logged in as user:".$_SESSION['user']['username'];
@@ -257,22 +271,41 @@ class restapi {
     }
 
     function login(){
-	if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) return false;
-	if($_SERVER['PHP_AUTH_USER'] == NULL || $_SERVER['PHP_AUTH_PW'] == NULL) return false;
-	// if user is all good then load the user session
-	$where = " `username` = '".$_SERVER['PHP_AUTH_USER']."'";
-	$where .= " AND `password` = '".$_SERVER['PHP_AUTH_PW']."'";
-	$where .= ' LIMIT 1 ';
-	$resource = $this->db->getRow('users', $where);
-
-	if(is_resource($resource)){
-           $row = $this->db->row($resource);
-           $this->user = array('userid' => $row['username'], 'role' => $row['role'], 'active' => $row['active']);
-	   $_SESSION['user'] = $this->user;
-	} else {
-           $this->user = array('userid' => NULL, 'role' => 0, 'active' => 0);
-	   $_SESSION['user'] = $this->user;
+	$this->output['struct']['result_type'] = 'struct';
+	$this->output['struct']['result'] = '';
+	$this->output['struct']['error'] = '';
+	if(!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])){
+	   $this->output['struct']['result'] = 'false';
+	   $this->output['struct']['error'] = 'Must send authentication headers';
 	}
+	if(@$_SERVER['PHP_AUTH_USER'] == NULL || @$_SERVER['PHP_AUTH_PW'] == NULL){
+	   $this->output['struct']['result'] = 'false';
+	   $this->output['struct']['error'] = 'Must send username and password';
+	}
+
+	// if user is all good then load the user session
+	if($this->output['struct']['error'] === ''){
+	   $where = " `username` = '".$_SERVER['PHP_AUTH_USER']."'";
+	   $where .= " AND `password` = '".$_SERVER['PHP_AUTH_PW']."'";
+	   $where .= ' LIMIT 1 ';
+	   $resource = $this->db->getRow('users', $where);
+
+	   if(is_resource($resource)){
+              $row = $this->db->row($resource);
+              $this->user = array('userid' => $row['username'], 'role' => $row['role'], 'active' => $row['active']);
+	      $_SESSION['user'] = $this->user;
+	   } else {
+              $this->user = array('userid' => NULL, 'role' => 0, 'active' => 0);
+	      $_SESSION['user'] = $this->user;
+	      $this->output['struct']['error'] = 'Bad username password combination';
+	   }
+	}
+
+	//output
+	$this->output['struct']['SESSION'] = $_SESSION;
+	$this->output['struct']['result'] = ($this->is_logged_in()) ? 'logged_in' : 'not_logged_in';
+	$this->display = 'struct';
+	$this->simpleResponse();
     }
 
     function logout(){
@@ -291,6 +324,92 @@ class restapi {
     function save_session(){
 	echo 'Running Save Session';
 	exit;
+    }
+
+    function email_exists(){
+	// Check to see if email exists in db
+	$this->output['struct']['result'] = 'false';
+	$this->output['struct']['result_type'] = 'bool';
+	$this->output['struct']['error'] = '';
+	if(!isset($_GET['email']) || strlen($_GET['email'])<6){
+	   $this->output['struct']['error'] = 'Must provide get[email] of at least 6 characters';
+	   $this->output['struct']['result'] = 'false';
+	} else {
+	   $where = " `username` LIKE '".$_GET['email']."%'";
+	   $where .= ' LIMIT 1 ';
+	   $resource = $this->db->getRow('users', $where);
+	   $this->output['struct']['result'] = ($this->db->numRows($resource) > 0) ? 'true' : 'false';
+	}
+	//output
+	$this->display = 'struct';
+	$this->simpleResponse();
+    }
+
+    function register(){
+	ob_start();
+	// Check to see if email exists in db
+	$this->output['struct']['result'] = 'false';
+	$this->output['struct']['result_type'] = 'bool';
+	$this->output['struct']['error'] = '';
+	$errors = false;
+
+	if(!isset($_POST['email']) || strlen($_POST['email'])<6){
+	   $this->output['struct']['error'] = 'Must provide pst[email] of at least 6 characters';
+	   $this->output['struct']['result'] = 'false';
+	   $errors = TRUE;
+	}
+	if(!isset($_POST['passwd']) || strlen($_POST['passwd'])<6){
+	   $this->output['struct']['error'] .= ' Must provide post[passwd] of at least 6 characters';
+	   $this->output['struct']['result'] = 'false';
+	   $errors = TRUE;
+	}
+
+	if(!$errors){
+           $names = 'username`, `password';
+           $values = $_POST['email'].'","'.$_POST['passwd'];
+
+	   // Check if email exists
+	   $where = " `username` LIKE '".$_POST['email']."%'";
+	   $where .= ' LIMIT 1 ';
+           $resource = $this->db->getRow('users', $where);
+	   if ($resource && $this->db->numRows($resource) == 0) {
+	      $resource = $this->db->insertRow('users', $names, $values);
+	      $this->output['struct']['result'] = ($this->db->numAffected($resource) > 0) ? 'true' : 'false';
+              //$this->created();
+	   } else {
+	      $this->output['struct']['error'] .= ' Email already exists';
+	      $this->output['struct']['result'] = 'false';
+	   }
+	} else {
+           $this->notAcceptable();
+	}
+	//output
+	$this->display = 'struct';
+	$this->simpleResponse();
+    }
+
+    function simpleResponse(){
+	if($this->output){
+	   // What are we rendering
+	   if($pos = strpos($this->extension,'?')){
+	      $this->extension = substr($this->extension,0,$pos);
+	   }
+	   if (isset($this->config['mimetypes'][$this->extension])) {
+              $mimetype = $this->config['mimetypes'][$this->extension];
+              if (isset($this->config['renderers'][$mimetype])) {
+                 $renderClass = $this->config['renderers'][$mimetype];
+              }
+	   }
+	   // We should have a renderer now
+           if (isset($renderClass)) {
+               require_once($renderClass);
+               $renderer = new PHPRestSQLRenderer();
+               $renderer->render($this);
+           } else {
+               $this->notAcceptable();
+               exit;
+           }
+	}
     }
 
     /**
