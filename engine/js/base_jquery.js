@@ -4110,8 +4110,7 @@ var fSaveLoadManager = {
 	},
 	register : function() {
 		//change login to register
-		alert('d');
-		//$("#fLoginHeader").html("register");
+		$("#fLoginHeader").html("register");
 	},
 	login_auth : function (user, password) {
 		var tok = user + ':' + password;
@@ -4146,9 +4145,6 @@ var fSaveLoadManager = {
 		fSaveLoadManager.hide();
 		//set username
 		$(".fUsername").html($("#fInLogin").val());
-	},
-	register : function () {
-		
 	},
 	logout : function () {
 		$("#hLoggedIn").hide();

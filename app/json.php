@@ -27,10 +27,23 @@ class PHPRestSQLRenderer {
             case 'row':
                 $this->row();
                 break;
+            case 'struct':
+                $this->struct();
+                break;
         }
     }
 
     
+    /**
+     * Output the top level table listing.
+     */
+    function struct() {
+        header('Content-Type: text/json');
+        if (isset($this->PHPRestSQL->output['struct'])) {
+	   echo json_encode($this->PHPRestSQL->output['struct']);
+	}
+    }
+
     /**
      * Output the top level table listing.
      */
