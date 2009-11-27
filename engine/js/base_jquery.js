@@ -1,7 +1,6 @@
 $(document).ready(function(){
 	// init variables
 	initx = false; //used for drawing squares
-	mydrag = null; // contains the dragable element
 	myresize = null; // contains the resizable element
 	lastDraggable = null; // contains the last selected Draggable
 	startdragx = 0; // initial positions of startdrag
@@ -618,7 +617,8 @@ function Draw(event){
 }
 
 
-function dragRegister() {
+function dragRegister(mydrag) {
+	//$("#fWorkspace").append(mydrag);
 	startdragx = parseInt($("#"+mydrag).css("left"));
 	startdragy = parseInt($("#"+mydrag).css("top"));
 	for (var i = 0; i < fSel.sI.length; i++) {
@@ -629,7 +629,7 @@ function dragRegister() {
 }
 
 
-function dragItems() {
+function dragItems(mydrag) {
 	//drag all remaining items which are also selected
 	// calculate how much movement there is during the drag
 	movex = parseInt($("#"+mydrag).css("left")) - startdragx;
@@ -646,9 +646,9 @@ function dragItems() {
 }
 
 
-function dragStop() {
+function dragStop(mydrag) {
 	//update the workspace one more time in case there is pixel lag during drag
-	dragItems();
+	dragItems(mydrag);
 	movex = parseInt($("#"+mydrag).css("left")) - startdragx;
 	movey = parseInt($("#"+mydrag).css("top")) - startdragy;
 	
@@ -664,14 +664,14 @@ function dragStop() {
 					x: $("#" + fSel.sI[i]).position().left,
 					y: $("#" + fSel.sI[i]).position().top,
 				});
-				
+				//update JSON + Force inheritance
 				jO.update(fSel.sI[i], {
 					type: "instance",
 					iPos: 1
 				});
 			}
 			else { //else editing as Instance
-				//update JSON + Force inheritance of iPos = 0
+				//update JSON + Force inheritance of iPos
 				jO.update(fSel.sI[i], {
 					type: "instance",
 					x: $("#" + fSel.sI[i]).position().left,
@@ -679,27 +679,19 @@ function dragStop() {
 					iPos: 0
 				});
 			}
-			
-			//update Workspace
-			if(fSel.editAs ==0)  {
-				//update all instances with which use this object, by passing object name (extracted from instance/of)
-				fWorkspace.redraw({type: 'object',item : fSel.jInst.of}); 
-			}
 		}
-		// Text
+		// Text & Form Elements
 		if ((fSel.sI[i].match("t") != null) || (fSel.sI[i].match("f") != null)) {
 			jO.updateElements(jO.tr(fSel.sI[i]), {
 				x: $("#" + fSel.sI[i]).position().left,
 				y: $("#" + fSel.sI[i]).position().top,
 			});
-			
-			fWorkspace.redraw({type: 'page'}); 
 		}
-
-		fFooter.redrawFooter();
-				
-		
 	}
+
+	//update Workspace
+	fWorkspace.redraw({type: 'page'});
+	fFooter.redrawFooter();
 }
 
 function resizeStop() {
@@ -836,7 +828,9 @@ function resized(event) {
 
 
 function killDrag(event) {
-	if(mydrag) { $("#"+mydrag).draggable("destroy"); mydrag = null; }
+	for (var i = 0; i < fSel.sI.length; i++) {
+		$("#"+fSel.sI[i]).draggable("destroy");
+	}
 }
 
 function killResizable(event) {
@@ -1240,7 +1234,6 @@ var jO = {
 			//jO.jData = $.evalJSON(whatToLoad);
 			//alert(whatToLoad);
 			jQuery.extend(true, jO.jData, $.evalJSON(whatToLoad));
-			
 			fWorkspace.initAfterLoad();
 		}
 			
@@ -2539,7 +2532,7 @@ var fDebugJson = {
 		if (ref.triggerPressedRecently == true) {
 			ref.displayManager();
 		}
-		setTimeout("ref.triggerPressedRecently = false",500);
+		setTimeout("ref.triggerPressedRecently = false",200);
 	} ,
 	displayManager : function () {
 		// create the menu
@@ -2928,11 +2921,8 @@ var fWorkspace = {
 		
 		//make draggable / resizable selected items
 		if((fSel.sI[0] != "fWorkspace") && $("#" + fSel.sI[0]).length) {
-			fSel.makeDraggable(fSel.sI[0]);
-			
-			if (!fSel.sI[0].match("f")) {
-				fSel.makeResizable(fSel.sI[0]);
-			}
+			fSel.makeDraggable();
+			fSel.makeResizable();
 		}
 
 		//visualize selected items
@@ -2949,11 +2939,13 @@ var fWorkspace = {
 		//Draw Panel Pages
 		fPanelPages.draw();
 		
-		//populate all fSession instance with default states & 
+		//populate all fSession instance with default states &
 		for (items in jO.jData.instances) {
-			fSession[items] = new Object;
-			fSession[items].state = jO.jData.objects[jO.jData.instances[items].of].defState;
-			fSession[items].editStatesAs = 0; //by default edit OneState
+			if (fSession[items] == undefined) {
+				fSession[items] = new Object;
+				fSession[items].state = jO.jData.objects[jO.jData.instances[items].of].defState;
+				fSession[items].editStatesAs = 0; //by default edit OneState
+			}
 		}
 		
 		//draw instances
@@ -2963,6 +2955,9 @@ var fWorkspace = {
 		
 		//init SaveLoad bindings
 		fSaveLoadManager.init();
+		
+		//redraw page
+		fWorkspace.redraw();
 	},
 	restyle : function() {
 		//alert('restyle');
@@ -3084,7 +3079,7 @@ var fWorkspace = {
 				});
 				
 				//enable last drag
-				fSel.makeDraggable(lastDraggable);
+				fSel.makeDraggable();
 				
 				//update footer
 				fFooter.redrawFooter();
@@ -3111,7 +3106,7 @@ var fWorkspace = {
 			fWorkspace.editingText = false;
 			
 			//enable last drag
-			fSel.makeDraggable(lastDraggable);
+			fSel.makeDraggable();
 			
 			//update footer
 			fFooter.redrawFooter();
@@ -3982,39 +3977,46 @@ var fSel = {
 		//make draggable and resizable
 		if (fSel.sI[0] != "fWorkspace") {
 			//alert($(what).attr("id"));
-			this.makeDraggable($(what).attr("id"));
-			
-			if (!fSel.sI[0].match("f")) {
-				this.makeResizable($(what).attr("id"));
-			}
+			this.makeDraggable();
+			this.makeResizable();
 		}
 		
 		//highlight
 		fSel.highlight();
 		
 	},
-	makeDraggable : function(what) {
-		// create new draggable & store it
-		lastDraggable = what; //remember the new draggable object
-		mydrag = what;
-		$("#"+mydrag).draggable({cancel: [''], distance: 5, containment: "#fWorkspace", handle: what, start: dragRegister, drag: dragItems, stop: dragStop});
+	makeDraggable : function() {
+		// create new draggable
+		for (var i = 0; i < fSel.sI.length; i++) {
+			var mydrag = fSel.sI[i];
+			(function(mydrag) {
+                    $("#" + mydrag).draggable({
+                            cancel: [''],
+                            distance: 5,
+                            containment: "#fWorkspace",
+                            handle: mydrag,
+                            start: function() { dragRegister(mydrag); },
+                            drag: function() { dragItems(mydrag); },
+                            stop: function() { dragStop(mydrag); }
+                    });
+            })(mydrag);
+		}
 	},
 	makeResizable : function(event){
-	//can take an event or an instance name
-	if(typeof event == "object") {
-		var element=$(event.target).attr("id");
-		event.stopPropagation();
-		
-		//only resize fObject (as a result of nested events, items within fObject also call the resize function)
-		if(($(event.target).hasClass("fObject") == false) && ($(event.target).hasClass("fText") == false)) {return false;}
-	}
-	else {
-		var element=event;
-	}
-
-	//make resizable
-	myresize = element;
-	$("#" + myresize).resizable({ transparent: true, handles: 'all', minHeight: 1, minWidth: 1, resize: updateInfoWH, stop: resizeStop });
+		for (var i = 0; i < fSel.sI.length; i++) {
+			//make resizable text and instances
+			if (fSel.sI[i].match("ins") && (fSel.sI[i].match("t"))) {
+				myresize = fSel.sI[i];
+				$("#" + myresize).resizable({
+					transparent: true,
+					handles: 'all',
+					minHeight: 1,
+					minWidth: 1,
+					resize: updateInfoWH,
+					stop: resizeStop
+				});
+			}
+		}
 	},
 	highlight : function() {
 		if ((fSel.sI[0] != null) && ($("#" + fSel.sI[0] + " > div.fHighlight").length == 0)) {
