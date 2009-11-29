@@ -150,7 +150,6 @@ function keyreleased(event) {
 	if (whichkey == "16") {
 		shiftPressed = false;
 		shiftAmount = 1;
-		fDebugJson.triggerPressedRecently = true;
 	}
 	//ctrl released
 	if (whichkey == "17") {
@@ -2527,12 +2526,13 @@ var fDebugJson = {
 	opened : false,
 	triggerPressedRecently : false,
 	trigger : function() {
+		setTimeout("ref.triggerPressedRecently = false",200);
 		ref = this;
 		//detect if trigger was pressed twice in less than a second
 		if (ref.triggerPressedRecently == true) {
 			ref.displayManager();
 		}
-		setTimeout("ref.triggerPressedRecently = false",200);
+		fDebugJson.triggerPressedRecently = true;
 	} ,
 	displayManager : function () {
 		// create the menu
@@ -4003,20 +4003,21 @@ var fSel = {
 		}
 	},
 	makeResizable : function(event){
-		for (var i = 0; i < fSel.sI.length; i++) {
+		//for (var i = 0; i < fSel.sI.length; i++) {
 			//make resizable text and instances
-			if (fSel.sI[i].match("ins") && (fSel.sI[i].match("t"))) {
+			i = 0;
+			if (fSel.sI[i].match("ins") || (fSel.sI[i].match("t"))) {
 				myresize = fSel.sI[i];
 				$("#" + myresize).resizable({
 					transparent: true,
-					handles: 'all',
+					handle: myresize,
 					minHeight: 1,
 					minWidth: 1,
 					resize: updateInfoWH,
 					stop: resizeStop
 				});
 			}
-		}
+		//}
 	},
 	highlight : function() {
 		if ((fSel.sI[0] != null) && ($("#" + fSel.sI[0] + " > div.fHighlight").length == 0)) {
@@ -4114,27 +4115,30 @@ var fSaveLoadManager = {
 		//change login to register
 		$("#fLoginHeader").html("register");
 	},
-	login_auth : function (user, password) {
-		var tok = user + ':' + password;
-  		var hash = Base64.encode(tok);
-  		return "Basic " + hash;
-	},
 	login : function () {
 		// Attempt login
-		 var username = $(".fUsername").val();
-		 var password = $(".fPassword").val();
+		var username = $(".fUsername").val();
+		var password = $(".fPassword").val();
+		var auth = "Basic " + Base64.encode(username + ':' + password);
+		var url = 'http://dev.fluidia.org/app/login';
 		
-		 var auth = fSaveLoadManager.login_auth(username, password);
-		 var url = 'http://dev.fluidia.org/app/login';
-		
-		 // jQuery
-		 $.ajax({
+		// jQuery
+		$.ajax({
 		    url : url,
 		    method : 'GET',
 		    beforeSend : function(req) {
 		        req.setRequestHeader('Authorization', auth);
-		    }
+		    },
+			dataType : 'json',
+			success: function(data, status){
+     			alert( "Data Saved: " + data.result + ":" + status );
+   			},
+			error : function(data,status) {
+				alert( "Data Error: " + data.result + ":" + status );
+			}
+
 		 });
+		 
 
 		// Check login
 		
