@@ -4047,6 +4047,8 @@ var fSel = {
 // -------- fSaveLoadManager Object -----
 // Saving and Loading of data controller
 var fSaveLoadManager = {
+	checkEmailTimer : null,
+	checkEmailTimerLast : null,
 	init : function() {
 		//attach onleave fade effects
 		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoadManager.show);
@@ -4090,7 +4092,7 @@ var fSaveLoadManager = {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
 		$("#fSaveLoadManager").unbind("mouseleave",fSaveLoadManager.hide);
-		$("#fInLogin").bind("keyup",fSaveLoadManager.register);
+		$("#fInLogin").bind("keyup",function(){ fSaveLoadManager.checkEmailTimer = setTimeout("fSaveLoadManager.checkEmail()",1000); clearTimeout(fSaveLoadManager.checkEmailTimerLast); fSaveLoadManager.checkEmailTimerLast = fSaveLoadManager.checkEmailTimer;});
 	},
 	clearField : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4124,10 +4126,13 @@ var fSaveLoadManager = {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
 	},
-	register : function() {
+	checkEmail : function() {
+		
+		
 		var url = '/app/email_exists.json';
 		var username = $("#fInLogin").val();
 		
+
 		//change login to register
 		$.ajax({
 			url : url,
@@ -4149,67 +4154,79 @@ var fSaveLoadManager = {
 		var password = $("#fInPassword").val();
 		var auth = "Basic " + Base64.encode(username + ':' + password);
 		
-		// Attempt Register - check if email exists
-		$.ajax({
-			url : '/app/email_exists.json',
-			data: "email=" + username,
-		    method : 'GET',
-			dataType : 'json',
-			success: function(data, status){
-				//register
-     			if (data.result == "false") {
-					$.post('/app/register.json', { email : username, passwd : password }, function(data) {
-						//
-					});
-				}
-				
-				// Attempt login
-				$.ajax({
-				    url : '/app/login.json',
-				    method : 'GET',
-				    beforeSend : function(req) {
-				        req.setRequestHeader('Authorization', auth);
-				    },
-					dataType : 'json',
-					success: function(data, status){
-						//check login result
-						if ((data.result == "not_logged_in") && (data.SESSION.user.active = "null")) {
-							$("#fLoginHeader").html("user is inactive");
-						}
-						else if (data.result == "not_logged_in") {
-							$("#fLoginHeader").html("incorrect login");
-						}
-						else 
-							if (data.result == "logged_in") {
-							$("#hLoggedOut").hide();
-							$("#hLoggedIn").show();
-							fSaveLoadManager.hide();
-							//set username
-							$(".fUsername").html($("#fInLogin").val());
-						}
-		   			},
-					error : function(data,status) {
-						alert("Ops. Data Error.");
-					}
-				 });
-				
-			}
-   		});
+		//check if password is 3 characters
+		if($("#fInPassword").val().length < 3) {
+			$("#fLoginHeader").html("passwords needs 3 chars");
+		}
 		
+		//check if email is fine
+		else if(!checkMail($("#fInLogin").val())) {
+			$("#fLoginHeader").html("email needs to be appropriate");
+		}
+		
+		// Attempt Register - check if email exists
+		else {
+			$.ajax({
+				url : '/app/email_exists.json',
+				data: "email=" + username,
+			    method : 'GET',
+				dataType : 'json',
+				success: function(data, status){
+					//register
+	     			if (data.result == "false") {
+						$.post('/app/register.json', { email : username, passwd : password }, function(data) {
+							//
+						});
+					}
+					
+					// Attempt login
+					$.ajax({
+					    url : '/app/login.json',
+					    method : 'GET',
+					    beforeSend : function(req) {
+					        req.setRequestHeader('Authorization', auth);
+					    },
+						dataType : 'json',
+						success: function(data, status){
+							//check login result
+							// inactive user
+							if (data.statuscode == 403) {
+								$("#fLoginHeader").html("user is inactive");
+							}
+							// wrong password
+							else if (data.statuscode == 401) {
+								$("#fLoginHeader").html("incorrect login");
+							}
+							else 
+								if (data.result == "logged_in") {
+								$("#hLoggedOut").hide();
+								$("#hLoggedIn").show();
+								fSaveLoadManager.hide();
+								//set username
+								$(".fUsername").html($("#fInLogin").val());
+							}
+			   			},
+						error : function(data,status) {
+							alert("Ops. Data Error.");
+						}
+					 });
+					
+				}
+	   		});
+		}
 		
 		
 
 		
 	},
 	logout : function () {
-		var url = '/app/logout';
+		var url = '/app/logout.json';
 		
 		$.ajax({
 			url : url,
 		    method : 'GET',
 			dataType : 'json',
 			success: function(data, status){
-     			alert( "Data Saved: " + data.result + ":" + status );
 				$("#hLoggedIn").hide();
 				$("#hLoggedOut").show();
 			}
@@ -4589,3 +4606,10 @@ var fPanelPages = {
 };
 
 
+function checkMail(email){
+	var filter  = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+	if (filter.test(email)) {
+		return true;
+	}
+	return false;
+}
