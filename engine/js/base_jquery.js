@@ -16,6 +16,8 @@ $(document).ready(function(){
 	
 	savedDate = new Date(); //used by actClick to determine double clicks
 
+	inputValues = {}; //used by clearField to set initial values inside of input fields
+
 	offsetToWorkspaceX = $("#fWorkspace").offset().left;
 	offsetToWorkspaceY = $("#fWorkspace").offset().top;
 
@@ -4048,13 +4050,12 @@ var fSaveLoadManager = {
 	init : function() {
 		//attach onleave fade effects
 		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoadManager.show);
-		$("#fSaveLoadManager").bind("mouseleave",fSaveLoadManager.hide);
+		$("#container").bind("click",fSaveLoadManager.hide);
 		$("#fSaveLoadManager").bind("mouseenter",function() {$("#fSaveLoadManager").stop(true).fadeTo("",1);});
 		$("#fSaveAsUrlName").bind("keypress",fSaveLoadManager.taken);
 		
-		
 		//bind clears
-		$("#fInLogin, #fInPassword").bind("mousedown",fSaveLoadManager.clearField);
+		$("#fInLogin, #fInPassword").bind("focus",fSaveLoadManager.clearField);
 		
 		//bind buttons
 		$("#fBLogin").bind("click",fSaveLoadManager.login);
@@ -4088,73 +4089,132 @@ var fSaveLoadManager = {
 	displayLogin : function() {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
-		$("#fInLogin").bind("keypress",fSaveLoadManager.register);
+		$("#fSaveLoadManager").unbind("mouseleave",fSaveLoadManager.hide);
+		$("#fInLogin").bind("keyup",fSaveLoadManager.register);
 	},
 	clearField : function(event) {
 		var clickedOn = $(event.target).attr("id");
-		if ((clickedOn == "fInLogin") && ($("#" + clickedOn).val() == "email")) {
-			$("#" + clickedOn).val("");
+		
+		//save to inputValues if doesn't exist to store initial values
+		if (!inputValues.hasOwnProperty(clickedOn)) {
+			inputValues[clickedOn] = $("#" + clickedOn).val();
 		}
-		if ((clickedOn == "fInPassword") && ($("#" + clickedOn).val() == "password")) {
+
+		//clear if default
+		if (inputValues[clickedOn] == $("#" + clickedOn).val()) {
 			$("#" + clickedOn).val("");
 		}
 		
+		//restore if blank on blur
+		$("#" + clickedOn).bind("blur",function(){
+			if ($(this).val() == "") {
+			$("#" + clickedOn).val(inputValues[clickedOn]);
+		}
+		});
 	},
 	hide : function () {
-		$("#fSaveLoadManager").fadeOut(400);
-		$("#fSaveAsUrlName").blur();
+		$(window).focus();
+		$("#fSaveLoadManager").fadeOut(100);
+		$("input").blur();
 		$("#fSave").unbind("mouseenter,mouseleave");
 		$("#fLoad").unbind("mouseenter,mouseleave");
-		$(window).focus();
+		
 	},
 	taken : function () {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
 	},
 	register : function() {
+		var url = '/app/email_exists.json';
+		var username = $("#fInLogin").val();
+		
 		//change login to register
-		$("#fLoginHeader").html("register");
+		$.ajax({
+			url : url,
+			data: "email=" + username,
+		    method : 'GET',
+			dataType : 'json',
+			success: function(data, status){
+     			if (data.result == "false") {
+					$("#fLoginHeader").html("register");
+				}
+				else if (data.result == "true") {
+					$("#fLoginHeader").html("login");
+				}
+			}
+   		});
 	},
 	login : function () {
-		// Attempt login
-		var username = $(".fUsername").val();
-		var password = $(".fPassword").val();
+		var username = $("#fInLogin").val();
+		var password = $("#fInPassword").val();
 		var auth = "Basic " + Base64.encode(username + ':' + password);
-		var url = 'http://dev.fluidia.org/app/login';
 		
-		// jQuery
+		// Attempt Register - check if email exists
 		$.ajax({
-		    url : url,
+			url : '/app/email_exists.json',
+			data: "email=" + username,
 		    method : 'GET',
-		    beforeSend : function(req) {
-		        req.setRequestHeader('Authorization', auth);
-		    },
+			dataType : 'json',
+			success: function(data, status){
+				//register
+     			if (data.result == "false") {
+					$.post('/app/register.json', { email : username, passwd : password }, function(data) {
+						//
+					});
+				}
+				
+				// Attempt login
+				$.ajax({
+				    url : '/app/login.json',
+				    method : 'GET',
+				    beforeSend : function(req) {
+				        req.setRequestHeader('Authorization', auth);
+				    },
+					dataType : 'json',
+					success: function(data, status){
+						//check login result
+						if ((data.result == "not_logged_in") && (data.SESSION.user.active = "null")) {
+							$("#fLoginHeader").html("user is inactive");
+						}
+						else if (data.result == "not_logged_in") {
+							$("#fLoginHeader").html("incorrect login");
+						}
+						else 
+							if (data.result == "logged_in") {
+							$("#hLoggedOut").hide();
+							$("#hLoggedIn").show();
+							fSaveLoadManager.hide();
+							//set username
+							$(".fUsername").html($("#fInLogin").val());
+						}
+		   			},
+					error : function(data,status) {
+						alert("Ops. Data Error.");
+					}
+				 });
+				
+			}
+   		});
+		
+		
+		
+
+		
+	},
+	logout : function () {
+		var url = '/app/logout';
+		
+		$.ajax({
+			url : url,
+		    method : 'GET',
 			dataType : 'json',
 			success: function(data, status){
      			alert( "Data Saved: " + data.result + ":" + status );
-   			},
-			error : function(data,status) {
-				alert( "Data Error: " + data.result + ":" + status );
+				$("#hLoggedIn").hide();
+				$("#hLoggedOut").show();
 			}
-
-		 });
-		 
-
-		// Check login
+   		});
 		
-		// If not logged in
-		
-		
-		// If logged in
-		$("#hLoggedOut").hide();
-		$("#hLoggedIn").show();
-		fSaveLoadManager.hide();
-		//set username
-		$(".fUsername").html($("#fInLogin").val());
-	},
-	logout : function () {
-		$("#hLoggedIn").hide();
-		$("#hLoggedOut").show();
 	}
 }
 

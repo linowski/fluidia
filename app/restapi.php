@@ -335,7 +335,7 @@ class restapi {
 	   $this->output['struct']['error'] = 'Must provide get[email] of at least 6 characters';
 	   $this->output['struct']['result'] = 'false';
 	} else {
-	   $where = " `username` LIKE '".$_GET['email']."%'";
+	   $where = " `username` LIKE '".$_GET['email']."'";
 	   $where .= ' LIMIT 1 ';
 	   $resource = $this->db->getRow('users', $where);
 	   $this->output['struct']['result'] = ($this->db->numRows($resource) > 0) ? 'true' : 'false';
