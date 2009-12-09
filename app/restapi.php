@@ -236,8 +236,14 @@ class restapi {
     }
 
     function is_logged_in(){
-        if($this->user['userid'] != false && $this->user['role'] > 0 && $this->user['active'] == 1) return true;
-	return false;
+        if($this->user['userid'] != false && $this->user['role'] > 0 && $this->user['active'] == 1){
+	   //$this->output['struct']['error'] = '';
+	   return true;
+	} else {
+	   //$this->output['struct']['error'] = 'User not active, or role = 0';
+	   if($this->output['struct']['statuscode'] != 401) $this->output['struct']['statuscode'] = 403;
+	   return false;
+	}
     }
 
     function logged_in(){
@@ -291,13 +297,23 @@ class restapi {
 	   $resource = $this->db->getRow('users', $where);
 
 	   if(is_resource($resource)){
-              $row = $this->db->row($resource);
-              $this->user = array('userid' => $row['username'], 'role' => $row['role'], 'active' => $row['active']);
+	      $this->output['struct']['error'] = 'Record Found';
+              if ($this->db->numRows($resource) == 1) {
+                 $row = $this->db->row($resource);
+                 $this->user = array('userid' => $row['username'], 'role' => $row['role'], 'active' => $row['active']);
+	         $this->output['struct']['error'] = '';
+	      $this->output['struct']['statuscode'] = 200;
+	      } else {
+                 $this->user = array('userid' => NULL, 'role' => 0, 'active' => 0);
+	         $this->output['struct']['error'] = 'Bad username password combination.';
+	         $this->output['struct']['statuscode'] = 401;
+	      }
 	      $_SESSION['user'] = $this->user;
 	   } else {
               $this->user = array('userid' => NULL, 'role' => 0, 'active' => 0);
 	      $_SESSION['user'] = $this->user;
-	      $this->output['struct']['error'] = 'Bad username password combination';
+	      $this->output['struct']['error'] = 'Error performing database query.';
+	      $this->output['struct']['statuscode'] = 500;
 	   }
 	}
 
@@ -312,8 +328,12 @@ class restapi {
     	$this->user = array('userid' => false, 'role' => 0, 'active' => 0);
 	$_SESSION['user'] = $this->user;
 	$this->unauthorized();
-	echo "You are not logged in.";
-	exit;
+
+	$this->output['struct']['result_type'] = 'bool';
+	$this->output['struct']['result'] = 'true';
+	$this->output['struct']['error'] = '';
+	$this->display = 'struct';
+	$this->simpleResponse();
     }
 
     function home_index(){
@@ -331,9 +351,9 @@ class restapi {
 	$this->output['struct']['result'] = 'false';
 	$this->output['struct']['result_type'] = 'bool';
 	$this->output['struct']['error'] = '';
-	if(!isset($_GET['email']) || strlen($_GET['email'])<6){
-	   $this->output['struct']['error'] = 'Must provide get[email] of at least 6 characters';
-	   $this->output['struct']['result'] = 'false';
+	if(!isset($_GET['email']) || strlen($_GET['email'])<3){
+	   $this->output['struct']['error'] = 'Must provide get[email] of at least 3 characters';
+	   $this->output['struct']['result'] = 'true';
 	} else {
 	   $where = " `username` LIKE '".$_GET['email']."%'";
 	   $where .= ' LIMIT 1 ';
@@ -789,8 +809,12 @@ class restapi {
      * Send a HTTP 401 response header.
      */
     function unauthorized($realm = 'Rest') {
-        header('WWW-Authenticate: Basic realm="'.$realm.'"');
-        header('HTTP/1.0 401 Unauthorized');
+        $this->user['userid'] = false;
+	$this->user['role'] = 0;
+	$this->user['active'] = 0;
+	$_SESSION['user'] = $this->user;
+        //header('WWW-Authenticate: Basic realm="'.$realm.'"');
+        //#header('HTTP/1.0 401 Unauthorized');
     }
     
     /**
