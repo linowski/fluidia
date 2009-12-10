@@ -209,36 +209,9 @@ function keypressed(event) {
 	// 46 is the delete key
 	if (whichkey == "46") {
 		if (fSel.sI.length > 0) {
-			for (var i = 0; i < fSel.sI.length; i++) {
-				//remove from "contains" of parent instance in jData
-				parentInsName = $("#" + fSel.sI[i]).parent().attr("id");
-				if (parentInsName == "fWorkspace") {
-					delete jO.jData.pages[fPanelPages.selectedPageId].contains[jO.tr(fSel.sI[i])];
-				}
-				else if (parentInsName.match("ins")) {
-					parentObjName = jO.jData.instances[parentInsName].of;
-					//remove contains in parent and object
-					delete jO.jData.instances[parentInsName].states[fSession[parentInsName].state].contains[jO.tr(fSel.sI[i])];
-					delete jO.jData.objects[parentObjName].states[fSession[parentInsName].state].contains[jO.tr(fSel.sI[i])];
-				}
-
-				if (fSel.sI[i].match("ins")) {
-					//remove instance
-					delete jO.jData.instances[fSel.sI[i]];
-					
-					//todo clear actual objects in jO if (last instance cleared)
-				}
-				else if (fSel.sI[i].match("t")) {
-					//remove real text element
-					delete jO.jData.elements[jO.tr(fSel.sI[i])];
-				}
-				
-				//remove DOM objects from the workspace
-				if(fSel.sI[i] != "fWorkspace") {
-					$("#" + fSel.sI[i]).remove();
-				}
-				
-			}
+			//delete items
+			jO.deleteItems(fSel.sI);
+			
 			//empty the whole array
 			fSel.sI.splice(0);
 			fSel.selectObject($("#fWorkspace"));
@@ -350,7 +323,7 @@ function keyCtrlV(event) {
 	}
 }
 function keyCtrlX(event) {
-	//fCBManager.copy();
+	fCBManager.cut();
 }
 
 
@@ -1237,13 +1210,95 @@ var jO = {
 			jQuery.extend(true, jO.jData, $.evalJSON(whatToLoad));
 			fWorkspace.initAfterLoad();
 		}
-			
-		
-		
 	},
 	tr : function(item) { //removes _ref string from element references
 		item = item.replace(/_.*/, '');
 		return (item);
+	},
+	deleteItems : function(itemsToDelete) {
+		for (var i = 0; i < itemsToDelete.length; i++) {
+				//find parent in JSON
+				//parentName = $("#" + itemsToDelete[i]).parent().attr("id");
+				var parentName = null;
+				var parentState = null;
+				
+				//find on workspace
+				for (pages in jO.jData.pages) {
+					if(jO.jData.pages[pages].contains[itemsToDelete[i]] != undefined) {
+						parentName = pages;
+						break;
+					}
+				}
+				
+				//find in instances
+				if (parentName == null) {
+					for (items in jO.jData.instances) {
+						for (states in jO.jData.instances[items].states) {
+							if (jO.jData.instances[items].states[states].contains[itemsToDelete[i]] != undefined) {
+								parentName = items;
+								parentState = states;
+								break;
+							}
+						}
+						
+						if (parentName != null) {
+							break;
+						}
+					}
+				}
+				
+				//find in objects
+				if (parentName == null) {
+					for (items in jO.jData.objects) {
+						for (states in jO.jData.objects[items].states) {
+							if (jO.jData.objects[items].states[states].contains[itemsToDelete[i]] != undefined) {
+								parentName = items;
+								parentState = states;
+								break;
+							}
+						}
+						
+						if (parentName != null) {
+							break;
+						}
+					}
+				}
+				
+				
+				//remove from "contains" of parent instance in jData
+				if (parentName.match("page")) {
+					delete jO.jData.pages[parentName].contains[jO.tr(itemsToDelete[i])];
+				}
+				else if (parentName.match("ins")) {
+					delete jO.jData.instances[parentName].states[parentState].contains[jO.tr(itemsToDelete[i])];
+				}
+				else if (parentName.match("obj")) {
+					delete jO.jData.objects[parentName].states[parentState].contains[jO.tr(itemsToDelete[i])];
+				}
+				
+				//remove item
+				if (itemsToDelete[i].match("ins")) {
+					var objName = jO.jData.instances[itemsToDelete[i]].of;
+					
+					//remove instance
+					delete jO.jData.instances[itemsToDelete[i]];
+					
+					//remove from allInstances
+					delete jO.jData.objects[objName].allInstances[jO.tr(itemsToDelete[i])];
+					
+					//todo clear actual objects in jO if (last instance cleared)
+				}
+				else if (itemsToDelete[i].match("t")) {
+					//remove real text element
+					delete jO.jData.elements[jO.tr(itemsToDelete[i])];
+				}
+				
+				//remove DOM objects from the workspace
+				if(itemsToDelete[i] != "fWorkspace") {
+					$("#" + itemsToDelete[i]).remove();
+				}
+				
+			}
 	},
 	getAvailableId : function(type,objName) {
 		var lookWhere = null;
@@ -1828,6 +1883,7 @@ var fCBManager = {
 	mode : "empty", //wholepage, multiple instances, multiple objects, instance, objects
 	states : "", //one state or all 
 	instances : [], //array with instance names to copy
+	cutting : false, //flag wether items are just being copied or cut
 	title : "", // display title
 	displayManager : function() {
 		if (this.opened == false) {
@@ -1912,8 +1968,24 @@ var fCBManager = {
 			fSel.highlight();
 		}
 	},
+	cut : function() {
+		//copy
+		this.copy();
+		
+		//set cutting flag
+		this.cutting = true;
+		
+		//reselect the workspace
+		fSel.sI[0] = "fWorkspace";
+		
+		//redraw page
+		fWorkspace.redraw();
+	},
 	copy : function() {
 		if ((this.opened == false) && (fSel.sI.length != 0)) {
+			//clear cutting just in case
+			fCBManager.cutting = false;
+			
 			//set copy type
 			if(fSel.editAs == 0) { this.type = "object";}
 			else { this.type = "instance"; }
@@ -1938,23 +2010,22 @@ var fCBManager = {
 				//update selected object
 				this.title = "Object: " + jO.jData.objects[fSel.nObj].name;
 			}
-			else if(this.instances[0].match("f")) {
-				this.mode = "form";
-			}
-			else if(this.instances[0].match("t")) {
-				this.mode = "text";
-			}
 			else if(this.instances[0].match("fWorkspace")) {
 				this.mode = "page";
 				this.instances[0] = fPanelPages.rememberPageSelectedId;
 			}
-			
-			//display
-			//this.displayManager();
+			else if(this.instances[0].match("t")) {
+				this.mode = "text";
+			}
+			else if(this.instances[0].match("f")) {
+				this.mode = "form";
+			}
 			
 			//highlight cbMini
 			$("#cbMini").animate({opacity: "0"}, 100).animate({opacity: "1"}, 500);			
 			
+			//restyle
+			fWorkspace.redraw();
 		}
 	},
 	paste : function() {
@@ -2033,6 +2104,15 @@ var fCBManager = {
 				//select the newly pasted object
 				//fSel.selectObject(ID);
 			}
+		}
+		
+		//remove items if it is a cut
+		if((fCBManager.cutting == true) && (fCBManager.instances.length >= 1)) {
+			jO.deleteItems(fCBManager.instances);
+			fCBManager.cutting = false;
+			
+			//clear clipboard
+			fCBManager.mode = "empty";
 		}
 	},
 	pasteAsMaster : function() {
@@ -2531,7 +2611,7 @@ var fDebugJson = {
 		setTimeout("ref.triggerPressedRecently = false",200);
 		ref = this;
 		//detect if trigger was pressed twice in less than a second
-		if (ref.triggerPressedRecently == true) {
+		if ((ref.triggerPressedRecently == true) && (ctrlPressed == true)) {
 			ref.displayManager();
 		}
 		fDebugJson.triggerPressedRecently = true;
@@ -2613,7 +2693,7 @@ var fWorkspace = {
 		//reset z-index TODO (reset to proper value in the future)
 		$("#" + fSel.sI[0]).css("z-index","");
 		
-		$("#fWorkspace").removeClass("selectedWorkspace parent");
+		$("#fWorkspace").removeClass("selectedWorkspace parent toBeCut");
 		
 		//alert('clearing Styles');
 		for (var i = 0; i < fSel.sI.length; i++) {
@@ -2962,8 +3042,10 @@ var fWorkspace = {
 		fWorkspace.redraw();
 	},
 	restyle : function() {
-		//alert('restyle');
-		//restyles all elements on the workspace
+		//clear styles
+		fWorkspace.clearStyles();
+		
+		//restyles all selected elements on the workspace
 		if (fSel.sI[0] == "fWorkspace") {
 			$("#" + fSel.sI[0]).addClass("selectedWorkspace");
 		}
@@ -3008,6 +3090,13 @@ var fWorkspace = {
 						fWorkspace.redraw();
 					});
 				}
+			}
+		}
+		
+		//restyle items to be cut
+		if((fCBManager.cutting == true) && (fCBManager.instances.length >= 1)) {
+			for (var i = 0; i < fCBManager.instances.length; i++) {
+				$("#" + fCBManager.instances[i]).addClass("toBeCut");
 			}
 		}
 	},
@@ -4505,16 +4594,16 @@ var fPanelPages = {
 		//mouse wheel scrolling
 		$(this.attachTo).mousewheel(function(event, delta) {
 		if (delta > 0) {
-			$(thisref.attachTo + " *.fPanelItemsList").scrollTo('-=5px');
+			$(thisref.attachTo + " *.fPanelItemsList").stop().scrollTo('-=40px');
 		}
 		else if (delta < 0)
-			$(thisref.attachTo + " *.fPanelItemsList").scrollTo('+=5px');
+			$(thisref.attachTo + " *.fPanelItemsList").stop().scrollTo('+=40px');
 			return false; // prevent default
 		}
 		);
 		//click scrolling
-		$(this.attachTo + " *.panelArrowDown").click(function() {$(thisref.attachTo + " *.fPanelItemsList").scrollTo('+=14px')});
-		$(this.attachTo + " *.panelArrowUp").click(function() {$(thisref.attachTo + " *.fPanelItemsList").scrollTo('-=14px')});
+		$(this.attachTo + " *.panelArrowDown").click(function() {$(thisref.attachTo + " *.fPanelItemsList").stop().scrollTo('+=40px')});
+		$(this.attachTo + " *.panelArrowUp").click(function() {$(thisref.attachTo + " *.fPanelItemsList").stop().scrollTo('-=40px')});
 		
 	},
 

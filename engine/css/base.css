@@ -431,6 +431,10 @@ div.fLabel:hover {
 .selectedTxt {
 	border: 1px solid;
 }
+.toBeCut {
+	opacity: 0.3;
+}
+
 
 /*inside items */
 div.selected.fInsideMaster, .selected div.fInsideMaster {
