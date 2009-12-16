@@ -51,7 +51,7 @@ $(document).ready(function(){
 	$("#ypos").bind("keyup",updateYpos);
 	
 	$(".fNoHotKey").bind("focus",hotkeysDisable);
-	$(".fNoHotKey").bind("blur",hotkeysEnable);
+	$(window).bind("focus",hotkeysEnable);
 	
 	$(document).bind("mousemove",fGM.capture); //global mouse with page coordinates
 
@@ -1689,7 +1689,12 @@ var jO = {
 		instantiateIntoWhere.push(fSel.sI[0]); //default 
 
 		var instantiateIntoState = new Array();
-		instantiateIntoState.push(fSession[fSel.nInst].state); //default 
+		if (fSession[fSel.nInst] != undefined) {
+			instantiateIntoState.push(fSession[fSel.nInst].state); //default 
+		}
+		else {
+			instantiateIntoState.push(null); //default 
+		}
 		
 		var firstNewInst = null;
 		
@@ -1883,6 +1888,7 @@ var fCBManager = {
 	mode : "empty", //wholepage, multiple instances, multiple objects, instance, objects
 	states : "", //one state or all 
 	instances : [], //array with instance names to copy
+	copiedPage : null, //name of a copied page
 	cutting : false, //flag wether items are just being copied or cut
 	title : "", // display title
 	displayManager : function() {
@@ -1928,7 +1934,7 @@ var fCBManager = {
 			}
 			else if(this.mode == "page") {
 				$("#CBPage").show();
-				$("#CBPage > div").html("Page: " + this.instances[0]);
+				$("#CBPage > div").html("Page: " + jO.jData.pages[this.copiedPage].pageName);
 			}
 			
 
@@ -2012,7 +2018,7 @@ var fCBManager = {
 			}
 			else if(this.instances[0].match("fWorkspace")) {
 				this.mode = "page";
-				this.instances[0] = fPanelPages.rememberPageSelectedId;
+				this.copiedPage = fPanelPages.rememberPageSelectedId;
 			}
 			else if(this.instances[0].match("t")) {
 				this.mode = "text";
@@ -2044,8 +2050,24 @@ var fCBManager = {
 			drawWhere = $("#" + fSel.sI[0]);
 		}
 		
-		// for each copied item, actually copy it
+		//Copy Full page
+		if(this.mode == "page") {
+			var i = 0;
+			
+			//clear instances
+			delete this.instances;
+			this.instances = new Array()
+			
+			//update all instances to copy from page
+			for (items in jO.jData.pages[this.copiedPage].contains) {
+				this.instances[i] = items;
+				i++;
+			}
+		}
+
+		//Paste Individual Items
 		for (var i = 0; i < this.instances.length; i++) {
+			//alert(this.instances[i])
 			if (fSel.sI[0].match("ins") || fSel.sI[0].match("fWorkspace")) {
 				//instances
 				if (this.instances[i].match("ins")) {
@@ -2114,6 +2136,10 @@ var fCBManager = {
 			//clear clipboard
 			fCBManager.mode = "empty";
 		}
+			
+		
+		
+		
 	},
 	pasteAsMaster : function() {
 		//clear button Instance
@@ -2213,7 +2239,7 @@ var fCBManager = {
 	redrawPasteManager : function() {
 		if(this.openedPaste == true) {
 			//SHOW HIDE buttons
-			if(this.mode == "instance") {
+			if(this.mode == "instance" || "page") {
 				$("#buttonNewMaster").show();
 				$("#buttonNewInstance").show();
 				//set default paste as
@@ -3665,9 +3691,6 @@ var fExp = {
 		this.redrawThreadBar();
 	},
 	showThreadAdd : function() {
-		//disable listening to keys
-		hotkeysDisable();
-		
 		//show 
 		$("#fExpAdd").show();
 		
@@ -3675,14 +3698,13 @@ var fExp = {
 		$("#fInputTTitle").val("");
 		
 		//focus input
-		$("#fInputTTitle").focus();
-
+		setTimeout(function(){$("#fInputTTitle").focus()},50);
+		
 		//assign click anywhere to hide
 		$("#wrapper").bind("mousedown",fExp.hideThreadAdd)
 		
 		//assign press enter to submit on title
 		$("#fInputTTitle").bind("keydown",function(event) {if(event.which == "13") { fExp.addThread();} });
-		
 	},
 	hideThreadAdd : function() {
 		//listening to keys

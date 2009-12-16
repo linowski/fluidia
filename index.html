@@ -73,7 +73,7 @@
 		<a href="#" onclick="toolObject();" onmouseover="rollOver(this); fWorkspace.notify('Object Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_object_off.png" border="0" id="iconObject" title="Object"></a><br>
 		<a href="#" onclick="toolText();" onmouseover="rollOver(this); fWorkspace.notify('Text Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_text_off.png" border="0" id="iconText" title="Text"></a><br>
 		<a href="#" onclick="toolForm();" onmouseover="rollOver(this); fWorkspace.notify('Form Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_form_off.png" border="0" id="iconForm" title="Form"></a><br>
-		<!--<a href="#" onclick="toolExperience();" onmouseover="rollOver(this); fWorkspace.notify('Experience Threads Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_et_off.png" border="0" id="iconET" title="Experience Threads"></a><br>-->
+		<a href="#" onclick="toolExperience();" onmouseover="rollOver(this); fWorkspace.notify('Experience Threads Tool');" onmouseout="rollOut(this);"><img src="engine/images/b_et_off.png" border="0" id="iconET" title="Experience Threads"></a><br>
 	</div>
 
 	<div id="rightpanel">
@@ -363,10 +363,10 @@
 	<div class="fTThick">+ experience thread</div>
 	<div class="fExpAddTop"></div>
 	<div class="fExpAddCore">
-		<div class="fTsmall"><div style="float: left; padding-top: 5px;">Title:</div> <input type="text" class="fInput" id="fInputTTitle" style="width: 330px; float: right;"></div>
+		<div class="fTsmall"><div style="float: left; padding-top: 5px;">Title:</div> <input type="text" class="fInput fNoHotKey" id="fInputTTitle" style="width: 330px; float: right;"></div>
 		<br>
 		<div class="fTsmall" style="margin: 40px 0 5px 0;">User Intent or Story: <span class="fT9 fTDim">(optional)</span></div>
-		<textarea class="fInput fOptional fT12" id="fInputStory" style="width: 100%;margin-bottom: 10px; height: 120px;" ></textarea><br>
+		<textarea class="fInput fOptional fT12 fNoHotKey" id="fInputStory" style="width: 100%;margin-bottom: 10px; height: 120px;" ></textarea><br>
 		<a href="#" onclick="fExp.hideThreadAdd();" class="fT11 fLink" style="float: left; position: absolute; right: 30px; bottom: 15px;">Close</a>
 		<center><a href="#" onclick="fExp.addThread();" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_ok_off.png" border="0" title="Ok"></a></center>
 	</div>

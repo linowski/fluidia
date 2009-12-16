@@ -359,10 +359,10 @@ div#footer{background: #f3f3f3; color: #dfdfdf; padding:0px; clear:left; width:1
 
 
 .fStateLabel {
-	top: 0px;
+	top: -1px;
 	right: 0px;
-	margin-right: -17px;
-	height: 10px;
+	margin-right: -18px;
+	height: 11px;
 	width: 12px;
 	padding: 0 2px 0 2px;
 	background-color: #CFCFCF;
