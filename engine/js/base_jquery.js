@@ -28,7 +28,34 @@ $(document).ready(function(){
 	fPanelPages.cssPanelWidthCon = parseInt($("#fPanelPages").css("width"));
 	fPanelPages.cssPanelWidthExp = parseInt($("#fPanelPages").css("width")) + 80;
 	
-	jO.load('projects/project01.json','file'); //load JSON data + select workspace
+	
+	
+	//load data from session or standard file
+	var url = '/app/check_session.json';
+	$.ajax({
+		url : '/app/check_session.json',
+	    method : 'GET',
+		dataType : 'json',
+		success: function(data, status){
+			fSaveLoad.latestSession = data.session_count;
+						
+			//load data from standard file
+			if((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
+				jO.load('projects/project01.json','file'); 	
+			}
+			//load data from session
+			else {
+				fSaveLoad.loadSession();
+			}
+		},
+		error: function() {
+			//load data from standard file
+			if((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
+				jO.load('projects/project01.json','file'); 	
+			}
+		}
+ 	});
+	
 	
 	$("#fWorkspace").fShowMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {});
 
@@ -50,7 +77,7 @@ $(document).ready(function(){
 	$("#xpos").bind("keyup",updateXpos);
 	$("#ypos").bind("keyup",updateYpos);
 	
-	$(".fNoHotKey").bind("focus",hotkeysDisable);
+	//$(".fNoHotKey").bind("focus",hotkeysDisable);
 	$(window).bind("focus",hotkeysEnable);
 	
 	$(document).bind("mousemove",fGM.capture); //global mouse with page coordinates
@@ -58,11 +85,11 @@ $(document).ready(function(){
 	//first tool
 	toolSelect();
 	
-	$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
-	$(window).focus();
+	//$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
+	//$(window).focus();
 	
 	//bind window focus event to resize
-	$(window).bind("focus",fWorkspace.setDimensions);
+	//$(window).bind("focus",fWorkspace.setDimensions);
 	
 	//editables
 	$("#fProjName").bind("dblclick", function() {$(this).fEditable();});
@@ -91,20 +118,21 @@ $(document).ready(function(){
 	  
 	 //focus window on click
 	 $("#container").bind("click",fFocusWindow);
-	 $("#fWorkspace").bind("click",fBlurInput);
+	 
+	 //upload button
+	 new AjaxUpload('upload_button', {action: '/app/upload_fld', onComplete: function(file, response) { location.reload(true); }});
 });
 
 
 
 
 // -------- General Resizing Functions -----
-function fFocusWindow() {
-	$(window).focus();
-	
-}
-
-function fBlurInput(){
-	$("#xpos").blur();
+function fFocusWindow(e){
+	//only loose focus if not clicking on INPUT
+	if (e.target.tagName != "INPUT") {
+		$("input").blur();
+		$(window).focus();
+	}
 }
 
 
@@ -839,7 +867,6 @@ $.fn.fEditable = function() {
 		$("#fEditing").css("width","150px");
 	}
 	
-	
 	//hide the clicked element
 	clickedElement.hide();
 
@@ -848,8 +875,8 @@ $.fn.fEditable = function() {
 	hotkeysDisable(); //because people will be typing
 
 	//attach on change
-	inputElement.bind("change blur",closeEditing);
-	$("#container").bind("click",closeEditing);
+	inputElement.bind("blur",closeEditing);
+	//$("#container").bind("click",closeEditing);
 	inputElement.bind("keyup",function(event) {if(event.which == "13") { closeEditing(); } });
 }
 
@@ -868,7 +895,6 @@ function closeEditing(){ // if I have "blur change" together AIR crashes
 		jO.jData.objects[fSel.nObj].name = inputElement.attr("value");
 		fWorkspace.redraw();
 	}
-	
 	
 	clickedElement.show();
 	inputElement.unbind();
@@ -930,7 +956,6 @@ $.fn.fEditableText = function() {
 	else {
 		clickedElement.html('<textarea class="fEditableText" id="fEditing" name="a">' + txtref.txt + '</textarea>');
 	}
-
 	
 	hotkeysDisable(); //because people will be typing
 	killDrag(); //because people might want to highlight text
@@ -1173,20 +1198,11 @@ var fSession = {
 }
 
 
-// -------- Server Object -----
-// used to interact with the backend
-var fServer = {
-	save : function() {
-		
-	},
-	load : function() {
-		
-	}
-}
-
 // -------- JSON Object -----
 // this section contains the JSON data objects and instances
 var jO = {
+	saveSessionTimeout : null, //contains timeout ID to kill 
+	changed : false, //used to determin if to call saveSession
 	jData : null,
 	load : function (whatToLoad, type) {
 		//type = can be either 'file' or 'json'
@@ -1200,15 +1216,16 @@ var jO = {
 		if(type == 'file') {
 			$.getJSON(whatToLoad, function(data){
 				jO.jData = data;
-				fWorkspace.initAfterLoad();
+				fWorkspace.init();
 			});
-			
 		}
 		else if(type == 'json') {
-			//jO.jData = $.evalJSON(whatToLoad);
-			//alert(whatToLoad);
 			jQuery.extend(true, jO.jData, $.evalJSON(whatToLoad));
-			fWorkspace.initAfterLoad();
+			fWorkspace.init();
+		}
+		else if(type == 'jsonSession') {
+			jO.jData = whatToLoad;
+			fWorkspace.init();
 		}
 	},
 	tr : function(item) { //removes _ref string from element references
@@ -1299,6 +1316,9 @@ var jO = {
 				}
 				
 			}
+			
+		//savesession
+		fSaveLoad.saveSessionDelay();
 	},
 	getAvailableId : function(type,objName) {
 		var lookWhere = null;
@@ -1452,7 +1472,8 @@ var jO = {
 			fFooter.instRedraw();
 		}
 		
-
+		//savesession
+		fSaveLoad.saveSessionDelay();
 	},
 	updateElements : function(element, options) {
 		//updates either object or instance
@@ -1474,6 +1495,9 @@ var jO = {
 		if (options.w != undefined) { elementRef.w = options.w; }
 		if (options.h != undefined) { elementRef.h = options.h; }
 		if (options.txt != undefined) {	elementRef.txt = options.txt; }
+		
+		//savesession
+		fSaveLoad.saveSessionDelay();
 	},
 	createObj : function(name,x,y,width,height) {
 		//alert('name:' + name + ', x:' + x + ', y:' + y + ', width:' + width + ', height:' + height);
@@ -1678,6 +1702,9 @@ var jO = {
 			}
 		}
 		
+		//savesession
+		fSaveLoad.saveSessionDelay();
+		
 		return(newInstId);
 	},
 	copyInstance : function(whatInst,options) {
@@ -1839,9 +1866,9 @@ var jO = {
 		}
 		
 		return(newState);
-	},
-	updateAddPage : function(what) {
 		
+		//savesession
+		fSaveLoad.saveSessionDelay();
 	},
 	createIdea: function(instance){
 		//CREATING FOR FIRST TIME
@@ -1874,6 +1901,8 @@ var jO = {
 		
 		return(newIdeaId);
 		
+		//savesession
+		fSaveLoad.saveSessionDelay();
 	}
 };
 
@@ -2731,6 +2760,45 @@ var fWorkspace = {
 			$("#" + fSel.sI[i]).removeClass("selectedTxt");
 		}
 	},
+	init : function() {
+		//clear fSession & recreate for all instances
+		delete fSession;
+		fSession = new Object; 
+		for (items in jO.jData.instances) {
+			fSession[items] = new Object;
+			fSession[items].state = "s1";
+			fSession[items].editAs = 1;
+			fSession[items].editStatesAs = 0; //default edit OneState
+		}
+		
+		//select first page
+		fPanelPages.selectedPageId = "page1";
+		
+		//Draw Panel Pages
+		fPanelPages.draw();
+		
+		//populate all fSession instance with default states &
+		for (items in jO.jData.instances) {
+			if (fSession[items] == undefined) {
+				fSession[items] = new Object;
+				fSession[items].state = jO.jData.objects[jO.jData.instances[items].of].defState;
+				fSession[items].editStatesAs = 0; //by default edit OneState
+			}
+		}
+		
+		//select workspace
+	 	fSel.sI[0] = "fWorkspace";
+		fPanelPages.setSelectedPage(fPanelPages.selectedPageId);
+		
+		//init SaveLoad bindings
+		fSaveLoad.init();
+		
+		//redraw page
+		fWorkspace.redraw();
+		
+		//update project name
+		$("#fProjName").html(jO.jData.project.projectName);	
+	},
 	redraw : function(options){
 		// takes two properties: type and item
 		// type can be 'page', 'instance', 'object'
@@ -3040,33 +3108,6 @@ var fWorkspace = {
 		$(window).focus();
 		
 	},
-	initAfterLoad : function() {
-		//select first page
-		fPanelPages.selectedPageId = "page1";
-		
-		//Draw Panel Pages
-		fPanelPages.draw();
-		
-		//populate all fSession instance with default states &
-		for (items in jO.jData.instances) {
-			if (fSession[items] == undefined) {
-				fSession[items] = new Object;
-				fSession[items].state = jO.jData.objects[jO.jData.instances[items].of].defState;
-				fSession[items].editStatesAs = 0; //by default edit OneState
-			}
-		}
-		
-		//draw instances
-		//select workspace
-	 	fSel.sI[0] = "fWorkspace";
-		fPanelPages.setSelectedPage(fPanelPages.selectedPageId);
-		
-		//init SaveLoad bindings
-		fSaveLoadManager.init();
-		
-		//redraw page
-		fWorkspace.redraw();
-	},
 	restyle : function() {
 		//clear styles
 		fWorkspace.clearStyles();
@@ -3200,6 +3241,9 @@ var fWorkspace = {
 				
 				//update footer
 				fFooter.redrawFooter();
+				
+				//savesession
+				fSaveLoad.saveSessionDelay();
 			}
 		}
 	},
@@ -3230,6 +3274,9 @@ var fWorkspace = {
 			
 			//bring back focus to window
 			$(window).focus();
+			
+			//savesession
+			fSaveLoad.saveSessionDelay();
 		}
 	},
 	notify : function(text) {
@@ -4155,40 +4202,41 @@ var fSel = {
 }
 
 
-// -------- fSaveLoadManager Object -----
+// -------- fSaveLoad Object -----
 // Saving and Loading of data controller
-var fSaveLoadManager = {
+var fSaveLoad = {
+	latestSession : null,
 	checkEmailTimer : null,
 	checkEmailTimerLast : null,
 	init : function() {
 		//attach onleave fade effects
-		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoadManager.show);
-		$("#container").bind("click",fSaveLoadManager.hide);
-		$("#fSaveLoadManager").bind("mouseenter",function() {$("#fSaveLoadManager").stop(true).fadeTo("",1);});
-		$("#fSaveAsUrlName").bind("keypress",fSaveLoadManager.taken);
+		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoad.show);
+		$("#fSaveLoad").bind("mouseenter",function() {$("#fSaveLoad").stop(true).fadeTo("",1);});
+		$("#fSaveAsUrlName").bind("keypress",fSaveLoad.taken);
 		
 		//bind clears
-		$("#fInLogin, #fInPassword").bind("focus",fSaveLoadManager.clearField);
+		$("#fInLogin, #fInPassword").bind("focus",fSaveLoad.clearField);
 		
 		//bind buttons
-		$("#fBLogin").bind("click",fSaveLoadManager.login);
-		$("#fBLogout").bind("click",fSaveLoadManager.logout);
+		$("#fBLogin").bind("click",fSaveLoad.login);
+		$("#fBLogout").bind("click",fSaveLoad.logout);
 	},
 	show : function(event) {
 		var clickedOn = $(event.target).attr("id");
-		$("#fSaveLoadManager").show();
-		$("#fSave").bind("mouseenter",fSaveLoadManager.displaySave);
-		$("#fLoad").bind("mouseenter",fSaveLoadManager.displayLoad);
+		$("#fSaveLoad").show();
+		$("#fSave").bind("mouseenter",fSaveLoad.displaySave);
+		$("#fLoad").bind("mouseenter",fSaveLoad.displayLoad);
+		$("#container").bind("click",fSaveLoad.hide);
 
 		//display load or save
 		if(clickedOn == "bSave") {
-			fSaveLoadManager.displaySave();
+			fSaveLoad.displaySave();
 		}
 		else if(clickedOn == "bLoad") {
-			fSaveLoadManager.displayLoad();
+			fSaveLoad.displayLoad();
 		}
 		else if(clickedOn == "bLogin") {
-			fSaveLoadManager.displayLogin();
+			fSaveLoad.displayLogin();
 		}
 	},
 	displaySave : function() {
@@ -4202,8 +4250,8 @@ var fSaveLoadManager = {
 	displayLogin : function() {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
-		$("#fSaveLoadManager").unbind("mouseleave",fSaveLoadManager.hide);
-		$("#fInLogin").bind("keyup",function(){ fSaveLoadManager.checkEmailTimer = setTimeout("fSaveLoadManager.checkEmail()",1000); clearTimeout(fSaveLoadManager.checkEmailTimerLast); fSaveLoadManager.checkEmailTimerLast = fSaveLoadManager.checkEmailTimer;});
+		$("#fSaveLoad").unbind("mouseleave",fSaveLoad.hide);
+		$("#fInLogin").bind("keyup",function(){ fSaveLoad.checkEmailTimer = setTimeout("fSaveLoad.checkEmail()",500); clearTimeout(fSaveLoad.checkEmailTimerLast); fSaveLoad.checkEmailTimerLast = fSaveLoad.checkEmailTimer;});
 	},
 	clearField : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4227,19 +4275,17 @@ var fSaveLoadManager = {
 	},
 	hide : function () {
 		$(window).focus();
-		$("#fSaveLoadManager").fadeOut(100);
+		$("#fSaveLoad").fadeOut(100);
 		$("input").blur();
 		$("#fSave").unbind("mouseenter,mouseleave");
 		$("#fLoad").unbind("mouseenter,mouseleave");
-		
+		$("#container").unbind("click",fSaveLoad.hide);
 	},
 	taken : function () {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
 	},
 	checkEmail : function() {
-		
-		
 		var url = '/app/email_exists.json';
 		var username = $("#fInLogin").val();
 		
@@ -4265,9 +4311,9 @@ var fSaveLoadManager = {
 		var password = $("#fInPassword").val();
 		var auth = "Basic " + Base64.encode(username + ':' + password);
 		
-		//check if password is 3 characters
-		if($("#fInPassword").val().length < 3) {
-			$("#fLoginHeader").html("passwords needs 3 chars");
+		//check if password is 6 characters
+		if($("#fInPassword").val().length < 6) {
+			$("#fLoginHeader").html("password must be 6 chars");
 		}
 		
 		//check if email is fine
@@ -4285,50 +4331,69 @@ var fSaveLoadManager = {
 				success: function(data, status){
 					//register
 	     			if (data.result == "false") {
-						$.post('/app/register.json', { email : username, passwd : password }, function(data) {
-							//
+						$.post('/app/register.json', {
+							email: username,
+							passwd: password
+						}, function(data){
+							fSaveLoad.hide();
+							fWorkspace.notify("User has been registered. Check your email for approval.");
 						});
 					}
-					
 					// Attempt login
-					$.ajax({
-					    url : '/app/login.json',
-					    method : 'GET',
-					    beforeSend : function(req) {
-					        req.setRequestHeader('Authorization', auth);
-					    },
-						dataType : 'json',
-						success: function(data, status){
-							//check login result
-							// inactive user
-							if (data.statuscode == 403) {
-								$("#fLoginHeader").html("user is inactive");
+					else {
+						$.ajax({
+							url: '/app/login.json',
+							method: 'GET',
+							beforeSend: function(req){
+								req.setRequestHeader('Authorization', auth);
+							},
+							dataType: 'json',
+							success: function(data, status){
+								//check login result
+								// inactive user
+								if (data.statuscode == 403) {
+									$("#fLoginHeader").html("user is inactive");
+								}
+								// wrong password
+								else 
+									if (data.statuscode == 401) {
+										$("#fLoginHeader").html("incorrect login");
+									}
+									else 
+										if (data.result == "logged_in") {
+											$("#hLoggedOut").hide();
+											$("#hLoggedIn").show();
+											fSaveLoad.hide();
+											//set username
+											$(".fUsername").html($("#fInLogin").val());
+										}
+							},
+							error: function(data, status){
+								alert("Ops. Data Error.");
 							}
-							// wrong password
-							else if (data.statuscode == 401) {
-								$("#fLoginHeader").html("incorrect login");
-							}
-							else 
-								if (data.result == "logged_in") {
-								$("#hLoggedOut").hide();
-								$("#hLoggedIn").show();
-								fSaveLoadManager.hide();
-								//set username
-								$(".fUsername").html($("#fInLogin").val());
-							}
-			   			},
-						error : function(data,status) {
-							alert("Ops. Data Error.");
-						}
-					 });
+						});
+					}
 					
 				}
 	   		});
 		}
-		
-		
-
-		
+	},
+	saveLocal : function() {
+		fSaveLoad.saveSession('saveLocal');		
+	},
+	loadLocal : function() {
+		//upload
+	},
+	loadSession : function () {
+		$.ajax({
+					url: '/app/load_session.json',
+					data: "key=" + fSaveLoad.latestSession,
+					method: 'GET',
+					dataType: 'json',
+					success: function(data, status){
+						jO.load(data,'jsonSession');
+					}
+				});
 	},
 	logout : function () {
 		var url = '/app/logout.json';
@@ -4342,6 +4407,56 @@ var fSaveLoadManager = {
 				$("#hLoggedOut").show();
 			}
    		});
+		
+	},
+	saveSessionDelay: function(){
+		//saveSession set timeout
+		if (jO.saveSessionTimeout != null) {
+			clearTimeout(jO.saveSessionTimeout);
+		}
+		jO.saveSessionTimeout = setTimeout(function(){
+			fSaveLoad.saveSession();
+		}, 4000);
+	},
+	saveSession: function(saveType){
+			var url = '/app/save_session.json';
+			// jQuery
+			var data = jO.jsonToText();
+			$.ajax({
+				url: url,
+				data: "fluidia_object=" + data,
+				type: 'POST',
+				dataType: 'json',
+				success: (function(){
+					if (saveType == 'saveLocal') {
+						var url = '/app/download_session.json';
+						//$.get(url);
+						//window.open(url);
+						setTimeout( function(){
+							$.download(url, 'data=data')
+						},1000);
+						
+						//close window
+						fSaveLoad.hide();
+					}
+				})(saveType)
+			});
+			
+			
+			//$.post(url, {
+			//	fluidia_object: data
+			//}, (function(saveType){
+				//optional Save Local 
+			//	if (saveType == 'saveLocal') {
+			//		var url = '/app/download_session.json';
+					//$.get(url);
+					//window.open(url);
+			//		$.download(url,'data=' + jO.jsonToText());
+					
+			//	}
+			//})(saveType));
+	
+	
 		
 	}
 }
@@ -4657,6 +4772,8 @@ var fPanelPages = {
 		// scroll to the last item
 		$(this.attachTo + " *.fPanelItemsList").scrollTo($(this.attachTo + " *.fPanelItemsList").children(":last-child"));
 		
+		//savesession
+		fSaveLoad.saveSessionDelay();
 	},
 
 	remove : function () {
@@ -4680,6 +4797,9 @@ var fPanelPages = {
 			
 			// scroll to the last item
 			$(this.attachTo + " *.fPanelItemsList").scrollTo($(this.attachTo + " *.fPanelItemsList").children(":last-child"));
+			
+			//savesession
+			fSaveLoad.saveSessionDelay();
 		}
 	},
 
@@ -4724,3 +4844,23 @@ function checkMail(email){
 	}
 	return false;
 }
+
+jQuery.download = function(url, data, method){
+	//url and data options required
+	if( url && data ){ 
+		//data can be string of parameters or array/object
+		data = typeof data == 'string' ? data : jQuery.param(data);
+		//split params into form inputs
+		var inputs = '';
+		jQuery.each(data.split('&'), function(){ 
+			var pair = this.split('=');
+			inputs+='<input type="hidden" name="'+ pair[0] +'" value="'+ pair[1] +'" />'; 
+		});
+		//send request
+		jQuery('<form action="'+ url +'" method="'+ (method||'post') +'">'+inputs+'</form>')
+		.appendTo('body').submit().remove();
+	};
+};
+
+
+

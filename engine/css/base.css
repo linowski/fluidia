@@ -754,7 +754,7 @@ div.resizable {
 
 
 /* SaveLoad Manager Stuff */
-#fSaveLoadManager {
+#fSaveLoad {
 	position: absolute;
 	top: 0px;
 	right: 0px;

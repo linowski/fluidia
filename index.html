@@ -12,8 +12,7 @@
 <script src="engine/js/jquery.scrollTo-min.js" type="text/javascript"></script>
 <script src="engine/js/base_jquery.js" content="text/javascript"></script>
 <script src="engine/js/webtoolkit.base64.js" content="text/javascript"></script>
-</head>
-
+<script src="engine/js/ajaxupload.js" content="text/javascript"></script>
 <link rel="shortcut icon" type="image/ico" href="/engine/images/favicon4.ico" />
 </head>
 
@@ -256,27 +255,27 @@
 </div>
 
 
-<div id="fSaveLoadManager">
+<div id="fSaveLoad">
 	<div class="fSLCore" id="fSLSave">
 		<div style="position: absolute; top:0px; right: 0px;">
-		<a href="#" style="opacity: 0.2;"><img src="engine/images/b_save_off.png" class="hButton" border="0" title="Save"></a><a href="#" style="opacity: 0.1;" onmouseover="fSaveLoadManager.displayLoad();"><img src="engine/images/b_load_off.png" class="hButton" border="0" title="Load"></a>
+		<a href="#" style="opacity: 0.2;"><img src="engine/images/b_save_off.png" class="hButton" border="0" title="Save"></a><a href="#" style="opacity: 0.1;" onmouseover="fSaveLoad.displayLoad();"><img src="engine/images/b_load_off.png" class="hButton" border="0" title="Load"></a>
 		</div>
 		<div>
 			<span class="fTThick2">save as</span><br>
 			<span class="fT11">a web link:</span><br>
 			<div style="margin: 3px 0 6px 0;">
-				<a href="#" onclick="fSaveLoadManager.taken();" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="float: right; margin: -3px 6px 0 0px;"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display:inline; vertical-align: bottom;"></a>
+				<a href="#" onclick="fSaveLoad.taken();" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="float: right; margin: -3px 6px 0 0px;"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display:inline; vertical-align: bottom;"></a>
 				<span class="fT9 fTDim">fluidia.org/ </span><input type="text" name="urlname" class="fT9 fInput fNoHotKey" id="fSaveAsUrlName" style="width: 95px;">
 				<div class="fTThick2" id="fTaken">taken:(</div>
 			</div>
 			<br>
 			<span class="fT11">or as a local file:</span><br>
-			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="display: block; margin: 3px 0 0 -2px;"><img src="engine/images/b_saveLocal_off.png" border="0" title="Ok"></a>
+			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" onclick="fSaveLoad.saveLocal();" style="display: block; margin: 3px 0 0 -2px;"><img src="engine/images/b_saveLocal_off.png" border="0" title="Ok"></a>
 		</div>
 	</div>
 	<div class="fSLCore" id="fSLLoad">
 		<div style="position: absolute; top:0px; right: 0px;">
-		<a href="#" style="opacity: 0.1;" onmouseover="fSaveLoadManager.displaySave();"><img src="engine/images/b_save_off.png" class="hButton" border="0" title="Save"></a><a href="#" style="opacity: 0.2;"><img src="engine/images/b_load_off.png" class="hButton" border="0" title="Load"></a>
+		<a href="#" style="opacity: 0.1;" onmouseover="fSaveLoad.displaySave();"><img src="engine/images/b_save_off.png" class="hButton" border="0" title="Save"></a><a href="#" style="opacity: 0.2;"><img src="engine/images/b_load_off.png" class="hButton" border="0" title="Load"></a>
 		</div>
 		<div>
 			<span class="fTThick2">load</span><br>
@@ -287,7 +286,8 @@
 			</ul>
 			<br>
 			<span class="fT11">or from a local file:</span><br>
-			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" style="display: block; margin: 3px 0 0 -2px;"><img src="engine/images/b_loadFile_off.png" border="0" title="Ok"></a>
+			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" onclick="fSaveLoad.loadLocal();" style="display: block; margin: 3px 0 0 -2px;"><img src="engine/images/b_loadFile_off.png" border="0" title="Ok" id="upload_button"></a>
+			
 		</div>
 	</div>
 	<div class="fSLCore" id="fSLLogin">
@@ -297,7 +297,7 @@
 		<div>
 			<span class="fTThick2" id="fLoginHeader">login</span><br>
 			<input type="text" name="login" id="fInLogin" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="email"><br>
-			<input type="text" name="password" id="fInPassword" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="password"><br>
+			<input type="password" name="password" id="fInPassword" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="password"><br>
 			<a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);" id="fBLogin"><img src="engine/images/b_ok_off.png" border="0" title="Ok" style="display: block; margin: 3px 0 0 -2px;"></a>
 			
 		</div>
