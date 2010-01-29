@@ -77,7 +77,9 @@ $(document).ready(function(){
 	$("#xpos").bind("keyup",updateXpos);
 	$("#ypos").bind("keyup",updateYpos);
 	
-	//$(".fNoHotKey").bind("focus",hotkeysDisable);
+	$(".fNoHotKey").bind("focus",hotkeysDisable);
+	$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
+	
 	$(window).bind("focus",hotkeysEnable);
 	
 	$(document).bind("mousemove",fGM.capture); //global mouse with page coordinates
@@ -85,7 +87,7 @@ $(document).ready(function(){
 	//first tool
 	toolSelect();
 	
-	//$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
+	
 	//$(window).focus();
 	
 	//bind window focus event to resize
@@ -4222,11 +4224,12 @@ var fSaveLoad = {
 		$("#fBLogout").bind("click",fSaveLoad.logout);
 	},
 	show : function(event) {
+		//$("#container").bind("click",fSaveLoad.hide);
+		$(window).bind("focus",fSaveLoad.hide);
 		var clickedOn = $(event.target).attr("id");
 		$("#fSaveLoad").show();
 		$("#fSave").bind("mouseenter",fSaveLoad.displaySave);
 		$("#fLoad").bind("mouseenter",fSaveLoad.displayLoad);
-		$("#container").bind("click",fSaveLoad.hide);
 
 		//display load or save
 		if(clickedOn == "bSave") {
@@ -4274,12 +4277,11 @@ var fSaveLoad = {
 		});
 	},
 	hide : function () {
-		$(window).focus();
 		$("#fSaveLoad").fadeOut(100);
 		$("input").blur();
 		$("#fSave").unbind("mouseenter,mouseleave");
 		$("#fLoad").unbind("mouseenter,mouseleave");
-		$("#container").unbind("click",fSaveLoad.hide);
+		//$(window).unbind("focus",fSaveLoad.hide);
 	},
 	taken : function () {
 		//display taken text
@@ -4407,7 +4409,6 @@ var fSaveLoad = {
 				$("#hLoggedOut").show();
 			}
    		});
-		
 	},
 	saveSessionDelay: function(){
 		//saveSession set timeout
@@ -4419,45 +4420,28 @@ var fSaveLoad = {
 		}, 4000);
 	},
 	saveSession: function(saveType){
-			var url = '/app/save_session.json';
-			// jQuery
-			var data = jO.jsonToText();
-			$.ajax({
-				url: url,
-				data: "fluidia_object=" + data,
-				type: 'POST',
-				dataType: 'json',
-				success: (function(){
-					if (saveType == 'saveLocal') {
-						var url = '/app/download_session.json';
-						//$.get(url);
-						//window.open(url);
-						setTimeout( function(){
-							$.download(url, 'data=data')
-						},1000);
-						
-						//close window
-						fSaveLoad.hide();
-					}
-				})(saveType)
-			});
-			
-			
-			//$.post(url, {
-			//	fluidia_object: data
-			//}, (function(saveType){
-				//optional Save Local 
-			//	if (saveType == 'saveLocal') {
-			//		var url = '/app/download_session.json';
+		var url = '/app/save_session.json';
+		// jQuery
+		var data = jO.jsonToText();
+		$.ajax({
+			url: url,
+			data: "fluidia_object=" + data,
+			type: 'POST',
+			dataType: 'json',
+			success: (function(){
+				if (saveType == 'saveLocal') {
+					var url = '/app/download_session.json';
 					//$.get(url);
 					//window.open(url);
-			//		$.download(url,'data=' + jO.jsonToText());
+					setTimeout( function(){
+						$.download(url, 'data=data')
+					},1000);
 					
-			//	}
-			//})(saveType));
-	
-	
-		
+					//close window
+					fSaveLoad.hide();
+				}
+			})(saveType)
+		});
 	}
 }
 
