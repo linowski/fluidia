@@ -985,7 +985,7 @@ function toolObject() {
 	killResizable(); // remove all resizable
 	fExp.hideOverview(); //hide threadbar if active
 
-	document.getElementById("iconObject").src = "engine/images/b_object_on.png";
+	$("#iconObject").addClass("active");
 
 	$("#fWorkspace").bind("mousemove",Draw);
 	
@@ -1005,7 +1005,7 @@ function toolForm() {
 	killResizable(); // remove all resizable
 	fExp.hideOverview(); //hide threadbar if active
 
-	document.getElementById("iconForm").src = "engine/images/b_form_on.png";
+	$("#iconForm").addClass("active");
 
 	fSel.highlight();
 	
@@ -1029,7 +1029,7 @@ function toolText() {
 	killResizable(); // remove all resizable
 	fExp.hideOverview(); //hide threadbar if active
 
-	document.getElementById("iconText").src = "engine/images/b_text_on.png";
+	$("#iconText").addClass("active");
 
 	$("#fWorkspace").bind("mousemove",Draw);
 	
@@ -1044,7 +1044,7 @@ function toolSelect() {
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOff();
-	document.getElementById("iconSelect").src = "engine/images/b_arrow_on.png";
+	$("#iconSelect").addClass("active");
 	fExp.hideOverview(); //hide threadbar if active
 
 	$("#fWorkspace").bind("click",fSel.selectBinding);
@@ -1057,16 +1057,16 @@ function toolSelect() {
 
 
 function toolExperience() {
-	//fTools.selected = "toolExperience";
+	fTools.selected = "toolExperience";
 
 	//clear all tools
-	//fTools.clearIcons(); // Visually
-	//fTools.clearEvents(); // Eventwise
+	fTools.clearIcons(); // Visually
+	fTools.clearEvents(); // Eventwise
 
-	//killDrag(); // remove all dragging behaviours
-	//killResizable(); // remove all resizable
+	killDrag(); // remove all dragging behaviours
+	killResizable(); // remove all resizable
 
-	//document.getElementById("iconET").src = "engine/images/b_et_on.png";
+	$("#iconET").addClass("active");
 	
 	fExp.showThreadBar();
 }
@@ -2174,14 +2174,10 @@ var fCBManager = {
 	},
 	pasteAsMaster : function() {
 		//clear button Instance
-		var imgsrc = $("#buttonNewInstance").attr("src");
-		imgsrc = imgsrc.replace("_on","_off");
-		$("#buttonNewInstance").attr("src",imgsrc);
+		$("#buttonNewInstance").removeClass("active");
 		
 		//set Master
-		imgsrc = $("#buttonNewMaster").attr("src");
-		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
-		$("#buttonNewMaster").attr("src",imgsrc);
+		$("#buttonNewMaster").addClass("active");
 		
 		//update "as" field
 		$("#fPasteMode").html("master");
@@ -2190,14 +2186,10 @@ var fCBManager = {
 	},
 	pasteAsInstance : function() {
 		//clear button Master
-		var imgsrc = $("#buttonNewMaster").attr("src");
-		imgsrc = imgsrc.replace("_on","_off");
-		$("#buttonNewMaster").attr("src",imgsrc);
+		$("#buttonNewMaster").removeClass("active");
 		
 		//set Instance
-		imgsrc = $("#buttonNewInstance").attr("src");
-		imgsrc = imgsrc.replace(/(_over|_off)/,"_on");
-		$("#buttonNewInstance").attr("src",imgsrc);
+		$("#buttonNewInstance").addClass("active");
 		
 		//update "as" field
 		$("#fPasteMode").html("instance");
@@ -2500,9 +2492,7 @@ var fStateManager = {
 		$(".fSMStates").children().remove();
 		
 		//clear editAll
-		imgsrc = $("#editAll").attr("src");
-		imgsrc = imgsrc.replace(/(_over|_on)/,"_off");
-		$("#editAll").attr("src",imgsrc);
+		$("#editAll").attr("class","btt-edit-all");
 			
 		//preload number of states
 		var i = 0;
@@ -2514,9 +2504,7 @@ var fStateManager = {
 		// if editAll true
 		if (fSession[fSel.nInst].editStatesAs == 1) {
 			//set editAll
-			imgsrc = $("#editAll").attr("src");
-			imgsrc = imgsrc.replace(/(_over|_off)/, "_on");
-			$("#editAll").attr("src", imgsrc);
+			$("#editAll").attr("class","btt-edit-all");
 			
 			//update State Text
 			$("#fSMStateName").text("All States");
@@ -2706,8 +2694,8 @@ var fTools = {
 		
 	},
 	clearIcons : function() {
-		$("#toolbox > a > img").each(function() {
-			$(this).attr("src",$(this).attr("src").replace("_on","_off"));
+		$("#toolbox > a").each(function() {
+			$(this).removeClass("active");
 		});
 	},
 	clearEvents : function() {
@@ -3344,8 +3332,8 @@ var fWorkspace = {
 			$(".panelIcons").children().show();
 			
 			//buttons
-			$("#bDesign").attr("src",$("#bDesign").attr("src").replace("_over","_on"));
-			$("#bPresent").attr("src",$("#bPresent").attr("src").replace("_on","_off"));
+			$("#bDesign").addClass("active");
+			$("#bPresent").removeClass("active");
 			
 			//select page
 			fPanelPages.setSelectedPage(fPanelPages.selectedPageId);
@@ -3369,8 +3357,8 @@ var fWorkspace = {
 			$(".panelIcons").children().hide();
 			
 			//buttons
-			$("#bDesign").attr("src",$("#bDesign").attr("src").replace("_on","_off"));
-			$("#bPresent").attr("src",$("#bPresent").attr("src").replace("_over","_on"));
+			$("#bDesign").removeClass("active");
+			$("#bPresent").addClass("active");
 			
 			//expand workspace
 			$("#fWorkspace").addClass("fWorkspaceExpanded");
@@ -4582,9 +4570,8 @@ var fFooter = {
 				//$("#" + fSel.sI[0]).removeClass("selectedInst");
 				
 				//clear button Instance
-				var imgsrc = $("#buttonfMIToggle").attr("src");
-				imgsrc = imgsrc.replace("_ma","_in");
-				$("#buttonfMIToggle").attr("src",imgsrc);
+				$("#buttonfMIToggle").removeClass("btt-edit-master");
+				$("#buttonfMIToggle").addClass("btt-edit-instance");
 				
 				//unbind and rebind 
 				$("#buttonfMIToggle").unbind();
@@ -4615,9 +4602,8 @@ var fFooter = {
 				//change look of selected class
 				//$("#" + fSel.sI[0]).addClass("selectedInst");
 				
-				var imgsrc = $("#buttonfMIToggle").attr("src");
-				imgsrc = imgsrc.replace("_in","_ma");
-				$("#buttonfMIToggle").attr("src",imgsrc);
+				$("#buttonfMIToggle").removeClass("btt-edit-instance");
+				$("#buttonfMIToggle").addClass("btt-edit-master");
 				
 				//unbind and rebind 
 				$("#buttonfMIToggle").unbind();

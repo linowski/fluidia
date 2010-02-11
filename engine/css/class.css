@@ -1,0 +1,41 @@
+/* Artmov
+FluidIA: www.fluidia.org
+Date:21/01/2010
+*/
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big,cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td { margin:0; padding:0; border:0; outline:0; font-weight:inherit; font-style:inherit; font-size:100%; font-family:inherit; vertical-align:baseline; }
+a img { border:0; }
+strong { font-weight:bold; }
+em { font-style:italic; }
+ul, ol, dl { padding:0; }
+ul li { list-style-position:inside; list-style:none; margin:0; }
+ol li { list-style-position:inside; list-style:none; margin:0; }
+dl dd { margin:0 0 0 10px; }
+table { border-collapse:collapse; margin:0 0 10px 0; }
+th, td { border:1px solid #CCC; padding:10px; }
+th { font-weight:bold; text-align:center; }
+caption { margin:0 0 10px 0; text-align:center; }
+p, fieldset { line-height:19px; margin:0 0 10px 0; }
+abbr, acronym { border-bottom:1px dotted #000; cursor:help; }
+h1 { font-size:20px; font-weight:normal; margin:0 0 10px 0; }
+h2 { font-size:18px; font-weight:normal; margin:0 0 10px 0; }
+h3 { font-size:16px; font-weight:normal; margin:0 0 10px 0; }
+h4 { font-size:14px; font-weight:normal; margin:0 0 10px 0; }
+h5 { font-size:12px; font-weight:normal; margin:0 0 10px 0; }
+h6 { font-size:10px; font-weight:normal; margin:0 0 10px 0; }
+.floatleft { float:left; }
+.floatright { float:right; }
+.clearing { clear:both; }
+.icon { position:relative; bottom:-4px; margin-right:8px; }
+.padding { padding:10px; }
+.nomargintop { margin-top:0px !important; }
+.nomarginright { margin-right:0px !important; }
+.nomarginbottom { margin-bottom:0px !important; }
+.nomarginleft { margin-left:0px !important; }
+.nobordertop { border-top:none !important; }
+.noborderight { border-right:none !important; }
+.noborderbottom { border-bottom:none !important; }
+.noborderleft { border-left:none !important; }
+.nopaddingtop { padding-top:0px !important; }
+.nopaddingright { padding-right:0px !important; }
+.nopaddingbottom { padding-bottom:0px !important; }
+.nopaddingleft { padding-left:0px !important; }
