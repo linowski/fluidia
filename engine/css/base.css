@@ -120,7 +120,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 /* WRAPPER */
 #wrapper { float:left; width:100%; margin-bottom:2px; }
 #header { display:block; height:37px; background:#F3F3F3 url(../images/btt-buttons.png) no-repeat 0 0; }
-#toolbox { background:#F3F3F3; float:left; width:36px; }
+#toolbox { background:#F3F3F3; float:left; width:38px; }
 #workspace { float:left; display:block; margin-top:1px; }
 #rightpanel { background:#F3F3F3; float:right; width:140px; font-size:9px; position:relative; }
 #footer { clear:both; background:#F3F3F3; color:#DFDFDF; padding:0; width:100%; height:37px; font-size:10px; }
@@ -139,7 +139,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 		#header #hSave a { float:left; margin:0 3px; }
 		#header #hSave > div, #hSave > a { float:left; }
 		#header #hSave a#fBLogout { float:right; margin-top:5px; }
-		#header #hSave .hButton { padding:0 5px 0 0; border:0; }
+		.hButton { padding:0 5px 0 0; border:0; }
 			#header #hLoggedOut { }
 			#header #hLoggedIn { text-align:right; padding:0 10px 0 0; width:160px; height:15px; display:none; }		
 			
@@ -162,7 +162,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 	
 	
 /* Workspace */
-#fNotify {	background:#4C4C4C; border:4px solid #4C4C4C; border-radius:6px;	-webkit-border-bottom-right:6px;	-moz-border-radius-bottomright:6px; position:absolute; height:30px; left:36px; z-index:100002; padding:10px 10px 0 10px; margin:1px 0 0 0; color:#FFFFFF; font-size:18px; font-family:Verdana; display:none; opacity:0; }
+#fNotify {	background:#4C4C4C; border:4px solid #4C4C4C; border-radius:6px;	-webkit-border-bottom-right:6px;	-moz-border-radius-bottomright:6px; position:absolute; height:30px; left:38px; z-index:100002; padding:10px 10px 0 10px; margin:1px 0 0 0; color:#FFFFFF; font-size:18px; font-family:Verdana; display:none; opacity:0; }
 .fWorkspace { border:1px solid #dFdFdF; overflow:hidden; position:absolute; background:#FFF; }
 	/* Experience Threads */
 	#fExpThreadBar { position:absolute; z-index:100001;	height:48px; margin:1px 0 0 1px; display:none; background:#B2B2B2; }
@@ -347,7 +347,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 
 .fObject { border:1px solid #dfdfdf; background:#FFF; position:absolute; text-align:center; }
 
-.fForm { position:absolute; cursor:default; opacity:0.5; }
+.fForm { position:absolute; cursor:default; opacity:1; }
 
 .p1 {}
 .p2 { background:#dfdfdf; }
@@ -366,7 +366,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 div.fLabel:hover { color:#333333; }
 
 
-.fHighlight { position:absolute; top:0px; left:0px; outline:3px solid #000000; outline-offset:0px; text-align:left; width:100%; height:100%; }
+.fHighlight { position:absolute; top:0px; left:0px; outline:1px solid #000000; outline-offset:1px; text-align:left; width:100%; height:100%; }
 
 .parent { background-image:url('../images/bg_parent.gif'); background-position:top right; background-repeat:no-repeat; }
 

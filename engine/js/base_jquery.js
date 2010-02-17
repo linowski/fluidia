@@ -37,7 +37,7 @@ $(document).ready(function(){
 	    method : 'GET',
 		dataType : 'json',
 		success: function(data, status){
-			fSaveLoad.latestSession = data.session_count;
+			fSaveLoad.latestSession = data.session_count; 
 						
 			//load data from standard file
 			if((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
@@ -130,9 +130,10 @@ $(document).ready(function(){
 
 // -------- General Resizing Functions -----
 function fFocusWindow(e){
-	//only loose focus if not clicking on INPUT
-	if (e.target.tagName != "INPUT") {
+	//only loose focus if not clicking on an already active Element
+	if ((e.target != document.activeElement) && (e.target.tagName != "INPUT")) {
 		$("input").blur();
+		$("textarea").blur();
 		$(window).focus();
 	}
 }
@@ -247,7 +248,7 @@ function keypressed(event) {
 			fSel.selectObject($("#fWorkspace"));
 		}
 		
-		fWorkspace.redraw({type: 'page'}); 
+		fWorkspace.redraw(); 
 	}
 
 	// ctrl key
@@ -289,7 +290,7 @@ function keypressed(event) {
 	// and close it when an ESC is pressed
 	if (whichkey == "27") { fDebugJson.hideManager(); }
 	
-	// z key
+	// z key 
 	if (whichkey == "90") { fStateManager.displayManager(); }
 	
 	// f key
@@ -333,7 +334,7 @@ function setTone(what){
 			//force inheritance and set
 			else if(fSession[jO.tr(fSel.sI[i])].editAs == 1) { jO.update(jO.tr(fSel.sI[i]), {type: "instance",iTone: 0, t:what}); }
 		}
-		fWorkspace.redraw({type: 'page'}); 
+		fWorkspace.redraw(); 
 		fFooter.redrawFooter();
 	}
 }
@@ -575,12 +576,12 @@ function Draw(event){
 					//redraw itself (to have a label)
 					//fWorkspace.redraw({type: 'instance',item: $(d).attr("id")});
 				}
-				fWorkspace.redraw({type: 'page'});
+				fWorkspace.redraw();
 			}
 			//TXT
 			if (fTools.selected == "toolText") {
 				//refresh page for all TXT items
-				fWorkspace.redraw({type: 'page'});
+				fWorkspace.redraw();
 				fSel.lastText = newInstanceName;
 			}
 			
@@ -694,7 +695,7 @@ function dragStop(mydrag) {
 	}
 
 	//update Workspace
-	fWorkspace.redraw({type: 'page'});
+	fWorkspace.redraw();
 	fFooter.redrawFooter();
 }
 
@@ -818,7 +819,7 @@ function resizeStop() {
 				h: $("#" + fSel.sI[i]).height(),
 			});
 			
-			fWorkspace.redraw({type: 'page'});
+			fWorkspace.redraw();
 		}
 		
 		
@@ -878,7 +879,6 @@ $.fn.fEditable = function() {
 
 	//attach on change
 	inputElement.bind("blur",closeEditing);
-	//$("#container").bind("click",closeEditing);
 	inputElement.bind("keyup",function(event) {if(event.which == "13") { closeEditing(); } });
 }
 
@@ -901,7 +901,6 @@ function closeEditing(){ // if I have "blur change" together AIR crashes
 	clickedElement.show();
 	inputElement.unbind();
 	inputElement.remove();
-	$("#container").unbind("click",closeEditing);
 	
 	hotkeysEnable();
 }
@@ -936,7 +935,6 @@ $.fn.fEditableLabel = function() {
 
 	//attach on change
 	clickedElement.find(".fEditableLabel").bind("change blur",fWorkspace.saveLabel);
-	$("#container").bind("click",fWorkspace.saveLabel);
 }
 
 
@@ -963,7 +961,7 @@ $.fn.fEditableText = function() {
 	killDrag(); //because people might want to highlight text
 
 	//attach on change
-	$("#container").bind("click",fWorkspace.saveText);
+	clickedElement.find(".fEditableText").bind("change blur",fWorkspace.saveText);
 	
 	//focus the newly created editable input box
 	$("#fEditing").focus();
@@ -1216,9 +1214,13 @@ var jO = {
 		
 		//file loading
 		if(type == 'file') {
-			$.getJSON(whatToLoad, function(data){
+			$.ajax({
+			  url: whatToLoad,
+			  dataType: 'json',
+			  success: function(data){
 				jO.jData = data;
 				fWorkspace.init();
+				}
 			});
 		}
 		else if(type == 'json') {
@@ -1335,8 +1337,9 @@ var jO = {
 		else if(type == 'thread') { lookWhere = jO.jData.threads; idName = "t";}
 		
 		var availableId = 0;
+		//alert (lookWhere + ":" + type + ":" + idName);
 		for (i=1;i < 100000;i++) {
-			if (idName + i in lookWhere) {}
+			if (lookWhere[idName + i] != undefined) {}
 			else { availableId = idName + i; break;	}
 		}
 		return(availableId);
@@ -2146,7 +2149,7 @@ var fCBManager = {
 				}
 				
 				//redraw Objects
-				fWorkspace.redraw({type: 'page'});
+				fWorkspace.redraw();
 				
 				//reposition if overlapping
 				this.indentPosition(ID);
@@ -2359,7 +2362,7 @@ var fIdeaManager = {
 		this.chooseIdea(newIdea);
 		
 		//fWorkspace.redraw({type: 'object',item : fSel.nObj}); 
-		fWorkspace.redraw({type: 'page'}); 
+		fWorkspace.redraw(); 
 	},
 	redraw : function() {
 		//clear all ideas
@@ -2638,7 +2641,7 @@ var fFormManager = {
 		this.hideManager();
 		
 		//redraw
-		fWorkspace.redraw({type: 'page'});
+		fWorkspace.redraw();
 		
 		//indent
 		fCBManager.indentPosition(newInstanceName);
@@ -2791,7 +2794,6 @@ var fWorkspace = {
 	},
 	redraw : function(options){
 		// takes two properties: type and item
-		// type can be 'page', 'instance', 'object'
 		// item is a string of instanceName or objectName
 		// when a page is redrawn, it uses the currentpage
 		//alert(options.type);
@@ -3071,7 +3073,7 @@ var fWorkspace = {
 						$("#" + attachWhereArray[i]).append("<select id=\"" + item + "\" class=\"fForm" + insideClass + "\" readonly></select>"); 
 					}
 					if(type == "bu") {
-						$("#" + attachWhereArray[i]).append("<input id=\"" + item + "\" class=\"fForm" + insideClass + "\" type=\"button\" readonly>"); 
+						$("#" + attachWhereArray[i]).append("<input id=\"" + item + "\" class=\"fForm" + insideClass + "\" type=\"button\" readonly>");
 					}
 					
 					// adjust properties
@@ -3096,6 +3098,9 @@ var fWorkspace = {
 		
 		//reset window focus just in case
 		$(window).focus();
+		
+		//highlight selected
+		fSel.highlight();
 		
 	},
 	restyle : function() {
@@ -3159,14 +3164,13 @@ var fWorkspace = {
 	},
 	positionManager : function(what) {
 		var setx = 0;
-		var sety = 0;
 
 		$('#' + what).fadeIn(100);
 		//check if x is not exceeding maximum x allowed
-		if(fGM.x + $("#" + what).width() > $().width() - 40) {	setx = $().width() - 40 - $("#" + what).width();	}
+		if(fGM.x + $("#" + what).width() > $(window).width() - 40) {	setx = $(window).width() - 40 - $("#" + what).width();	}
 		else { setx = fGM.x; }
 		//check if y is not exceeding maximum y allowed
-		if(fGM.y + $("#" + what).height() > $().height() - 60) {	sety = $().height() - 60 - $("#" + what).height();	}
+		if(fGM.y + $("#" + what).height() > $(window).height() - 60) {	sety = $(window).height() - 60 - $("#" + what).height();	}
 		else { sety = fGM.y; }
 		//check if x is not exceeding minimum x allowed
 		if (fGM.x < 180) { setx = 180; }
@@ -3199,60 +3203,48 @@ var fWorkspace = {
 	},
 	saveLabel : function(event) {
 		if (fWorkspace.allowSaveLabel == true) {
-			//if the user clicks on the input box, do not run the rest of the code (to allow clicking on the input box / selecting text)
-			if (!((event.type == "click") && ($(event.target).attr("id") == "fEditing"))) {
-				//alert($(event.target).attr("id") + event.type);
-				
-				//stop saveLabel from running twice (since multiple events are bound which call this function)
-				fWorkspace.allowSaveLabel = false;
-				
-				//update jData
-				//alert(fWorkspace.editingLabelInstance);
-				saveAs = $("#" + fWorkspace.editingLabelInstance).find("input").attr("value");
-				if ((saveAs == "") || saveAs == undefined) {
-					saveAs = "new object";
-				}
-				jO.jData.objects[jO.jData.instances[fWorkspace.editingLabelInstance].of].name = saveAs;
-				
-				hotkeysEnable();
-				
-				$("#" + fWorkspace.editingLabelInstance).unbind("change blur", fWorkspace.saveLabel);
-				//$(window).unbind("click", fWorkspace.saveLabel);
-				$("#container").unbind("click", fWorkspace.saveLabel);
-				
-				//redraw
-				fWorkspace.redraw({
-					type: 'object',
-					item: jO.jData.instances[fWorkspace.editingLabelInstance].of
-				});
-				
-				//enable last drag
-				fSel.makeDraggable();
-				
-				//update footer
-				fFooter.redrawFooter();
-				
-				//savesession
-				fSaveLoad.saveSessionDelay();
+			//stop saveLabel from running twice (since multiple events are bound which call this function)
+			fWorkspace.allowSaveLabel = false;
+			
+			//update jData
+			//alert(fWorkspace.editingLabelInstance);
+			saveAs = $("#" + fWorkspace.editingLabelInstance).find("input").attr("value");
+			if ((saveAs == "") || saveAs == undefined) {
+				saveAs = "new object";
 			}
+			jO.jData.objects[jO.jData.instances[fWorkspace.editingLabelInstance].of].name = saveAs;
+			
+			hotkeysEnable();
+			
+			$("#" + fWorkspace.editingLabelInstance).unbind("change blur", fWorkspace.saveLabel);
+			
+			//redraw
+			fWorkspace.redraw({
+				type: 'object',
+				item: jO.jData.instances[fWorkspace.editingLabelInstance].of
+			});
+			
+			//enable last drag
+			fSel.makeDraggable();
+			
+			//update footer
+			fFooter.redrawFooter();
+			
+			//savesession
+			fSaveLoad.saveSessionDelay();
 		}
 	},
 	saveText : function(event) {
-		//if the user clicks on the text box, do not run the rest of the code (to allow clicking on the input box / selecting text)
-		if (!((event.type == "click") && ($(event.target).attr("id") == "fEditing"))) {
-		
 			//update jData
 			saveAs = $("#fEditing").val();
 			jO.jData.elements[jO.tr(fWorkspace.editingTextInstance)].txt = saveAs;
 			
 			hotkeysEnable();
 			
-			$("#container").unbind("click", fWorkspace.saveText);
+			$("#" + fWorkspace.fEditableText).unbind("change blur", fWorkspace.saveText);
 			
 			parentInstance = $("#" + fWorkspace.editingTextInstance).parent().attr("id");
-			fWorkspace.redraw({
-				type: 'page'
-			});
+			fWorkspace.redraw();
 			
 			fWorkspace.editingText = false;
 			
@@ -3267,7 +3259,7 @@ var fWorkspace = {
 			
 			//savesession
 			fSaveLoad.saveSessionDelay();
-		}
+		
 	},
 	notify : function(text) {
 		this.notifyHide();
@@ -3319,7 +3311,7 @@ var fWorkspace = {
 					jO.updateElements(jO.tr(fSel.sI[i]), {x: newxpos, y: newypos});
 				}
 			}
-			fWorkspace.redraw({type: 'page'}); 
+			fWorkspace.redraw(); 
 			fFooter.redrawFooter();
 		}
 	},
@@ -3792,13 +3784,11 @@ var fExp = {
 				}
 				//ad in between
 				else if(fExp.positionOver.match("after")) {
-					//alert(parseInt(fExp.positionOver));
 					jO.createThreadPoint(fSession.sThread,type,parseInt(fExp.positionOver),'after');
 				}
 			}
 			// or replace
 			else {
-				//alert(parseInt(fExp.positionOver));
 				jO.createThreadPoint(fSession.sThread,type,parseInt(fExp.positionOver));
 			}
 			$("#fExpTBOver").hide();
@@ -3906,20 +3896,20 @@ var fSel = {
 	nObj : "", //string name of selected object
 	nInst : "", //string name of selected instance
 	lastText : null, //string name of last drawn or selected text
-	
 	selectBinding : function(event) {
 		var element=$(event.target);
-		var whatClicked = event.which;
-	
-		//clear resizable?
+		//clear resizable
 		killResizable();
-		
+		killDrag();
+
 		//if clicked on label, grab the parent element
-		if(element.attr("class") == "fLabel") {element = element.parent().parent();}
+		if(element.attr("class").match("fLabel")) {element = element.parent().parent();}
+		
+		//if clicked on fHighlight, grab the parent element
+		else if(element.attr("class").match("fHighlight")) {element = element.parent();}
 		
 		//make the new element draggable (if its not the workspace and it is not already selected (the same object))
 		if ((element.attr("id") != "fWorkspace") && (lastDraggable != element)) {
-	
 			//only continue if not a right click (which is reserved for a different handler)
 			if(event.button != 2) {
 				//only allow to select fObjects or fText or fForm
@@ -3931,14 +3921,9 @@ var fSel = {
 		if (element.attr("id") == "fWorkspace") {
 			// select the fWorkspace
 			fSel.selectObject(element);
-			//if (fSel.sI.length > 0) {	fSel.sI.splice(0); }
-			
-			// kill draggables
-			killDrag();
 		}
 	},
 	selectObject : function(what) {
-		
 		// can access an index number to a DOM element, a DOM reference or an instance name
 		// what is converted to a jQuery object
 		//alert(what + ":" + $(what).attr("id"));
@@ -4170,7 +4155,7 @@ var fSel = {
 		//}
 	},
 	highlight : function() {
-		if ((fSel.sI[0] != null) && ($("#" + fSel.sI[0] + " > div.fHighlight").length == 0)) {
+		if ((fSel.sI[0] != null)) {
 			if ((fSel.sI[0].match("ins")) || (fSel.sI[0].match("fWorkspace"))) {
 				highLightWhat = fSel.sI[0];
 			}
@@ -4186,7 +4171,7 @@ var fSel = {
 
 			//animate border to indicate where you are drawing (for instances)
 			$("#" + highLightWhat).prepend('<div class="fHighlight"></div>');
-			$("#" + highLightWhat + " .fHighlight").animate({outlineOffset: "10"}, 300).animate({opacity: "0",outlineOffset: "0"}, 300, function(){$(this).remove();});
+			$(".fHighlight").stop(true).animate({opacity: "0"}, 500).animate({opacity: "1"}, 500);	
 		}
 	}
 }
@@ -4212,7 +4197,6 @@ var fSaveLoad = {
 		$("#fBLogout").bind("click",fSaveLoad.logout);
 	},
 	show : function(event) {
-		//$("#container").bind("click",fSaveLoad.hide);
 		$(window).bind("focus",fSaveLoad.hide);
 		var clickedOn = $(event.target).attr("id");
 		$("#fSaveLoad").show();
@@ -4220,14 +4204,14 @@ var fSaveLoad = {
 		$("#fLoad").bind("mouseenter",fSaveLoad.displayLoad);
 
 		//display load or save
-		if(clickedOn == "bSave") {
+		if(clickedOn == "fSave") {
 			fSaveLoad.displaySave();
 		}
-		else if(clickedOn == "bLoad") {
+		else if(clickedOn == "fLoad") {
 			fSaveLoad.displayLoad();
 		}
-		else if(clickedOn == "bLogin") {
-			fSaveLoad.displayLogin();
+		else if(clickedOn == "fLogin") {
+			fSaveLoad.displayLogin();		
 		}
 	},
 	displaySave : function() {
@@ -4802,10 +4786,9 @@ var fPanelPages = {
 		//fSel.selectObject($("fWorkspace"));
 		
 		//redraw workspace
-		fWorkspace.redraw({type: 'page'});
+		fWorkspace.redraw();
 	}
 };
-
 
 function checkMail(email){
 	var filter  = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
