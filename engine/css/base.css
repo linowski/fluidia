@@ -149,6 +149,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 			#fSaveLoad { position:absolute; top:0px; right:0px; width:205px; z-index:100001; display:none; }
 			#fSLSave, #fSLLoad, #fSLLogin { display:none; }
 			.fSLCore { background: #4c4c4c; padding: 20px 0px 5px 10px; border-left:5px solid #4c4c4c; border-bottom:7px solid #4c4c4c; border-radius-bottomleft:4px; -webkit-border-radius-bottomleft:4px; -moz-border-radius-bottomleft:4px; }
+			.fSaveServer {display: none;}
 
 			/* fSLLogin: Login Module */
 			#fSLLogin a.btt-ok { margin-top:5px;}
@@ -352,7 +353,7 @@ a.btt-action:hover { background-position:-533px -1397px; }
 .p1 {}
 .p2 { background:#dfdfdf; }
 .p3 { background:#5f5f5f; }
-.p4 { background:#000000; }
+.p4 { background:#1f1f1f; }
 
 
 .fText { background:#FFF url('../images/bg_txt01.png') 0px 1px repeat; position:absolute; font-size:12px; text-align:left; wrap-option:softwrap; white-space:pre-wrap !important; }

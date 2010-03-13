@@ -1,4 +1,3 @@
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" id="html">
 <head>
 <title>fluidIA: stage</title>
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
@@ -257,14 +256,16 @@
 		</div>
 		<div>
 			<span class="fTThick2">save as</span><br>
+			<div class="fSaveServer">
 			<span class="fT11">a web link:</span><br>
 			<div style="margin: 3px 0 6px 0;">
-				<a href="#" onclick="fSaveLoad.taken();" style="float: right; margin: -3px 0 0 0;" class="btt btt-ok">Ok</a>
+				<a href="#" id="fBCreateProject" style="float: right; margin: -3px 0 0 0;" class="btt btt-ok">Ok</a>
 				<span class="fT9 fTDim">fluidia.org/ </span><input type="text" name="urlname" class="fT9 fInput fNoHotKey" id="fSaveAsUrlName" style="width: 95px;">
 				<div class="fTThick2" id="fTaken">taken:(</div>
 			</div>
 			<br />
-			<span class="fT11">or as a local file:</span><br>
+			</div>
+			<span class="fT11">as a local file:</span><br>
 			<a href="#" style="display: block; margin: 3px 0 0 -2px;" onclick="fSaveLoad.saveLocal();" class="btt btt-save-locally">Save Locally</a>
 		</div>
 	</div><!-- end .fSLCore -->
@@ -274,13 +275,15 @@
 		</div>
 		<div>
 			<span class="fTThick2">load</span><br>
+			<div class="fSaveServer">
 			<span class="fT11">a recent web link:</span><br>
 			<ul class="fList">
 				<li><a href="#" onclick="fServer.load();">fluidia.org/test/</a></li>
 				<li><a href="#" onclick="fServer.load();">fluidia.org/test/</a></li>
 			</ul>
 			<br />
-			<span class="fT11">or from a local file:</span><br>
+			</div>
+			<span class="fT11">from a local file:</span><br>
 			<a href="#" class="btt btt-load-file" onclick="fSaveLoad.loadLocal();" style="display: block; margin: 3px 0 0 -2px;" id="upload_button">Load File</a>
 		</div>
 	</div><!-- end .fSLCore -->

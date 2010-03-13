@@ -976,6 +976,7 @@ function toolObject() {
 	fTools.selected = "toolObject";
 
 	//clear all tools
+	fWorkspace.saveLabel(); //make sure an active label is saved before hand
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOn();
@@ -995,7 +996,6 @@ function toolForm() {
 	fTools.selected = "toolForm";
 
 	//clear all tools
-
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOff();
@@ -1019,13 +1019,14 @@ function toolText() {
 	fTools.selected = "toolText";
 
 	//clear all tools
-
+	fWorkspace.saveLabel(); //make sure an active label is saved before hand
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
 	fTools.crosshairOn();
 	killDrag(); // remove all dragging behaviours
 	killResizable(); // remove all resizable
 	fExp.hideOverview(); //hide threadbar if active
+	
 
 	$("#iconText").addClass("active");
 
@@ -1060,9 +1061,6 @@ function toolExperience() {
 	//clear all tools
 	fTools.clearIcons(); // Visually
 	fTools.clearEvents(); // Eventwise
-
-	killDrag(); // remove all dragging behaviours
-	killResizable(); // remove all resizable
 
 	$("#iconET").addClass("active");
 	
@@ -1633,6 +1631,9 @@ var jO = {
 		
 			//grab available ID
 			newInstId = jO.getAvailableId('inst');
+			
+			//unsure there are no undefined values in ps
+			if (state == undefined) {state = ""};
 			
 			//create instance
 			var addWhereRef = jO.jData.instances;
@@ -3224,9 +3225,6 @@ var fWorkspace = {
 				item: jO.jData.instances[fWorkspace.editingLabelInstance].of
 			});
 			
-			//enable last drag
-			fSel.makeDraggable();
-			
 			//update footer
 			fFooter.redrawFooter();
 			
@@ -4181,13 +4179,13 @@ var fSel = {
 // Saving and Loading of data controller
 var fSaveLoad = {
 	latestSession : null,
-	checkEmailTimer : null,
-	checkEmailTimerLast : null,
+	checkTimer : null,
+	checkTimerLast : null,
 	init : function() {
 		//attach onleave fade effects
 		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoad.show);
 		$("#fSaveLoad").bind("mouseenter",function() {$("#fSaveLoad").stop(true).fadeTo("",1);});
-		$("#fSaveAsUrlName").bind("keypress",fSaveLoad.taken);
+		$("#fSaveAsUrlName").bind("keyup",function(){ fSaveLoad.checkTimer = setTimeout("fSaveLoad.checkProject()",500); clearTimeout(fSaveLoad.checkTimerLast); fSaveLoad.checkTimerLast = fSaveLoad.checkTimer;});
 		
 		//bind clears
 		$("#fInLogin, #fInPassword").bind("focus",fSaveLoad.clearField);
@@ -4195,6 +4193,7 @@ var fSaveLoad = {
 		//bind buttons
 		$("#fBLogin").bind("click",fSaveLoad.login);
 		$("#fBLogout").bind("click",fSaveLoad.logout);
+		$("#fBCreateProject").bind("click",fSaveLoad.createProject);
 	},
 	show : function(event) {
 		$(window).bind("focus",fSaveLoad.hide);
@@ -4217,6 +4216,8 @@ var fSaveLoad = {
 	displaySave : function() {
 		$(".fSLCore").hide();
 		$("#fSLSave").show();
+		
+		fSaveLoad.checkLogin();
 	},
 	displayLoad : function() {
 		$(".fSLCore").hide();
@@ -4226,7 +4227,7 @@ var fSaveLoad = {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
 		$("#fSaveLoad").unbind("mouseleave",fSaveLoad.hide);
-		$("#fInLogin").bind("keyup",function(){ fSaveLoad.checkEmailTimer = setTimeout("fSaveLoad.checkEmail()",500); clearTimeout(fSaveLoad.checkEmailTimerLast); fSaveLoad.checkEmailTimerLast = fSaveLoad.checkEmailTimer;});
+		$("#fInLogin").bind("keyup",function(){ fSaveLoad.checkTimer = setTimeout("fSaveLoad.checkEmail()",500); clearTimeout(fSaveLoad.checkTimerLast); fSaveLoad.checkTimerLast = fSaveLoad.checkTimer;});
 	},
 	clearField : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4259,11 +4260,30 @@ var fSaveLoad = {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
 	},
+	checkProject : function () {
+		var url = '/app/project_exists.json';
+		var project = $("#fSaveAsUrlName").val();
+		
+		//see if project is taken or not
+		$.ajax({
+			url : url,
+			data: "project=" + project,
+		    method : 'GET',
+			dataType : 'json',
+			success: function(data, status){
+     			if (data.result == "false") {
+					$("#fTaken").hide();
+				}
+				else if (data.result == "true") {
+					$("#fTaken").hide().stop(true).show();
+				}
+			}
+   		});
+	},
 	checkEmail : function() {
 		var url = '/app/email_exists.json';
 		var username = $("#fInLogin").val();
 		
-
 		//change login to register
 		$.ajax({
 			url : url,
@@ -4279,6 +4299,37 @@ var fSaveLoad = {
 				}
 			}
    		});
+	},
+	checkLogin : function() {
+		var url = '/app/logged_in.json';
+		
+		//check if user is logged in
+		$.ajax({
+			url : url,
+		    method : 'GET',
+			dataType : 'json',
+			success: function(data, status){
+     			if (data.result == "false") {
+					//hide save	
+					$(".fSaveServer").hide();
+				}
+				else if (data.result == "true") {
+					$(".fSaveServer").show();
+				}
+			},
+			error: function(data,status) {
+				//hide save
+				$(".fSaveServer").hide();
+			}
+   		});
+	},
+	createProject : function() {
+		 var name = $("#fSaveAsUrlName").val();
+		 var description = $("#fSaveAsUrlName").val();
+		 var url = '/app/create_project.json';
+		
+		 // jQuery
+		 $.post(url, { project : name, description : description } );
 	},
 	login : function () {
 		var username = $("#fInLogin").val();
