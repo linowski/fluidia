@@ -703,31 +703,30 @@ function resizeStop() {
 	updateInfoWH();
 	
 	//update JSON position of items
-	
 	for (var i = 0; i < fSel.sI.length; i++) {
 		var itemRef = "";
 		
-		
 		// OBJECTS / INSTANCES
 		if (fSel.sI[i].match("ins") != null) {
+			var jInst = jO.jData.instances[jO.tr(fSel.sI[i])];
+			
 			//calculate necessary relative position change
 			//if editing as object master
-			
-			if (fSession[fSel.nInst].editAs == 0) {
-				initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
-				inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
+			if (fSession[fSel.sI[i]].editAs == 0) {
+				initx = fSel.jObj.states[fSession[fSel.sI[i]].state].x;
+				inity = fSel.jObj.states[fSession[fSel.sI[i]].state].y;
 			}
 			//else instance
 			else {
 				//if not inheriting from object
-				if (fSel.jInst.states[fSession[fSel.nInst].state].iPos == 0) {
-					initx = fSel.jInst.states[fSession[fSel.nInst].state].x;
-					inity = fSel.jInst.states[fSession[fSel.nInst].state].y;
+				if (jInst.states[fSession[fSel.sI[i]].state].iPos == 0) {
+					initx = jInst.states[fSession[fSel.sI[i]].state].x;
+					inity = jInst.states[fSession[fSel.sI[i]].state].y;
 				}
 				//if inheriting from object
 				else {
-					initx = fSel.jObj.states[fSession[fSel.nInst].state].x;
-					inity = fSel.jObj.states[fSession[fSel.nInst].state].y;
+					initx = fSel.jObj.states[fSession[fSel.sI[i]].state].x;
+					inity = fSel.jObj.states[fSession[fSel.sI[i]].state].y;
 				}
 			}
 			//calculate difference in positional change
@@ -739,14 +738,14 @@ function resizeStop() {
 				itemRef = fSel.jObj;
 				
 				//update all instances' position if they are inheriting size to compensate for top, left position changes during resize	
-				var Instances = jO.getInstancesOfObj(fSel.jInst.of, {
+				var Instances = jO.getInstancesOfObj(jInst.of, {
 					type: "workspace"
 				});
 				for (var j = 0; Instances.length > j; j++) {
 					instRef = jO.jData.instances[Instances[j]];
 					
 					//if they inherit size but not position
-					if ((instRef.states[fSession[fSel.nInst].state].iSize == 1) && (instRef.states[fSession[fSel.nInst].state].iPos == 0) && (Instances[j] != fSel.sI[i])) {
+					if ((instRef.states[fSession[fSel.sI[i]].state].iSize == 1) && (instRef.states[fSession[fSel.sI[i]].state].iPos == 0) && (Instances[j] != fSel.sI[i])) {
 						//alert(Instances[j] + ":"+ fSel.sI[i]);
 						//update the instance's position relatively + force inheritance of size
 						jO.update(Instances[j], {
@@ -761,7 +760,7 @@ function resizeStop() {
 				
 				//also update the object of course
 				//alert(changeX + ":" + changeY)
-				jO.update(fSel.nInst, {
+				jO.update(fSel.sI[i], {
 					type: "object",
 					xs: changeX,
 					ys: changeY,
@@ -770,7 +769,7 @@ function resizeStop() {
 				});
 				
 				//force inheritance
-				jO.update(fSel.nInst, {
+				jO.update(fSel.sI[i], {
 					type: "instance",
 					xs: changeX,
 					ys: changeY,
@@ -779,9 +778,9 @@ function resizeStop() {
 			}
 			//else editing as Instance
 			else {
-				itemRef = fSel.jInst;
+				itemRef = jInst;
 				//update the instance's position relatively + force inheritance of size
-				jO.update(fSel.nInst, {
+				jO.update(fSel.sI[i], {
 					type: "instance",
 					xs: changeX,
 					ys: changeY,
@@ -800,14 +799,14 @@ function resizeStop() {
 					//update all instances with which use this object, by passing object name (extracted from instance/of)
 					fWorkspace.redraw({
 						type: 'object',
-						item: fSel.jInst.of
+						item: jInst.of
 					});
 				}
 			}
 			
 		}	
 		// TEXT
-		if (fSel.sI[i].match("t") != null) {
+		if ((fSel.sI[i].match("t") != null) || fSel.sI[i].match("f") != null) {
 			//calculate difference in positional change
 			changeX = $("#" + fSel.sI[i]).position().left - jO.jData.elements[jO.tr(fSel.sI[i])].x;
 			changeY = $("#" + fSel.sI[i]).position().top - jO.jData.elements[jO.tr(fSel.sI[i])].y;
@@ -839,8 +838,8 @@ function killDrag(event) {
 }
 
 function killResizable(event) {
-	if(myresize) {
-		$("#"+myresize).resizable("destroy"); myresize = null;
+	for (var i = 0; i < fSel.sI.length; i++) {
+		$("#"+fSel.sI[i]).resizable("destroy"); 
 	}
 }
 
@@ -2253,7 +2252,7 @@ var fCBManager = {
 	},
 	hideManager : function() {
 		if (this.opened == true) {
-			$("#fCBManager").fadeOut(100);
+			$("#fCBManager").stop().fadeOut(100);
 			this.opened = false;
 		}
 	},
@@ -2331,6 +2330,9 @@ var fIdeaManager = {
 	selIdea : "1",
 	displayManager : function() {
 		if ((this.opened == false) && (fSel.sI[0].match("ins"))) {
+			//make sure only one items is selected
+			fSel.forceSelectOne();
+			
 			var setx = 0;
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
@@ -2353,7 +2355,7 @@ var fIdeaManager = {
 	},
 	hideManager : function() {
 		if (this.opened == true) {
-			$("#fIdeaManager").fadeOut(100);
+			$("#fIdeaManager").stop().fadeOut(100);
 			this.opened = false;
 		}
 	},
@@ -2372,12 +2374,12 @@ var fIdeaManager = {
 		//preload number of ideas
 		// if no ideas
 		if (!jO.jData.ideas.hasOwnProperty(fSel.nObj)) {
-			$(".fIMIdeas").append('<div class="fIMIdea" id="i1"><a href="#" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_state_off.png" border="0" title="Idea"></a><input type="radio" name="fStartingIdea"></div>');
+			$(".fIMIdeas").append('<div class="fIMIdea" id="i1"><a href="#" class="btt btt-states">States</a><input type="radio" name="fStartingIdea"></div>');
 		}
 		else {
 			var i = 1;
 			for (items in jO.jData.ideas[fSel.nObj]) {
-				$(".fIMIdeas").append('<div class="fIMIdea" id="i' + i + '"><a href="#" onclick="fIdeaManager.chooseIdea(\'' + i + '\')" onmouseover="rollOver(this);" onmouseout="rollOut(this);"><img src="engine/images/b_state_off.png" border="0" title="Idea"></a><input type="radio" name="fStartingIdea" onclick="fIdeaManager.chooseDefaultIdea(\'' + i + '\');"></div>');
+				$(".fIMIdeas").append('<div class="fIMIdea" id="i' + i + '"><a href="#" onclick="fIdeaManager.chooseIdea(\'' + i + '\')" class="btt btt-states">States</a><input type="radio" name="fStartingIdea" onclick="fIdeaManager.chooseDefaultIdea(\'' + i + '\');"></div>');
 				i++;
 			}
 			
@@ -2386,9 +2388,7 @@ var fIdeaManager = {
 		this.selIdea = jO.jData.objects[fSel.nObj].i;
 		
 		//select the currently selected idea
-		var imgsrc = $("#i" + this.selIdea + " img").attr("src");
-		imgsrc = imgsrc.replace("_off", "_on");
-		$("#i" + this.selIdea + " img").attr("src", imgsrc);
+		$("#i" + this.selIdea + " a").addClass("active");
 		
 		//update State Text
 		$("#fIdeaNumber").text(this.selIdea);
@@ -2455,6 +2455,9 @@ var fStateManager = {
 	opened : false,
 	displayManager : function() {
 		if ((this.opened == false) && (fSel.sI[0].match("ins"))) {
+			//make sure only one items is selected
+			fSel.forceSelectOne();
+			
 			var setx = 0;
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
@@ -2462,8 +2465,8 @@ var fStateManager = {
 			[setx,sety] = fWorkspace.positionManager('fStateManager');
 			
 			//reposition so that cursor is closer to the state selection area
-			setx -= 130;
-			sety -= 40;
+			setx -= 110;
+			sety -= 80;
 			
 			$("#fStateManager").css({left: setx});
 			$("#fStateManager").css({top: sety});
@@ -2496,27 +2499,25 @@ var fStateManager = {
 		$(".fSMStates").children().remove();
 		
 		//clear editAll
-		$("#editAll").attr("class","btt-edit-all");
+		$("#editAll").attr("class","btt btt-edit-all");
 			
 		//preload number of states
 		var i = 0;
 		for (items in jO.jData.objects[fSel.nObj].states) {
-			$(".fSMStates").append('<div class="fSMState" id="' + items + '"><a href="#" onclick="fStateManager.chooseState(\'' + items + '\')" onmouseover="rollOver(this); fStateManager.hoverOn(\'' + items + '\')" onmouseout="rollOut(this); fStateManager.hoverOff();"><img src="engine/images/b_state_off.png" border="0" title="State"></a><input type="radio" name="fStartingState" onclick="fStateManager.chooseDefaultState(\'' + items + '\');"></div>');
+			$(".fSMStates").append('<div class="fSMState" id="' + items + '"><a href="#" onclick="fStateManager.chooseState(\'' + items + '\')" class="btt btt-states">States</a><input type="radio" name="fStartingState" onclick="fStateManager.chooseDefaultState(\'' + items + '\');"></div>');
 		}
 		
 		
 		// if editAll true
 		if (fSession[fSel.nInst].editStatesAs == 1) {
 			//set editAll
-			$("#editAll").attr("class","btt-edit-all");
+			$("#editAll").attr("class","btt btt-edit-all active");
 			
 			//update State Text
 			$("#fSMStateName").text("All States");
 		}
 		else {
-			var imgsrc = $("#" + fSession[jO.tr(fSel.sI[0])].state + " img").attr("src");
-			imgsrc = imgsrc.replace("_off", "_on");
-			$("#" + fSession[jO.tr(fSel.sI[0])].state + " img").attr("src", imgsrc);
+			$("#" + fSession[jO.tr(fSel.sI[0])].state + " a").addClass("active");
 			
 			//update State Text
 			$("#fSMStateName").text(fSel.jObj.states[fSession[jO.tr(fSel.nInst)].state].sName);
@@ -2537,10 +2538,21 @@ var fStateManager = {
 		var newState = jO.createState(fSel.nInst);
 		this.redraw();
 		this.chooseState(newState);
-		
 	},
 	removeState : function() {
+		var stateToDelete = fSession[fSel.nInst].state;
 		
+		//check if not first one
+		if (stateToDelete != 's1') {
+			//remove from instances
+			delete jO.jData.instances[fSel.nInst].states[stateToDelete];
+			
+			//remove from objects
+			delete jO.jData.objects[fSel.nObj].states[stateToDelete];
+			
+			//select first state
+			this.chooseState('s1');
+		}
 	},
 	chooseState : function(whichState) {
 		//update selected state in fSession
@@ -3921,6 +3933,11 @@ var fSel = {
 			fSel.selectObject(element);
 		}
 	},
+	forceSelectOne : function(what) {
+		if (fSel.sI.length > 1) {
+			fSel.selectObject(fSel.sI[0]);
+		}
+	},
 	selectObject : function(what) {
 		// can access an index number to a DOM element, a DOM reference or an instance name
 		// what is converted to a jQuery object
@@ -4109,7 +4126,6 @@ var fSel = {
 		
 		//make draggable and resizable
 		if (fSel.sI[0] != "fWorkspace") {
-			//alert($(what).attr("id"));
 			this.makeDraggable();
 			this.makeResizable();
 		}
@@ -4123,24 +4139,24 @@ var fSel = {
 		for (var i = 0; i < fSel.sI.length; i++) {
 			var mydrag = fSel.sI[i];
 			(function(mydrag) {
-                    $("#" + mydrag).draggable({
-                            cancel: [''],
-                            distance: 5,
-                            containment: "#fWorkspace",
-                            handle: mydrag,
-                            start: function() { dragRegister(mydrag); },
-                            drag: function() { dragItems(mydrag); },
-                            stop: function() { dragStop(mydrag); }
-                    });
-            })(mydrag);
+				$("#" + mydrag).draggable({
+					cancel: [''],
+					distance: 5,
+					containment: "#fWorkspace",
+					handle: mydrag,
+					start: function() { dragRegister(mydrag); },
+					drag: function() { dragItems(mydrag); },
+					stop: function() { dragStop(mydrag); }
+				});
+			})(mydrag);
 		}
 	},
 	makeResizable : function(event){
-		//for (var i = 0; i < fSel.sI.length; i++) {
-			//make resizable text and instances
-			i = 0;
-			if (fSel.sI[i].match("ins") || (fSel.sI[i].match("t"))) {
-				myresize = fSel.sI[i];
+		// create new resizable
+		for (var i = 0; i < fSel.sI.length; i++) {
+			//if (fSel.sI[i].match("ins") || fSel.sI[i].match("t")) {
+			var myresize = fSel.sI[i];
+			(function(myresize) {
 				$("#" + myresize).resizable({
 					transparent: true,
 					handle: myresize,
@@ -4149,8 +4165,9 @@ var fSel = {
 					resize: updateInfoWH,
 					stop: resizeStop
 				});
-			}
-		//}
+			})(myresize);
+			//}
+		}
 	},
 	highlight : function() {
 		if ((fSel.sI[0] != null)) {
@@ -4222,6 +4239,8 @@ var fSaveLoad = {
 	displayLoad : function() {
 		$(".fSLCore").hide();
 		$("#fSLLoad").show();
+		
+		fSaveLoad.checkLogin();
 	},
 	displayLogin : function() {
 		$(".fSLCore").hide();

@@ -152,15 +152,7 @@
      * @param {Element} to
      */    
     function copyLayout(from, to){
-	    var box = getBox(from);
-        
-        addStyles(to, {
-	        position: 'absolute',                    
-	        left : box.left + 'px',
-	        top : box.top + 'px',
-	        width : from.offsetWidth + 'px',
-	        height : from.offsetHeight + 'px'
-	    });        
+	         
     }
 
     /**

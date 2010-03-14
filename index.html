@@ -1,18 +1,19 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en" id="html">
 <head>
 <title>fluidIA: stage</title>
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
 <link href="engine/css/base.css" rel="stylesheet" type="text/css" />
-<link type="text/css" href="engine/css/themes/base/ui.all.css" rel="stylesheet" />
-<script src="engine/js/jquery-1.4.1.min.js" content="text/javascript"></script>
-<script src="engine/js/jquery.json-1.3.min.js" content="text/javascript"></script>
-<script src="engine/js/jquery-ui-1.7.custom.min.js" content="text/javascript"></script>
-<script src="engine/js/jquery.hotkeys.js" content="text/javascript"></script>
+<link href="engine/css/themes/base/ui.all.css" rel="stylesheet" type="text/css" />
+<link href="/engine/images/favicon4.ico" rel="shortcut icon" type="image/ico" />
+<script src="engine/js/jquery-1.4.2.min.js" type="text/javascript"></script>
+<script src="engine/js/jquery.json-1.3.min.js" type="text/javascript"></script>
+<script src="engine/js/jquery-ui-1.7.custom.min.js" type="text/javascript"></script>
+<script src="engine/js/jquery.hotkeys.js" type="text/javascript"></script>
 <script src="engine/js/jquery.mousewheel.min.js" type="text/javascript"></script>
 <script src="engine/js/jquery.scrollTo-min.js" type="text/javascript"></script>
-<script src="engine/js/base_jquery.js" content="text/javascript"></script>
-<script src="engine/js/webtoolkit.base64.js" content="text/javascript"></script>
-<script src="engine/js/ajaxupload.js" content="text/javascript"></script>
-<link rel="shortcut icon" type="image/ico" href="/engine/images/favicon4.ico" />
+<script src="engine/js/base_jquery.js" type="text/javascript"></script>
+<script src="engine/js/webtoolkit.base64.js" type="text/javascript"></script>
+<script src="engine/js/ajaxupload.js" type="text/javascript"></script>
 </head>
 
 <body id="body">
@@ -228,19 +229,19 @@
 		<table cellpadding="0" cellspacing="0" border="0">
 			<tr>
 				<td rowspan="2">
-					<div class="fTsmall fSMTitle1">Selected State:
-					<a href="#" style="" onclick="fStateManager.editAllStates();" onmouseover="fStateManager.hoverOn('all');" onmouseout="fStateManager.hoverOff();" class="btt btt-edit-all" id="editAll"></a><br>
-					<span class="fT9 fSMStarting">Starting State:</span>	
-				</div>
+					<p>Selected State:</p>
+					<a href="#" onclick="fStateManager.editAllStates();" class="btt btt-edit-all" id="editAll">Edit All</a>
+					<small>Starting State:</small>	
 				</td>
 				<td id="fSMStateName" class="fT12" colspan="100" height="10">State Name 1<br></td>
 			</tr>
 			<tr>
-				<td valign="top" height="55" class="fSMStates"></td>
+				<td valign="top" height="75" class="fSMStates"></td>
 				<td valign="top" width="35">
 					<div class="fSMArrows">
-						<a href="#" style="" onclick="fStateManager.addState();" class="arr arr-add">Add</a><br>
-						<a href="#" style="" onclick="fStateManager.removeState();" class="arr arr-remove">Remove</a>
+						<a href="#" onclick="fStateManager.addState();" class="arr arr-add">Add</a>
+						<a href="#" onclick="fStateManager.removeState();" class="arr arr-remove">Remove</a>
+						<div class="clearing"></div>
 					</div><!-- end .fSMArrows -->
 				</td>
 			</tr>
@@ -250,53 +251,57 @@
 
 
 <div id="fSaveLoad">
-	<div class="fSLCore" id="fSLSave">
-		<div style="position: absolute; top:0px; right: 0px;">
-			<a href="#" style="opacity: 0.2;"><img src="engine/images/b_save_off.png" class="hButton" border="0" title="Save"></a><a href="#" style="opacity: 0.1;" onmouseover="fSaveLoad.displayLoad();"><img src="engine/images/b_load_off.png" class="hButton" border="0" title="Load"></a>
-		</div>
-		<div>
-			<span class="fTThick2">save as</span><br>
+	<div id="fSLSave" class="fSLCore">
+		<div class="d-menu">
+			<a href="#" class="btt btt-save">Save</a> <a href="#" class="btt btt-load" onmouseover="fSaveLoad.displayLoad();">Load</a>
+			<div class="clearing"></div>
+		</div><!-- end .d-menu -->
+		<div class="d-inside">
+			<h3>save as</h3>
 			<div class="fSaveServer">
-			<span class="fT11">a web link:</span><br>
-			<div style="margin: 3px 0 6px 0;">
-				<a href="#" id="fBCreateProject" style="float: right; margin: -3px 0 0 0;" class="btt btt-ok">Ok</a>
-				<span class="fT9 fTDim">fluidia.org/ </span><input type="text" name="urlname" class="fT9 fInput fNoHotKey" id="fSaveAsUrlName" style="width: 95px;">
-				<div class="fTThick2" id="fTaken">taken:(</div>
+			<small>a web link:</small>
+			<div class="d-wrap">
+				<a href="#" id="fBCreateProject" class="btt btt-ok">Ok</a>
+				<span class="s-url">fluidia.org/ </span><input type="text" name="urlname" class="ipt-name fT9 fInput fNoHotKey" id="fSaveAsUrlName">
+				<div id="fTaken">taken:(</div>
+			</div><!-- end .d-wrap -->
 			</div>
-			<br />
-			</div>
-			<span class="fT11">as a local file:</span><br>
-			<a href="#" style="display: block; margin: 3px 0 0 -2px;" onclick="fSaveLoad.saveLocal();" class="btt btt-save-locally">Save Locally</a>
+			<small>as a local file:</small>
+			<a href="#" onclick="fSaveLoad.saveLocal();" class="btt btt-save-locally">Save Locally</a>
 		</div>
-	</div><!-- end .fSLCore -->
-	<div class="fSLCore" id="fSLLoad">
-		<div style="position: absolute; top:0px; right: 0px;">
-			<a href="#" style="opacity: 0.1;" onmouseover="fSaveLoad.displaySave();"><img src="engine/images/b_save_off.png" class="hButton" border="0" title="Save"></a><a href="#" style="opacity: 0.2;"><img src="engine/images/b_load_off.png" class="hButton" border="0" title="Load"></a>
-		</div>
-		<div>
-			<span class="fTThick2">load</span><br>
+	</div>
+	<div id="fSLLoad" class="fSLCore">
+		<div class="d-menu">
+			<a href="#" class="btt btt-save" onmouseover="fSaveLoad.displaySave();">Save</a><a href="#" class="btt btt-load">Load</a>
+			<div class="clearing"></div>
+		</div><!-- end #d-menu -->
+		<div class="d-inside">
+			<h3>load</h3>
 			<div class="fSaveServer">
 			<span class="fT11">a recent web link:</span><br>
 			<ul class="fList">
 				<li><a href="#" onclick="fServer.load();">fluidia.org/test/</a></li>
 				<li><a href="#" onclick="fServer.load();">fluidia.org/test/</a></li>
 			</ul>
-			<br />
 			</div>
-			<span class="fT11">from a local file:</span><br>
-			<a href="#" class="btt btt-load-file" onclick="fSaveLoad.loadLocal();" style="display: block; margin: 3px 0 0 -2px;" id="upload_button">Load File</a>
-		</div>
+			<small>from a local file:</small>
+			<a href="#" class="btt btt-load-file" onclick="fSaveLoad.loadLocal();" id="upload_button">Load File</a>
+		</div><!-- end .d-inside -->
 	</div><!-- end .fSLCore -->
-	<div class="fSLCore" id="fSLLogin">
-		<div style="position: absolute; top:0px; right: 0px;">
-			<a href="#" style="opacity: 0.1;"><img src="engine/images/b_login_off.png" class="hButton" border="0" style="padding-right: 95px;" title="Login"></a>
-		</div>
-		<div>
-			<span class="fTThick2" id="fLoginHeader">login</span><br>
-			<input type="text" name="login" id="fInLogin" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="email"><br>
-			<input type="password" name="password" id="fInPassword" class="fT9 fInput fNoHotKey" style="width: 95px; margin-top: 3px;" value="password"><br>
+	<div id="fSLLogin" class="fSLCore">
+		<div class="d-menu">
+			<a href="#" class="btt btt-login">Login</a>
+		</div><!-- end #d-menu -->
+		<div class="d-inside">
+			<h3 id="fLoginHeader">Login / Register</h3>
+			<div class="d-wrap">
+				<input type="text" name="login" id="fInLogin" class="ipt-email fT9 fInput fNoHotKey" value="email">
+			</div><!-- end .dwrap -->
+			<div class="d-wrap">
+				<input type="password" name="password" id="fInPassword" class="ipt-password fT9 fInput fNoHotKey" value="password">
+			</div><!-- end .d-wrap -->
 			<a href="#" id="fBLogin" class="btt btt-ok">Ok</a>
-		</div>
+		</div><!-- end .d-inside -->
 	</div><!-- end .fSLCore -->
 </div><!-- end #fSaveLoad -->
 
@@ -305,7 +310,7 @@
 	<div class="fTThick">ideas</div>
 	<div id="fIMCore">
 		<div class="fIMHeader fT9 fTBlue">Best Idea:</div>
-		<div class="fTsmall" id="fIdeaTitle">Idea: <span id="fIdeaNumber">1</span></div><br><br>
+		<div class="fTsmall" id="fIdeaTitle">Idea: <span id="fIdeaNumber">1</span></div>
 		<div class="fIMIdeas"></div>
 		<div class="fIMArrows">
 			<a href="#" class="arr arr-add" onclick="fIdeaManager.addIdea();">Add</a>
@@ -321,12 +326,10 @@
 	<div class="fExpAddCore">
 		<table cellpadding="0" cellspacing="0" border="0" width="100%">
 			<tr>
-				<td valign="top" style="padding-top: 10px;">
-					<img src="engine/images/a_arrow.png" border="0" title="Arrow" class="fExpActMouse fActNone">
-				</td>
 				<td valign="top">
-					<div class="fTsmall" style="padding-bottom: 2px;"><a href="#" onclick="fExp.actClearMouse();" class="fT11 fLink" style="float: right;" id="fActMouseClear">clear</a>Mouse: </div>
-					<select class="fInput fExpActMouse fActNone" onchange="fExp.actMouse();" id="fActMouse" style="width: 100%;">
+					<img src="engine/images/a_arrow.png" border="0" title="Arrow" class="fExpActMouse fActNone">
+					<div class="fTsmall"><a href="#" onclick="fExp.actClearMouse();" class="fT11 fLink" style="float: right;" id="fActMouseClear">clear</a>Mouse: </div>
+					<select class="fInput fExpActMouse fActNone" onchange="fExp.actMouse();" id="fActMouse">
 						<option value="none">none</option>
 						<option value="DL">dbl click</option>
 						<option value="L">left click</option>
@@ -334,10 +337,8 @@
 						<option value="M">move to</option>
 					</select>
 				</td>
-				<td valign="top" style="padding-left: 20px; padding-top: 9px;">
-					<img src="engine/images/a_key.png" border="0" title="Arrow" class="fExpActKey fActNone">
-				</td>
 				<td valign="top">
+					<img src="engine/images/a_key.png" border="0" title="Arrow" class="fExpActKey fActNone">
 					<div class="fTsmall" style="padding-bottom: 2px;"><a href="#" onclick="fExp.actClearKey();" class="fT11 fLink" style="float: right;" id="fActKeyClear">clear</a>Keyboard:</div>
 					<input type="text" class="fInput fExpActKey fActNone" id="fActKey" readonly value="">
 				</td>
