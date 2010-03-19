@@ -141,7 +141,6 @@ function fFocusWindow(e){
 
 
 // -------- HotKey Functions -----
-
 function hotkeysEnable() {
 	$.hotkeys.add('Down', function() {fWorkspace.keyShift('down');});
 	$.hotkeys.add('Up', function() {fWorkspace.keyShift('up');});
@@ -154,6 +153,8 @@ function hotkeysEnable() {
 	$.hotkeys.add('Ctrl+C', keyCtrlC);
 	$.hotkeys.add('Ctrl+X', keyCtrlX);
 	$.hotkeys.add('Ctrl+V', keyCtrlV);
+	$(document).unbind("keydown",keypressed);
+	$(document).unbind("keyup",keyreleased);
 	$(document).bind("keydown",keypressed); // detect which keys are pressed for tools, and delete and such
 	$(document).bind("keyup",keyreleased); // detect if some keys are let go (ex. shift)
 }
@@ -207,7 +208,7 @@ function keypressed(event) {
 	//whichkey is set to the keycode number
 	if (event.keyCode != 0) { whichkey = event.keyCode;}
 	if (event.which != 0) { whichkey = event.which;}
-	//alert(whichkey);
+	//$('#fWorkspace').append(whichkey);
 	
 	//handle autotext if lastText is defined 
 	if(fSel.lastText != null) {
