@@ -28,34 +28,8 @@ $(document).ready(function(){
 	fPanelPages.cssPanelWidthCon = parseInt($("#fPanelPages").css("width"));
 	fPanelPages.cssPanelWidthExp = parseInt($("#fPanelPages").css("width")) + 80;
 	
-	
-	
-	//load data from session or standard file
-	var url = '/app/check_session.json';
-	$.ajax({
-		url : '/app/check_session.json',
-	    method : 'GET',
-		dataType : 'json',
-		success: function(data, status){
-			fSaveLoad.latestSession = data.session_count; 
-						
-			//load data from standard file
-			if((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
-				jO.load('projects/project01.json','file'); 	
-			}
-			//load data from session
-			else {
-				fSaveLoad.loadSession();
-			}
-		},
-		error: function() {
-			//load data from standard file
-			if((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
-				jO.load('projects/project01.json','file'); 	
-			}
-		}
- 	});
-	
+	//load data from session or standard file, and pickup project related variables
+	fSaveLoad.checkSession(true); //with load data flag true
 	
 	$("#fWorkspace").fShowMenu({ opacity:0.8,	query: "#fRightClickMenu"},function() {});
 
@@ -322,19 +296,26 @@ function keypressed(event) {
 
 
 function setTone(what){
-	if (fSel.nInst != "") {
-		//remove all classes
-		$("#" + fSel.nInst).removeClass("p1 p2 p3 p4 p5");
+	var changed = false;
+	
+	for (var i = 0; i < fSel.sI.length; i++) {
+		if (fSel.sI[0].match("ins")) {
+			//remove all classes
+			$("#" + fSel.nInst).removeClass("p1 p2 p3 p4 p5");
+			
+			//add
+			$("#" + fSel.nInst).addClass("p" + what);
 		
-		//add
-		$("#" + fSel.nInst).addClass("p" + what);
-		
-		//save
-		for (var i = 0; i < fSel.sI.length; i++) {
-			if(fSession[jO.tr(fSel.sI[0])].editAs == 0) {	jO.update(jO.tr(fSel.sI[i]), {type: "object",t: what});	}
+			//save
+			if(fSession[jO.tr(fSel.sI[i])].editAs == 0) {	jO.update(jO.tr(fSel.sI[i]), {type: "object",t: what});	}
 			//force inheritance and set
 			else if(fSession[jO.tr(fSel.sI[i])].editAs == 1) { jO.update(jO.tr(fSel.sI[i]), {type: "instance",iTone: 0, t:what}); }
+			
+			changed = true;
 		}
+	}
+	
+	if(changed == true) {
 		fWorkspace.redraw(); 
 		fFooter.redrawFooter();
 	}
@@ -551,32 +532,41 @@ function Draw(event){
 				ID = jO.createTxt(txt, position.left, position.top, width, height);
 			}
 
+
+			//force inheritance
+			if (fSel.sI[0].match("ins")) {
+				if (fSession[fSel.sI[0]].editAs == 1) {
+					jO.update(fSel.sI[0], {
+						iContents: 0
+					});
+				}
+				else {
+					jO.update(fSel.sI[0], {
+						iContents: 1
+					});
+				}
+			}
+
 			//instatiate it
 			if (fSel.sI[0] != "fWorkspace") {
 				newInstanceName = jO.instantiate(ID, fSel.sI[0], fSession[fSel.nInst].state);
-				
-				//force inheritance
-				//if 0 editing as Object
-				if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iContents: 1});}
 			}
 			else {
 				newInstanceName = jO.instantiate(ID, fSel.sI[0]);
 			}
 		
+			
+			
+			
+			
+			
+			
 			//update footer
 			fFooter.redrawFooter();
 			
 			//update Workspace
 			//INSTANCE
 			if (fTools.selected == "toolObject") {
-				if (fSel.sI[0] != "fWorkspace") {
-				//redraw parent
-				//fWorkspace.redraw({type: 'object',item: fSel.jInst.of});
-				}
-				else {
-					//redraw itself (to have a label)
-					//fWorkspace.redraw({type: 'instance',item: $(d).attr("id")});
-				}
 				fWorkspace.redraw();
 			}
 			//TXT
@@ -601,6 +591,9 @@ function Draw(event){
 			
 			// do not allow to draw - finished drawing
 			fWorkspace.allowDraw = false;
+			
+			
+			
 		}
 	}
 
@@ -806,7 +799,7 @@ function resizeStop() {
 			}
 			
 		}	
-		// TEXT
+		// TEXT & FORM
 		if ((fSel.sI[i].match("t") != null) || fSel.sI[i].match("f") != null) {
 			//calculate difference in positional change
 			changeX = $("#" + fSel.sI[i]).position().left - jO.jData.elements[jO.tr(fSel.sI[i])].x;
@@ -2805,6 +2798,10 @@ var fWorkspace = {
 		
 		//update project name
 		$("#fProjName").html(jO.jData.project.projectName);	
+		
+		//checkloggedin state
+		fSaveLoad.displayLoggedIn();
+		
 	},
 	redraw : function(options){
 		// takes two properties: type and item
@@ -2912,8 +2909,9 @@ var fWorkspace = {
 					// CONTAINS 
 					// if editing as object just load master object's
 					var contains = false; // does the current instance have anything inside? used to determine label display 
-					if(fSession[jO.tr(item)].editAs == 0){
-						if (instRefState.hasOwnProperty("contains")) {
+					//if(fSession[jO.tr(item)].editAs == 0){
+					if((instRefState.iContents == 1) || (fSession[jO.tr(item)].editAs == 0)){
+						/*if (instRefState.hasOwnProperty("contains")) {
 							//load contents from instance 
 							var count = 0;
 							for (k in instRefState.contains) 
@@ -2928,7 +2926,7 @@ var fWorkspace = {
 								contains = true;
 								attachInsideArray.push(1);
 							}
-						}
+						}*/
 						
 						if (objRefState.hasOwnProperty("contains")) {
 							//load contents from object
@@ -2946,7 +2944,7 @@ var fWorkspace = {
 							}
 						}
 					}
-					//for edit as instance, show both instance items and object (if inheriting)
+					//for edit as instance, show only instance items 
 					else {
 						if (instRefState.hasOwnProperty("contains")) {
 							//load contents from instance 
@@ -2965,7 +2963,7 @@ var fWorkspace = {
 							}
 						}
 						
-						if (objRefState.hasOwnProperty("contains")) {
+						/*if (objRefState.hasOwnProperty("contains")) {
 							//load contents from object
 							count = 0;
 							for (k in objRefState.contains) 
@@ -2979,7 +2977,7 @@ var fWorkspace = {
 								contains = true;
 								attachInsideArray.push(0);
 							}
-						}
+						}*/
 					}
 					
 					// SHOW LABEL
@@ -3103,8 +3101,8 @@ var fWorkspace = {
 		
 		//make draggable / resizable selected items
 		if((fSel.sI[0] != "fWorkspace") && $("#" + fSel.sI[0]).length) {
-			fSel.makeDraggable();
 			fSel.makeResizable();
+			fSel.makeDraggable();
 		}
 
 		//visualize selected items
@@ -4127,8 +4125,8 @@ var fSel = {
 		
 		//make draggable and resizable
 		if (fSel.sI[0] != "fWorkspace") {
-			this.makeDraggable();
 			this.makeResizable();
+			this.makeDraggable();
 		}
 		
 		//highlight
@@ -4155,19 +4153,18 @@ var fSel = {
 	makeResizable : function(event){
 		// create new resizable
 		for (var i = 0; i < fSel.sI.length; i++) {
-			//if (fSel.sI[i].match("ins") || fSel.sI[i].match("t")) {
+			if (fSel.sI[i].match("ins") || fSel.sI[i].match("t") || fSel.sI[i].match("f")) {
 			var myresize = fSel.sI[i];
 			(function(myresize) {
 				$("#" + myresize).resizable({
 					transparent: true,
-					handle: myresize,
 					minHeight: 1,
 					minWidth: 1,
 					resize: updateInfoWH,
 					stop: resizeStop
 				});
 			})(myresize);
-			//}
+			}
 		}
 	},
 	highlight : function() {
@@ -4199,6 +4196,8 @@ var fSaveLoad = {
 	latestSession : null,
 	checkTimer : null,
 	checkTimerLast : null,
+	currentUserId : null,
+	currentProjectId : null,
 	init : function() {
 		//attach onleave fade effects
 		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoad.show);
@@ -4234,20 +4233,70 @@ var fSaveLoad = {
 	displaySave : function() {
 		$(".fSLCore").hide();
 		$("#fSLSave").show();
-		
-		fSaveLoad.checkLogin();
 	},
 	displayLoad : function() {
 		$(".fSLCore").hide();
 		$("#fSLLoad").show();
-		
-		fSaveLoad.checkLogin();
 	},
 	displayLogin : function() {
 		$(".fSLCore").hide();
 		$("#fSLLogin").show();
 		$("#fSaveLoad").unbind("mouseleave",fSaveLoad.hide);
 		$("#fInLogin").bind("keyup",function(){ fSaveLoad.checkTimer = setTimeout("fSaveLoad.checkEmail()",500); clearTimeout(fSaveLoad.checkTimerLast); fSaveLoad.checkTimerLast = fSaveLoad.checkTimer;});
+	},
+	displayLoggedIn : function() {
+		//set username
+		var url = '/app/logged_in.json';
+		
+		//check if user is logged in
+		$.ajax({
+			url : url,
+		    method : 'GET',
+			dataType : 'json',
+			success: function(data, status){
+     			if (data.result == "false") {
+					//error	
+					$("#hLoggedOut").show();
+					$("#hLoggedIn").hide();
+					$(".fSaveServer").hide();
+				}
+				else if (data.result == "true") {
+					//update top header
+					$("#hLoggedOut").hide();
+					$("#hLoggedIn").show();
+					fSaveLoad.hide();
+					
+					//populate projects in load bar
+					var url = '/app/get_user_projects.json';
+					
+					//change login to register
+					$.ajax({
+						url : url,
+					    method : 'GET',
+						dataType : 'json',
+						success: function(data, status){
+			     			//clear old list
+							$("#fProjectList").children().remove();
+							
+							for (var i = 0; i < data.projects.length; i++) {
+								$("#fProjectList").append("<li><a href='#' onclick='fServer.load();'>fluidia.org/" + data.projects[i].name + '</a></li>');
+							}
+							
+							
+						}
+			   		});
+					
+					
+					//update header
+					$(".fSaveServer").show();
+					$(".fUsername").html(data.SESSION.user.userid);
+					fSaveLoad.currentUserId = data.SESSION.user.userid;
+				}
+			},
+			error: function(data,status) {
+				//error
+			}
+   		});
 	},
 	clearField : function(event) {
 		var clickedOn = $(event.target).attr("id");
@@ -4279,6 +4328,37 @@ var fSaveLoad = {
 	taken : function () {
 		//display taken text
 		$("#fTaken").hide().stop(true).show();
+	},
+	checkSession : function (loadFlag) {
+		var url = '/app/check_session.json';
+		$.ajax({
+			url : '/app/check_session.json',
+		    method : 'GET',
+			dataType : 'json',
+			success: function(data, status){
+				fSaveLoad.latestSession = data.session_count; 
+				fSaveLoad.currentProjectId = data.project_id;
+				
+				if (loadFlag == true) {
+					//load data from standard file
+					if ((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
+						jO.load('projects/project01.json', 'file');
+					}
+					//load data from session
+					else {
+						fSaveLoad.loadSession();
+					}
+				}
+			},
+			error: function() {
+				if (loadFlag == true) {
+					//load data from standard file
+					if ((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
+						jO.load('projects/project01.json', 'file');
+					}
+				}
+			}
+	 	});
 	},
 	checkProject : function () {
 		var url = '/app/project_exists.json';
@@ -4320,29 +4400,6 @@ var fSaveLoad = {
 			}
    		});
 	},
-	checkLogin : function() {
-		var url = '/app/logged_in.json';
-		
-		//check if user is logged in
-		$.ajax({
-			url : url,
-		    method : 'GET',
-			dataType : 'json',
-			success: function(data, status){
-     			if (data.result == "false") {
-					//hide save	
-					$(".fSaveServer").hide();
-				}
-				else if (data.result == "true") {
-					$(".fSaveServer").show();
-				}
-			},
-			error: function(data,status) {
-				//hide save
-				$(".fSaveServer").hide();
-			}
-   		});
-	},
 	createProject : function() {
 		 var name = $("#fSaveAsUrlName").val();
 		 var description = $("#fSaveAsUrlName").val();
@@ -4358,12 +4415,14 @@ var fSaveLoad = {
 		
 		//check if password is 6 characters
 		if($("#fInPassword").val().length < 6) {
-			$("#fLoginHeader").html("password must be 6 chars");
+			//$("#fLoginHeader").html("password must be 6 chars");
+			fWorkspace.notify("password must be at least 6 characters long");
 		}
 		
 		//check if email is fine
 		else if(!checkMail($("#fInLogin").val())) {
-			$("#fLoginHeader").html("email needs to be appropriate");
+			//$("#fLoginHeader").html("email needs to be appropriate");
+			fWorkspace.notify("email should be formatted appropriately");
 		}
 		
 		// Attempt Register - check if email exists
@@ -4397,20 +4456,20 @@ var fSaveLoad = {
 								//check login result
 								// inactive user
 								if (data.statuscode == 403) {
-									$("#fLoginHeader").html("user is inactive");
+									//$("#fLoginHeader").html("user is inactive");
+									fWorkspace.notify("User is still inactive");
 								}
-								// wrong password
 								else 
+									// wrong password
 									if (data.statuscode == 401) {
-										$("#fLoginHeader").html("incorrect login");
+										//$("#fLoginHeader").html("incorrect login");
+										fWorkspace.notify("incorrect login");
 									}
 									else 
+										//logged in
 										if (data.result == "logged_in") {
-											$("#hLoggedOut").hide();
-											$("#hLoggedIn").show();
-											fSaveLoad.hide();
-											//set username
-											$(".fUsername").html($("#fInLogin").val());
+											fSaveLoad.displayLoggedIn();
+											fSaveLoad.checkSession(); //grabs project related variables	
 										}
 							},
 							error: function(data, status){
@@ -4448,8 +4507,7 @@ var fSaveLoad = {
 		    method : 'GET',
 			dataType : 'json',
 			success: function(data, status){
-				$("#hLoggedIn").hide();
-				$("#hLoggedOut").show();
+				fSaveLoad.displayLoggedIn();
 			}
    		});
 	},
@@ -4463,28 +4521,47 @@ var fSaveLoad = {
 		}, 4000);
 	},
 	saveSession: function(saveType){
-		var url = '/app/save_session.json';
-		// jQuery
 		var data = jO.jsonToText();
-		$.ajax({
-			url: url,
-			data: "fluidia_object=" + data,
-			type: 'POST',
-			dataType: 'json',
-			success: (function(){
-				if (saveType == 'saveLocal') {
-					var url = '/app/download_session.json';
-					//$.get(url);
-					//window.open(url);
-					setTimeout( function(){
-						$.download(url, 'data=data')
-					},1000);
-					
-					//close window
-					fSaveLoad.hide();
+		var projectId = fSaveLoad.currentProjectId;
+		var projectname = fSaveLoad.currentProjectId;
+		
+		if (fSaveLoad.currentUserId != null) {
+			var url = '/app/save_to_project.json';
+			// jQuery
+			$.ajax({
+				url: url,
+				data: "fluidia_object=" + data + "&project_id=" + projectId + "&project=" +projectname,
+				type: 'POST',
+				dataType: 'json',
+				success: function(){
+					//done
 				}
-			})(saveType)
-		});
+			});
+			
+		}
+		else {
+			var url = '/app/save_session.json';
+			// jQuery
+			$.ajax({
+				url: url,
+				data: "fluidia_object=" + data,
+				type: 'POST',
+				dataType: 'json',
+				success: (function(){
+					if (saveType == 'saveLocal') {
+						var url = '/app/download_session.json';
+						//$.get(url);
+						//window.open(url);
+						setTimeout(function(){
+							$.download(url, 'data=data')
+						}, 1000);
+						
+						//close window
+						fSaveLoad.hide();
+					}
+				})(saveType)
+			});
+		}
 	}
 }
 

@@ -141,10 +141,10 @@ a.btt-states:hover { background-position:-551px -50px; }
 		#header #hSave { padding:7px 0 0 0; position:absolute; right:0; top:0; }
 		#header #hSave a { float:left; margin:0 3px; }
 		#header #hSave > div, #hSave > a { float:left; }
-		#header #hSave a#fBLogout { float:right; margin-top:5px; }
+		#header #hSave a#fBLogout { float:right; margin-top:1px; }
 		.hButton { padding:0 5px 0 0; border:0; }
 			#header #hLoggedOut { }
-			#header #hLoggedIn { text-align:right; padding:0 10px 0 0; width:160px; height:15px; display:none; }		
+			#header #hLoggedIn { text-align:right; padding:0 10px 0 0; width:260px; height:15px; display:none; }		
 
 		/* On hover over anchor buttons */
 		/* SaveLoad Manager Stuff */
