@@ -120,6 +120,7 @@ a.btt-states:hover { background-position:-551px -50px; }
 .w-hold.holding-x { width:110px; height:78px; background-position:-563px -566px !important; }
 .w-hold.hold-c { float:right; position:fixed; bottom:-5px; right:-5px; width:112px; height:37px; background-position:-122px -476px; }
 
+.bg-over { background:url(../images/btt-buttons.png); background-position:-26px -365px; }
 
 /* WRAPPER */
 #wrapper { float:left; width:100%; margin-bottom:2px; }
@@ -410,7 +411,7 @@ div.resizable { cursor:auto; }
 .fSInput { display:inline; float:left; margin-left:-1px; }
 .fSText { clear:left; margin-left:4px; }
 .fEditingObj div div.fSInput input, .fSInput input { font-size:10px; height:15px; background-color:#626FB5; font-family:arial; border:1px solid #3F4985; color:#ffffff;  padding:1px; margin-left:4px; }
-.fSOver { background: url('../images/fSOver.png') no-repeat; }
+
 /* off/unchecked state */
 .fSOff div input { font-size:10px; height:15px; background-color:#FF6600; font-family:arial; border:1px solid #CA5100; color:#ffffff; padding:1px; margin-left:4px; }
 .fSOff .fSTitle { color:#FF6600; }
@@ -449,7 +450,9 @@ div.resizable { cursor:auto; }
 #fTempJData { width:650px; height:550px; background-color:#ffffff; border:1px solid #666666; margin-bottom:3px; float:right; top:20px; left:400px; position:absolute; color:#000000; padding:5px; }
 #fTempJData textarea { width:100%; height:100%; }
 
-
+.hiddenSubmit {
+	display: none;	
+}
 
 
 

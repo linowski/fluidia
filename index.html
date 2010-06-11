@@ -258,6 +258,7 @@
 		</div><!-- end .d-menu -->
 		<div class="d-inside">
 			<h3>save as</h3>
+			<form onsubmit="return false">
 			<div class="fSaveServer">
 			<small>a web link:</small>
 			<div class="d-wrap">
@@ -265,6 +266,8 @@
 				<span class="s-url">fluidia.org/ </span><input type="text" name="urlname" class="ipt-name fT9 fInput fNoHotKey" id="fSaveAsUrlName">
 				<div id="fTaken">taken:(</div>
 			</div><!-- end .d-wrap -->
+			<input id="fBCreateProjectSubmit" class="hiddenSubmit" type="submit" action="">
+			</form>
 			</div>
 			<small>as a local file:</small>
 			<a href="#" onclick="fSaveLoad.saveLocal();" class="btt btt-save-locally">Save Locally</a>
@@ -294,6 +297,7 @@
 		</div><!-- end #d-menu -->
 		<div class="d-inside">
 			<h3 id="fLoginHeader">Login / Register</h3>
+			<form onsubmit="return false">
 			<div class="d-wrap">
 				<input type="text" name="login" id="fInLogin" class="ipt-email fT9 fInput fNoHotKey" value="email">
 			</div><!-- end .dwrap -->
@@ -301,6 +305,8 @@
 				<input type="password" name="password" id="fInPassword" class="ipt-password fT9 fInput fNoHotKey" value="password">
 			</div><!-- end .d-wrap -->
 			<a href="#" id="fBLogin" class="btt btt-ok">Ok</a>
+			<input id="fBLoginSubmit" class="hiddenSubmit" type="submit" action="">
+			</form>
 		</div><!-- end .d-inside -->
 	</div><!-- end .fSLCore -->
 </div><!-- end #fSaveLoad -->

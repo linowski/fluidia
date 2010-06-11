@@ -51,7 +51,8 @@ $(document).ready(function(){
 	$("#xpos").bind("keyup",updateXpos);
 	$("#ypos").bind("keyup",updateYpos);
 	
-	$(".fNoHotKey").bind("focus",hotkeysDisable);
+	//$(".fNoHotKey").bind("focus",hotkeysDisable);
+	$(".fNoHotKey").live("focus",function(){hotkeysDisable(); });
 	$("#fEditing").live("mouseover",function(){$(this).focus()}); //fix for enabling cursor to focus on fEditableText
 	
 	$(window).bind("focus",hotkeysEnable);
@@ -61,25 +62,19 @@ $(document).ready(function(){
 	//first tool
 	toolSelect();
 	
-	
-	//$(window).focus();
-	
-	//bind window focus event to resize
-	//$(window).bind("focus",fWorkspace.setDimensions);
-	
 	//editables
 	$("#fProjName").bind("dblclick", function() {$(this).fEditable();});
 	$("#fObjName").bind("dblclick", function() {$(this).fEditable();});
 	
 	
 	//hovers for fS footer states controler
-	$("div.fEditingInst div div.fSCheck,div.fEditingInst div div.fSTitle").live("mouseover",
+	$("div.fSCheck,div.fSTitle").live("mouseover",
       function () {
-	  	 $(this).parent().addClass('fSOver');
+	  	 $(this).parent().addClass('bg-over');
       });
-	$("div.fEditingInst div div.fSCheck,div.fEditingInst div div.fSTitle").live("mouseout",
+	$("div.fSCheck,div.fSTitle").live("mouseout",
       function () {
-	  	$(this).parent().removeClass('fSOver');
+	  	$(this).parent().removeClass('bg-over');
       });
 	
 	//hovers for instances
@@ -182,7 +177,6 @@ function keypressed(event) {
 	//whichkey is set to the keycode number
 	if (event.keyCode != 0) { whichkey = event.keyCode;}
 	if (event.which != 0) { whichkey = event.which;}
-	//$('#fWorkspace').append(whichkey);
 	
 	//handle autotext if lastText is defined 
 	if(fSel.lastText != null) {
@@ -238,13 +232,11 @@ function keypressed(event) {
 	}
 	shiftPressed = event.shiftKey; // sets as true or false. used by fDebugJson and multiple object selection
 	
-	
 	//V
 	if (whichkey == "86") {
 		$("#buttonfMIToggle").trigger("click");
 		fCBManager.redrawPasteManager();
 	}
-	
 	
 	//E
 	//if (whichkey == "69") {
@@ -288,11 +280,7 @@ function keypressed(event) {
 	
 	// 4 key
 	if (whichkey == "52") { setTone(4); }
-	
-
-	
 }
-
 
 
 function setTone(what){
@@ -896,6 +884,9 @@ function closeEditing(){ // if I have "blur change" together AIR crashes
 	inputElement.remove();
 	
 	hotkeysEnable();
+	
+	//savesession
+	fSaveLoad.saveSessionDelay();
 }
 
 $.fn.fEditableLabel = function() {
@@ -928,6 +919,9 @@ $.fn.fEditableLabel = function() {
 
 	//attach on change
 	clickedElement.find(".fEditableLabel").bind("change blur",fWorkspace.saveLabel);
+	
+	//savesession
+	fSaveLoad.saveSessionDelay();
 }
 
 
@@ -958,6 +952,9 @@ $.fn.fEditableText = function() {
 	
 	//focus the newly created editable input box
 	$("#fEditing").focus();
+	
+	//savesession
+	fSaveLoad.saveSessionDelay();
 }
 
 
@@ -1020,7 +1017,6 @@ function toolText() {
 	killResizable(); // remove all resizable
 	fExp.hideOverview(); //hide threadbar if active
 	
-
 	$("#iconText").addClass("active");
 
 	$("#fWorkspace").bind("mousemove",Draw);
@@ -1184,7 +1180,6 @@ var fSession = {
 	// .state - the remembered state of the instance //this is first prepopulated with jO.load 
 	// .editStatesAs - 0 is one, 1 is all // this is first prepopulated with jO.load 
 	// .changed = 0 or 1 
-	
 	// .sThread - contains last editable thread
 }
 
@@ -1210,6 +1205,7 @@ var jO = {
 			  dataType: 'json',
 			  success: function(data){
 				jO.jData = data;
+				fSaveLoad.currentProjectName = jO.jData.project.projectName;
 				fWorkspace.init();
 				}
 			});
@@ -1535,6 +1531,8 @@ var jO = {
 	},
 	createForm : function(formtype,x,y,width,height) {
 		var newFormId = jO.getAvailableId('form');
+		if(width == undefined) { width = "auto";}
+		if(height == undefined) { height = "auto";}
 		
 		if(x == undefined) { x = 10;}
 		if(y == undefined) { y = 10;}
@@ -1832,7 +1830,6 @@ var jO = {
 						objRef.states[newState].contains[newTxtId] = "";
 					}
 				}
-				//TODO populate events
 			}
 		}
 		
@@ -1851,23 +1848,23 @@ var jO = {
 			//check if newState (determined from objects) does not already exist in instaces. As sometimes obj / inst states get out of syn during idea creation, and it's important not to overwrite existing states
 			if (!jO.jData.instances[instancesToUpdate[i]].states.hasOwnProperty(newState)) {
 				jO.jData.instances[instancesToUpdate[i]].states[newState] = new Object;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].iPos = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].iPos;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].iSize = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].iSize;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].iContents = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].iContents;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].iEvents = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].iEvents;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].iTone = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].iTone;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iPos = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].iPos;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iSize = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].iSize;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iContents = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].iContents;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iEvents = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].iEvents;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].iTone = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].iTone;
 				jO.jData.instances[instancesToUpdate[i]].states[newState].contains = new Object;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].x = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].x;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].y = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].y;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].w = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].w;
-				jO.jData.instances[instancesToUpdate[i]].states[newState].h = jO.jData.instances[fSel.nInst].states[fSession[fSel.nInst].state].h;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].x = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].x;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].y = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].y;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].w = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].w;
+				jO.jData.instances[instancesToUpdate[i]].states[newState].h = jO.jData.instances[instancesToUpdate[i]].states[fSession[fSel.nInst].state].h;
 			}
 		}
 		
-		return(newState);
-		
 		//savesession
 		fSaveLoad.saveSessionDelay();
+		
+		return(newState);
 	},
 	createIdea: function(instance){
 		//CREATING FOR FIRST TIME
@@ -1898,10 +1895,10 @@ var jO = {
 			jO.jData.ideas[objName][newIdeaId].states[state].contains = new Object;
 		}
 		
-		return(newIdeaId);
-		
 		//savesession
 		fSaveLoad.saveSessionDelay();
+		
+		return(newIdeaId);
 	}
 };
 
@@ -2064,7 +2061,6 @@ var fCBManager = {
 	},
 	paste : function() {
 		//instantiate
-		//alert(this.instances[0] + ":" + jO.jData.instances[this.instances[0]].of +  ":" + fSel.sI[0] + ":" + fSession[fSel.nInst].state);
 		
 		//check if the selected item is on the selected page
 		if(!$("#" + fSel.sI[0]).length > 0) {
@@ -2095,7 +2091,6 @@ var fCBManager = {
 
 		//Paste Individual Items
 		for (var i = 0; i < this.instances.length; i++) {
-			//alert(this.instances[i])
 			if (fSel.sI[0].match("ins") || fSel.sI[0].match("fWorkspace")) {
 				//instances
 				if (this.instances[i].match("ins")) {
@@ -2164,10 +2159,6 @@ var fCBManager = {
 			//clear clipboard
 			fCBManager.mode = "empty";
 		}
-			
-		
-		
-		
 	},
 	pasteAsMaster : function() {
 		//clear button Instance
@@ -2546,6 +2537,9 @@ var fStateManager = {
 			
 			//select first state
 			this.chooseState('s1');
+			
+			//savesession
+			fSaveLoad.saveSessionDelay();
 		}
 	},
 	chooseState : function(whichState) {
@@ -2637,8 +2631,17 @@ var fFormManager = {
 			newInstanceName = jO.instantiate(newFormId, fSel.sI[0], fSession[fSel.nInst].state);
 			
 			//force inheritance
-			//if 0 editing as Object
-			//if (fSel.editAs == 0) {jO.update(fSel.nInst, {type: "instance",iContents: 1});}
+			if (fSession[fSel.sI[0]].editAs == 1) {
+				jO.update(fSel.sI[0], {
+					iContents: 0
+				});
+			}
+			else {
+				jO.update(fSel.sI[0], {
+					iContents: 1
+				});
+			}
+
 		}
 		else {
 			newInstanceName = jO.instantiate(newFormId, fSel.sI[0]);
@@ -2797,7 +2800,7 @@ var fWorkspace = {
 		fWorkspace.redraw();
 		
 		//update project name
-		$("#fProjName").html(jO.jData.project.projectName);	
+		$("#fProjName").html(fSaveLoad.currentProjectName);
 		
 		//checkloggedin state
 		fSaveLoad.displayLoggedIn();
@@ -2909,25 +2912,7 @@ var fWorkspace = {
 					// CONTAINS 
 					// if editing as object just load master object's
 					var contains = false; // does the current instance have anything inside? used to determine label display 
-					//if(fSession[jO.tr(item)].editAs == 0){
 					if((instRefState.iContents == 1) || (fSession[jO.tr(item)].editAs == 0)){
-						/*if (instRefState.hasOwnProperty("contains")) {
-							//load contents from instance 
-							var count = 0;
-							for (k in instRefState.contains) 
-								if (instRefState.contains.hasOwnProperty(k)) 
-									count++;
-							//if they have anything inside
-							if (count > 0) {
-								//add references to instances to the array if instances are found
-								attachWhatArray.push(instRefState.contains);
-								//and remember in the parent instances, in order to attach to later
-								attachWhereArray.push(item);
-								contains = true;
-								attachInsideArray.push(1);
-							}
-						}*/
-						
 						if (objRefState.hasOwnProperty("contains")) {
 							//load contents from object
 							count = 0;
@@ -2962,22 +2947,6 @@ var fWorkspace = {
 								attachInsideArray.push(1);
 							}
 						}
-						
-						/*if (objRefState.hasOwnProperty("contains")) {
-							//load contents from object
-							count = 0;
-							for (k in objRefState.contains) 
-								if (objRefState.contains.hasOwnProperty(k)) 
-									count++;
-							//if they have anything inside and inheritance is active 
-							if ((count > 0) && (instRefState.iContents == 1)) {
-								attachWhatArray.push(objRefState.contains);
-								//and remember in the parent instances, in order to attach to later
-								attachWhereArray.push(item);
-								contains = true;
-								attachInsideArray.push(0);
-							}
-						}*/
 					}
 					
 					// SHOW LABEL
@@ -4198,7 +4167,11 @@ var fSaveLoad = {
 	checkTimerLast : null,
 	currentUserId : null,
 	currentProjectId : null,
+	currentProjectName : null,
 	init : function() {
+		//unbind all
+		$("#fInLogin, #fInPassword, #fSave, #fLoad, #fLogin, #fSaveLoad, #fSaveAsUrlName, #fBLogin, #fBLoginSubmit, #fBLogout, #fBCreateProject, #fBCreateProjectSubmit").unbind();
+		
 		//attach onleave fade effects
 		$("#fSave, #fLoad, #fLogin").bind("click",fSaveLoad.show);
 		$("#fSaveLoad").bind("mouseenter",function() {$("#fSaveLoad").stop(true).fadeTo("",1);});
@@ -4209,8 +4182,10 @@ var fSaveLoad = {
 		
 		//bind buttons
 		$("#fBLogin").bind("click",fSaveLoad.login);
+		$("#fBLoginSubmit").bind("click",fSaveLoad.login);
 		$("#fBLogout").bind("click",fSaveLoad.logout);
-		$("#fBCreateProject").bind("click",fSaveLoad.createProject);
+		$("#fBCreateProject").bind("click",function(){fSaveLoad.saveSession('create')});
+		$("#fBCreateProjectSubmit").bind("click",function(){fSaveLoad.saveSession('create')});
 	},
 	show : function(event) {
 		$(window).bind("focus",fSaveLoad.hide);
@@ -4279,13 +4254,17 @@ var fSaveLoad = {
 							$("#fProjectList").children().remove();
 							
 							for (var i = 0; i < data.projects.length; i++) {
-								$("#fProjectList").append("<li><a href='#' onclick='fServer.load();'>fluidia.org/" + data.projects[i].name + '</a></li>');
+								$("#fProjectList").append("<li><a href='#'>fluidia.org/" + data.projects[i].name + '</a></li>');
+								pid = data.projects[i].project_id;
+								
+								(function(pid) {
+									$("#fProjectList").children(':last').bind("mousedown",function(){
+										fSaveLoad.loadProject(pid)
+									});
+								})(pid);
 							}
-							
-							
 						}
 			   		});
-					
 					
 					//update header
 					$(".fSaveServer").show();
@@ -4338,11 +4317,16 @@ var fSaveLoad = {
 			success: function(data, status){
 				fSaveLoad.latestSession = data.session_count; 
 				fSaveLoad.currentProjectId = data.project_id;
+				fSaveLoad.currentProjectName = data.project;
 				
 				if (loadFlag == true) {
 					//load data from standard file
 					if ((fSaveLoad.latestSession == 0) || (fSaveLoad.latestSession == null)) {
 						jO.load('projects/project01.json', 'file');
+					}
+					//load data from checksession
+					else if (fSaveLoad.currentProjectId != null) {
+						jO.load(data.fluidia_object, 'json');
 					}
 					//load data from session
 					else {
@@ -4399,14 +4383,6 @@ var fSaveLoad = {
 				}
 			}
    		});
-	},
-	createProject : function() {
-		 var name = $("#fSaveAsUrlName").val();
-		 var description = $("#fSaveAsUrlName").val();
-		 var url = '/app/create_project.json';
-		
-		 // jQuery
-		 $.post(url, { project : name, description : description } );
 	},
 	login : function () {
 		var username = $("#fInLogin").val();
@@ -4469,8 +4445,8 @@ var fSaveLoad = {
 										//logged in
 										if (data.result == "logged_in") {
 											fSaveLoad.displayLoggedIn();
-											fSaveLoad.checkSession(); //grabs project related variables	
-										}
+											fSaveLoad.checkSession(true); //grabs project related variables	
+									}
 							},
 							error: function(data, status){
 								alert("Ops. Data Error.");
@@ -4490,14 +4466,27 @@ var fSaveLoad = {
 	},
 	loadSession : function () {
 		$.ajax({
-					url: '/app/load_session.json',
-					data: "key=" + fSaveLoad.latestSession,
-					method: 'GET',
-					dataType: 'json',
-					success: function(data, status){
-						jO.load(data,'jsonSession');
-					}
-				});
+			url: '/app/load_session.json',
+			data: "key=" + fSaveLoad.latestSession,
+			method: 'GET',
+			dataType: 'json',
+			success: function(data, status){
+				jO.load(data,'jsonSession');
+			}
+		});
+	},
+	loadProject : function(project_id) {
+		$.ajax({
+			url: '/app/load_from_project.json',
+			data: "project_id=" + project_id,
+			method: 'GET',
+			dataType: 'json',
+			success: function(data, status){
+				fSaveLoad.currentProjectName = data.project;
+				fSaveLoad.currentProjectId = data.project_id;
+				jO.load(data.fluidia_object,'json');
+			}
+		});
 	},
 	logout : function () {
 		var url = '/app/logout.json';
@@ -4507,7 +4496,8 @@ var fSaveLoad = {
 		    method : 'GET',
 			dataType : 'json',
 			success: function(data, status){
-				fSaveLoad.displayLoggedIn();
+				//fSaveLoad.displayLoggedIn();
+				window.location.reload(true);
 			}
    		});
 	},
@@ -4521,27 +4511,33 @@ var fSaveLoad = {
 		}, 4000);
 	},
 	saveSession: function(saveType){
+		var saveType = saveType;
 		var data = jO.jsonToText();
 		var projectId = fSaveLoad.currentProjectId;
-		var projectname = fSaveLoad.currentProjectId;
-		
+		var projectname = fSaveLoad.currentProjectName;
+		if (saveType == 'create') { 
+			var projectId = null;
+			var projectname = $("#fSaveAsUrlName").val(); 
+		}
+
 		if (fSaveLoad.currentUserId != null) {
 			var url = '/app/save_to_project.json';
-			// jQuery
 			$.ajax({
 				url: url,
 				data: "fluidia_object=" + data + "&project_id=" + projectId + "&project=" +projectname,
 				type: 'POST',
 				dataType: 'json',
-				success: function(){
-					//done
+				success: function(data){
+					if (saveType == 'create') {
+						fSaveLoad.currentProjectName = data.project;
+						fSaveLoad.currentProjectId = data.project_id;
+						fWorkspace.init();
+					}
 				}
 			});
-			
 		}
 		else {
 			var url = '/app/save_session.json';
-			// jQuery
 			$.ajax({
 				url: url,
 				data: "fluidia_object=" + data,
@@ -4806,9 +4802,6 @@ var fPanelPages = {
 			}	
 		});
 		
-		//attach extend event
-		//$(this.attachTo).hover(function() {	 $("#fPanelPages").animate({"width" : thisref.cssPanelWidthExp}, {queue : false, duration: 150, easing: "swing"})}, function() {$(this).animate({"width" : thisref.cssPanelWidthCon}, {queue : false, duration: 150, easing: "swing"}); });
-		
 		//attach bg icon in title
 		//grab the existing blank - workaround for not being able to set the background-image property relatively
 		blankBg = $(this.attachTo + " div.panelTitle").css("background-image");
@@ -4928,11 +4921,7 @@ var fPanelPages = {
 		this.selectedPageId = selectWhat;
 
 		this.rememberPageSelectedId = selectWhat;
-		// reposition?
-		
-		//select workspace
-		//fSel.selectObject($("fWorkspace"));
-		
+
 		//redraw workspace
 		fWorkspace.redraw();
 	}

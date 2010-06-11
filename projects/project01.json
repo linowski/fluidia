@@ -1,6 +1,8 @@
 {
-"project": {},
-
+"project": {
+	"projectName": "New Project"
+}
+,
 "threads" : { 
 },
 
