@@ -1920,8 +1920,10 @@ var fCBManager = {
 		if (this.opened == false) {
 			var setx = 0;
 			var sety = 0;
-
-			[setx,sety] = fWorkspace.positionManager('fCBManager');
+//			[setx,sety] = fWorkspace.positionManager('fCBManager');
+			var _temp = fWorkspace.positionManager('fCBManager');
+			setx = _temp[0];
+			sety = _temp[1];
 				
 			//reposition so that cursor is closer to the state selection area
 			setx -= 130;
@@ -1973,7 +1975,10 @@ var fCBManager = {
 			var setx = 0;
 			var sety = 0;
 
-			[setx,sety] = fWorkspace.positionManager('fPManager');
+//			[setx,sety] = fWorkspace.positionManager('fPManager');
+			var _temp = fWorkspace.positionManager('fPManager');
+			setx = _temp[0];
+			sety = _temp[1];
 				
 			//reposition so that cursor is closer to the state selection area
 			setx -= 130;
@@ -2322,7 +2327,10 @@ var fIdeaManager = {
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
 			
-			[setx,sety] = fWorkspace.positionManager('fIdeaManager');
+			//[setx,sety] = fWorkspace.positionManager('fIdeaManager');
+			var _temp = fWorkspace.positionManager('fIdeaManager');
+			setx = _temp[0];
+			sety = _temp[1];
 				
 			//reposition so that cursor is closer to the state selection area
 			setx -= 40;
@@ -2447,7 +2455,10 @@ var fStateManager = {
 			var sety = 0;
 			var rememberedState = fSel.jObj.states[fSession[fSel.nInst].state].sName;
 			
-			[setx,sety] = fWorkspace.positionManager('fStateManager');
+		//	[setx,sety] = fWorkspace.positionManager('fStateManager');
+			var _temp = fWorkspace.positionManager('fStateManager');
+			setx = _temp[0];
+			sety = _temp[1];
 			
 			//reposition so that cursor is closer to the state selection area
 			setx -= 110;
@@ -2585,7 +2596,10 @@ var fFormManager = {
 			var setx = 0;
 			var sety = 0;
 			
-			[setx,sety] = fWorkspace.positionManager('fFormManager');
+			//[setx,sety] = fWorkspace.positionManager('fFormManager');
+			var _temp = fWorkspace.positionManager('fFormManager');
+			setx = _temp[0];
+			sety = _temp[1];
 			
 			//reposition so that cursor is closer to the state selection area
 			setx -= 130;
